@@ -97,7 +97,7 @@ export default function RegisterPage() {
         setError('');
 
         try {
-            await signup(name, email, password);
+            await signup(email, password);
             // TODO: call real preferences API once AuthContext uses real API
             router.push('/trips');
         } catch {

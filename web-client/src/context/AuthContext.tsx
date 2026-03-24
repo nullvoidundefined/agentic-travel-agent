@@ -1,5 +1,6 @@
 'use client';
 
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     createContext,
     useCallback,
@@ -8,51 +9,99 @@ import {
     useState,
 } from 'react';
 
-interface User {
+import { ApiError, get, post } from '@/lib/api';
+
+export interface User {
     id: string;
-    name: string;
     email: string;
+    created_at: string;
+    updated_at: string | null;
 }
 
 interface AuthContextValue {
     user: User | null;
     isLoading: boolean;
     login: (email: string, password: string) => Promise<void>;
-    signup: (name: string, email: string, password: string) => Promise<void>;
+    signup: (email: string, password: string) => Promise<void>;
+    loginWithGoogle: () => Promise<void>;
     logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const queryClient = useQueryClient();
+    const [authError, setAuthError] = useState<string | null>(null);
 
-    const login = useCallback(async (_email: string, _password: string) => {
-        setIsLoading(true);
-        // Simulate API call
-        await new Promise((r) => setTimeout(r, 600));
-        setUser({ id: '1', name: 'Demo User', email: _email });
-        setIsLoading(false);
-    }, []);
-
-    const signup = useCallback(
-        async (_name: string, _email: string, _password: string) => {
-            setIsLoading(true);
-            await new Promise((r) => setTimeout(r, 600));
-            setUser({ id: '1', name: _name, email: _email });
-            setIsLoading(false);
+    const { data, isLoading } = useQuery({
+        queryKey: ['auth', 'me'],
+        queryFn: async () => {
+            try {
+                const res = await get<{ user: User }>('/auth/me');
+                return res.user;
+            } catch (err) {
+                if (err instanceof ApiError && err.status === 401) {
+                    return null;
+                }
+                throw err;
+            }
         },
-        [],
+        retry: false,
+        staleTime: Infinity,
+    });
+
+    const user = data ?? null;
+
+    const login = useCallback(
+        async (email: string, password: string) => {
+            setAuthError(null);
+            const res = await post<{ user: User }>('/auth/login', {
+                email,
+                password,
+            });
+            queryClient.setQueryData(['auth', 'me'], res.user);
+        },
+        [queryClient],
     );
 
-    const logout = useCallback(() => {
-        setUser(null);
+    const signup = useCallback(
+        async (email: string, password: string) => {
+            setAuthError(null);
+            const res = await post<{ user: User }>('/auth/register', {
+                email,
+                password,
+            });
+            queryClient.setQueryData(['auth', 'me'], res.user);
+        },
+        [queryClient],
+    );
+
+    const loginWithGoogle = useCallback(async () => {
+        setAuthError(null);
+        // TODO: implement Google OAuth redirect
+        throw new Error('Google OAuth not yet implemented');
     }, []);
 
+    const logout = useCallback(async () => {
+        try {
+            await post('/auth/logout');
+        } finally {
+            queryClient.setQueryData(['auth', 'me'], null);
+            queryClient.clear();
+        }
+    }, [queryClient]);
+
     const value = useMemo(
-        () => ({ user, isLoading, login, signup, logout }),
-        [user, isLoading, login, signup, logout],
+        () => ({
+            user,
+            isLoading,
+            login,
+            signup,
+            loginWithGoogle,
+            logout,
+            authError,
+        }),
+        [user, isLoading, login, signup, loginWithGoogle, logout, authError],
     );
 
     return (
