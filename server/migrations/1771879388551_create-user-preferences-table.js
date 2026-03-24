@@ -1,5 +1,5 @@
 /** @type {import("node-pg-migrate").MigrationBuilder} */
-exports.up = (pgm) => {
+export const up = (pgm) => {
   pgm.createType("preference_intensity", ["relaxed", "moderate", "active"]);
   pgm.createType("preference_social", ["solo", "couple", "group", "family"]);
 
@@ -19,17 +19,17 @@ exports.up = (pgm) => {
     dietary: {
       type: "text[]",
       notNull: true,
-      default: "'{}'",
+      default: pgm.func("ARRAY[]::text[]"),
     },
     intensity: {
       type: "preference_intensity",
       notNull: true,
-      default: "'moderate'",
+      default: "moderate",
     },
     social: {
       type: "preference_social",
       notNull: true,
-      default: "'couple'",
+      default: "couple",
     },
     created_at: {
       type: "timestamptz",
@@ -54,7 +54,7 @@ exports.up = (pgm) => {
 };
 
 /** @type {import("node-pg-migrate").MigrationBuilder} */
-exports.down = (pgm) => {
+export const down = (pgm) => {
   pgm.dropTable("user_preferences");
   pgm.dropType("preference_social");
   pgm.dropType("preference_intensity");
