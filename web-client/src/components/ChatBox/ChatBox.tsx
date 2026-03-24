@@ -174,6 +174,19 @@ export function ChatBox({ tripId }: ChatBoxProps) {
     return (
         <div className={styles.chatBox}>
             <div className={styles.messageList}>
+                {allMessages.length === 0 && !isSending && (
+                    <div className={`${styles.message} ${styles.assistant}`}>
+                        <div className={styles.roleBadge}>Atlas</div>
+                        <div className={styles.bubble}>
+                            <p>
+                                Hi! I&apos;m Atlas, your AI travel planner. Tell
+                                me where you&apos;d like to go, your budget, and
+                                your dates — I&apos;ll search real flights,
+                                hotels, and experiences to build your itinerary.
+                            </p>
+                        </div>
+                    </div>
+                )}
                 {allMessages.map((msg) => (
                     <div
                         key={msg.id}
