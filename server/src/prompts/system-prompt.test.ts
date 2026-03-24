@@ -75,5 +75,17 @@ describe("system-prompt", () => {
       expect(typeof prompt).toBe("string");
       expect(prompt.length).toBeGreaterThan(100);
     });
+
+    it("includes topic guardrail restricting to travel-related topics", () => {
+      const prompt = buildSystemPrompt();
+      expect(prompt).toMatch(/off.topic|unrelated|only.*travel|decline|politely/i);
+    });
+
+    it("topic guardrail mentions allowed topics", () => {
+      const prompt = buildSystemPrompt();
+      expect(prompt).toContain("travel");
+      expect(prompt).toMatch(/trip|itinerar/i);
+      expect(prompt).toMatch(/user|preference/i);
+    });
   });
 });
