@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 
 import { buildSystemPrompt } from "app/prompts/system-prompt.js";
 import type { TripContext } from "app/prompts/trip-context.js";
+import { insertToolCallLog } from "app/repositories/tool-call-log/tool-call-log.js";
 import { TOOL_DEFINITIONS } from "app/tools/definitions.js";
 import { executeTool } from "app/tools/executor.js";
 import { logger } from "app/utils/logs/logger.js";
@@ -30,6 +31,7 @@ export async function runAgentLoop(
   messages: Anthropic.MessageParam[],
   tripContext: TripContext | undefined,
   onEvent: (event: ProgressEvent) => void,
+  conversationId?: string | null,
 ): Promise<AgentResult> {
   const client = new Anthropic();
   const systemPrompt = buildSystemPrompt(tripContext);
@@ -85,17 +87,34 @@ export async function runAgentLoop(
 
         let result: unknown;
         let isError = false;
+        let errorMessage: string | null = null;
 
+        const startTime = Date.now();
         try {
           result = await executeTool(block.name, input);
         } catch (err) {
           isError = true;
-          result = `Error: ${err instanceof Error ? err.message : String(err)}`;
+          errorMessage = err instanceof Error ? err.message : String(err);
+          result = `Error: ${errorMessage}`;
           logger.error({ err, toolName: block.name }, "Tool execution failed");
         }
+        const latencyMs = Date.now() - startTime;
 
         toolCalls.push({ tool_name: block.name, tool_id: block.id, input, result });
         onEvent({ type: "tool_result", tool_id: block.id, result });
+
+        // Fire-and-forget: log tool call for observability
+        insertToolCallLog({
+          conversation_id: conversationId ?? null,
+          tool_name: block.name,
+          tool_input_json: input,
+          tool_result_json: isError ? null : result,
+          latency_ms: latencyMs,
+          cache_hit: false,
+          error: errorMessage,
+        }).catch((logErr) => {
+          logger.warn({ err: logErr }, "Failed to log tool call");
+        });
 
         toolResults.push({
           type: "tool_result",

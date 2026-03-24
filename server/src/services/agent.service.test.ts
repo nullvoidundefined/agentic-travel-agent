@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { insertToolCallLog } from "app/repositories/tool-call-log/tool-call-log.js";
 import { runAgentLoop } from "app/services/agent.service.js";
 import { executeTool } from "app/tools/executor.js";
 
@@ -21,12 +22,16 @@ vi.mock("app/prompts/system-prompt.js", () => ({
 vi.mock("app/utils/logs/logger.js", () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
+vi.mock("app/repositories/tool-call-log/tool-call-log.js", () => ({
+  insertToolCallLog: vi.fn().mockResolvedValue({}),
+}));
 
 describe("agent.service", () => {
   let mockCreate: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    vi.mocked(insertToolCallLog).mockResolvedValue({} as never);
     process.env.ANTHROPIC_API_KEY = "test-key";
 
     mockCreate = vi.fn();
@@ -246,6 +251,43 @@ describe("agent.service", () => {
       const secondCallMessages = mockCreate.mock.calls[1][0].messages;
       const toolResultMsg = secondCallMessages.find((m: { role: string }) => m.role === "user");
       expect(toolResultMsg).toBeDefined();
+    });
+
+    it("logs tool calls for observability", async () => {
+      mockCreate.mockResolvedValueOnce({
+        stop_reason: "tool_use",
+        content: [
+          {
+            type: "tool_use",
+            id: "toolu_log",
+            name: "search_flights",
+            input: { origin: "SFO", destination: "BCN" },
+          },
+        ],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+
+      vi.mocked(executeTool).mockResolvedValueOnce([{ price: 450 }]);
+
+      mockCreate.mockResolvedValueOnce({
+        stop_reason: "end_turn",
+        content: [{ type: "text", text: "Done." }],
+        usage: { input_tokens: 200, output_tokens: 30 },
+      });
+
+      await runAgentLoop([{ role: "user", content: "test" }], undefined, () => {}, "conv-123");
+
+      // Wait for fire-and-forget promise
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(insertToolCallLog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          conversation_id: "conv-123",
+          tool_name: "search_flights",
+          tool_input_json: { origin: "SFO", destination: "BCN" },
+          error: null,
+        }),
+      );
     });
 
     it("tracks total token usage", async () => {
