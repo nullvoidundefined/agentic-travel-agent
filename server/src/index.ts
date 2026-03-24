@@ -16,6 +16,7 @@ import { rateLimiter } from "app/middleware/rateLimiter/rateLimiter.js";
 import { requestLogger } from "app/middleware/requestLogger/requestLogger.js";
 import { loadSession } from "app/middleware/requireAuth/requireAuth.js";
 import { authRouter } from "app/routes/auth.js";
+import { tripRouter } from "app/routes/trips.js";
 import { logger } from "app/utils/logs/logger.js";
 
 function validateEnv(): void {
@@ -86,6 +87,7 @@ app.get("/health", async (_req, res) => {
 });
 
 app.use("/auth", authRouter);
+app.use("/trips", tripRouter);
 
 // Attach reusable utilities for 404 and error handling.
 app.use(notFoundHandler);
