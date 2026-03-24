@@ -101,7 +101,7 @@ export default function RegisterPage() {
         try {
             await signup(email, password);
             await put('/user-preferences', { dietary, intensity, social });
-            router.push('/trips');
+            router.push('/trips/new');
         } catch (err) {
             const msg =
                 err instanceof ApiError

@@ -6,7 +6,7 @@ import { FormEvent, useState } from 'react';
 
 import { Toast } from '@/components/Toast/Toast';
 import { useAuth } from '@/context/AuthContext';
-import { ApiError } from '@/lib/api';
+import { ApiError, get } from '@/lib/api';
 
 import styles from '../auth.module.scss';
 
@@ -29,7 +29,10 @@ export default function LoginPage() {
 
         try {
             await login(email, password);
-            router.push('/trips');
+            const { trips } = await get<{
+                trips: { id: string }[];
+            }>('/trips');
+            router.push(trips.length > 0 ? '/trips' : '/trips/new');
         } catch (err) {
             const msg =
                 err instanceof ApiError
