@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { use } from 'react';
+import { useParams } from 'next/navigation';
 
 import { ChatBox } from '@/components/ChatBox/ChatBox';
 import { get } from '@/lib/api';
@@ -79,12 +79,8 @@ function formatCurrency(
     }).format(amount);
 }
 
-export default function TripDetailPage({
-    params,
-}: {
-    params: Promise<{ id: string }>;
-}) {
-    const { id } = use(params);
+export default function TripDetailPage() {
+    const { id } = useParams<{ id: string }>();
 
     const {
         data: trip,
