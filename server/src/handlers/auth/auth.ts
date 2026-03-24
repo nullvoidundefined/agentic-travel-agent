@@ -10,7 +10,7 @@ const SESSION_COOKIE_OPTIONS = {
   httpOnly: true,
   maxAge: SESSION_TTL_MS,
   path: "/",
-  sameSite: "lax" as const,
+  sameSite: (isProduction() ? "none" : "lax") as "none" | "lax",
   secure: isProduction(),
 };
 
