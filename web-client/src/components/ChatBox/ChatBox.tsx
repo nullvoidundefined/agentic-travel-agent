@@ -119,15 +119,15 @@ export function ChatBox({ tripId }: ChatBoxProps) {
                 ]);
             } finally {
                 setIsSending(false);
-                // Refresh messages and trip data from server
-                queryClient.invalidateQueries({
+                // Wait for server messages to load before clearing local state
+                await queryClient.invalidateQueries({
                     queryKey: ['messages', tripId],
-                });
-                queryClient.invalidateQueries({
-                    queryKey: ['trips', tripId],
                 });
                 setLocalMessages([]);
                 setStreamingText('');
+                queryClient.invalidateQueries({
+                    queryKey: ['trips', tripId],
+                });
             }
         },
         [input, isSending, tripId, queryClient],
