@@ -7,6 +7,7 @@ import {
   insertMessage,
 } from "app/repositories/conversations/conversations.js";
 import { getTripWithDetails } from "app/repositories/trips/trips.js";
+import { findByUserId as findUserPreferences } from "app/repositories/userPreferences/userPreferences.js";
 import { runAgentLoop } from "app/services/agent.service.js";
 import { logger } from "app/utils/logs/logger.js";
 
@@ -26,6 +27,9 @@ export async function chat(req: Request, res: Response) {
     res.status(404).json({ error: "Trip not found" });
     return;
   }
+
+  // Load user preferences
+  const userPrefs = await findUserPreferences(userId);
 
   // Get or create conversation
   const conversation = await getOrCreateConversation(tripId);
@@ -54,6 +58,9 @@ export async function chat(req: Request, res: Response) {
     budget_currency: trip.budget_currency ?? "USD",
     travelers: trip.travelers ?? 1,
     preferences: {},
+    user_preferences: userPrefs
+      ? { dietary: userPrefs.dietary, intensity: userPrefs.intensity, social: userPrefs.social }
+      : undefined,
     selected_flights: (trip.flights ?? []).map((f) => ({
       airline: f.airline ?? "",
       flight_number: f.flight_number ?? "",

@@ -11,6 +11,11 @@ export interface TripContext {
     pace?: string;
     interests?: string[];
   };
+  user_preferences?: {
+    dietary: string[];
+    intensity: string;
+    social: string;
+  };
   selected_flights: Array<{
     airline: string;
     flight_number: string;
@@ -50,6 +55,16 @@ export function formatTripContext(ctx: TripContext): string {
     if (ctx.preferences.interests?.length) {
       lines.push(`- Interests: ${ctx.preferences.interests.join(", ")}`);
     }
+  }
+
+  if (ctx.user_preferences) {
+    const up = ctx.user_preferences;
+    lines.push("\n### User Preferences");
+    if (up.dietary.length > 0 && !(up.dietary.length === 1 && up.dietary[0] === "none")) {
+      lines.push(`- Dietary: ${up.dietary.join(", ")}`);
+    }
+    lines.push(`- Travel intensity: ${up.intensity}`);
+    lines.push(`- Traveling: ${up.social}`);
   }
 
   if (ctx.selected_flights.length > 0) {
