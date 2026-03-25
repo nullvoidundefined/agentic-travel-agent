@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { ChatBox } from '@/components/ChatBox/ChatBox';
 import { post } from '@/lib/api';
+import { APP_NAME } from '@/lib/constants';
 
 import styles from '../[id]/tripDetail.module.scss';
 
@@ -65,13 +66,13 @@ export default function NewTripPage() {
                 <div>
                     <h1>New Trip</h1>
                     <p className={styles.dates}>
-                        Tell Atlas where you want to go
+                        Tell {APP_NAME} where you want to go
                     </p>
                 </div>
             </div>
 
             <div className={styles.chatSection}>
-                <h2>Chat with Atlas</h2>
+                <h2>Chat with {APP_NAME}</h2>
                 <ChatBox tripId={tripId} />
             </div>
         </div>

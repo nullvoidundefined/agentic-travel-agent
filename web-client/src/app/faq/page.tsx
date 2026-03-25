@@ -1,16 +1,16 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { APP_NAME } from '@/lib/constants';
+
 import styles from './faq.module.scss';
 
 export const metadata: Metadata = {
-    title: 'FAQ — Atlas | AI Trip Planner',
-    description:
-        'Frequently asked questions about Atlas, the AI-powered travel planning agent. Learn how it works, pricing, data sources, and more.',
+    title: `FAQ — ${APP_NAME} | AI Trip Planner`,
+    description: `Frequently asked questions about ${APP_NAME}, the AI-powered travel planning agent. Learn how it works, pricing, data sources, and more.`,
     openGraph: {
-        title: 'FAQ — Atlas | AI Trip Planner',
-        description:
-            'Learn how Atlas uses AI to plan trips with real flight, hotel, and experience data — all within your budget.',
+        title: `FAQ — ${APP_NAME} | AI Trip Planner`,
+        description: `Learn how ${APP_NAME} uses AI to plan trips with real flight, hotel, and experience data — all within your budget.`,
         type: 'website',
     },
     alternates: {
@@ -25,15 +25,15 @@ interface FaqItem {
 
 const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
     {
-        heading: 'How Atlas Works',
+        heading: `How ${APP_NAME} Works`,
         items: [
             {
-                question: 'What is Atlas?',
-                answer: 'Atlas is an AI-powered travel planning agent. You describe your trip — destination, dates, budget, and preferences — and the agent searches real APIs for flights, hotels, and experiences to assemble a complete, budget-aware itinerary. You can then iterate conversationally to refine the plan.',
+                question: `What is ${APP_NAME}?`,
+                answer: `${APP_NAME} is an AI-powered travel planning agent. You describe your trip — destination, dates, budget, and preferences — and the agent searches real APIs for flights, hotels, and experiences to assemble a complete, budget-aware itinerary. You can then iterate conversationally to refine the plan.`,
             },
             {
                 question: 'How does the AI agent work?',
-                answer: 'Atlas uses a multi-step tool-use loop powered by Claude. When you describe a trip, the agent reasons about your requirements and calls real APIs 3-8 times per turn — searching flights, comparing hotels, finding experiences, and tracking your budget between each step. Unlike simple chatbots, the agent makes decisions based on the results it gets back, just like a human travel advisor would.',
+                answer: `${APP_NAME} uses a multi-step tool-use loop powered by Claude. When you describe a trip, the agent reasons about your requirements and calls real APIs 3-8 times per turn — searching flights, comparing hotels, finding experiences, and tracking your budget between each step. Unlike simple chatbots, the agent makes decisions based on the results it gets back, just like a human travel advisor would.`,
             },
             {
                 question: 'Where does the travel data come from?',
@@ -41,11 +41,11 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
             },
             {
                 question: 'How accurate are the prices?',
-                answer: 'Prices are pulled from live APIs at the time of your search and reflect real availability. However, travel prices change frequently — a price shown during planning may shift by the time you book. Atlas is a planning tool, not a booking engine. We always recommend verifying the final price when you book through the airline or hotel directly.',
+                answer: `Prices are pulled from live APIs at the time of your search and reflect real availability. However, travel prices change frequently — a price shown during planning may shift by the time you book. ${APP_NAME} is a planning tool, not a booking engine. We always recommend verifying the final price when you book through the airline or hotel directly.`,
             },
             {
-                question: 'Can I book flights and hotels through Atlas?',
-                answer: 'Not yet. Atlas is currently a planning and itinerary tool. It helps you find the best options within your budget and organizes them into a day-by-day plan. Booking integration is on our roadmap.',
+                question: `Can I book flights and hotels through ${APP_NAME}?`,
+                answer: `Not yet. ${APP_NAME} is currently a planning and itinerary tool. It helps you find the best options within your budget and organizes them into a day-by-day plan. Booking integration is on our roadmap.`,
             },
         ],
     },
@@ -53,20 +53,20 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
         heading: 'Pricing & Business Model',
         items: [
             {
-                question: 'Is Atlas free to use?',
-                answer: 'Atlas offers a free tier that lets you plan up to 3 trips per month. Each trip includes full agent conversations with real flight, hotel, and experience searches.',
+                question: `Is ${APP_NAME} free to use?`,
+                answer: `${APP_NAME} offers a free tier that lets you plan up to 3 trips per month. Each trip includes full agent conversations with real flight, hotel, and experience searches.`,
             },
             {
                 question: 'What does the paid plan include?',
                 answer: 'The Pro plan ($9/month) gives you unlimited trips, priority API access for faster searches, the ability to save and share itineraries, and export to PDF or calendar formats.',
             },
             {
-                question: 'How does Atlas make money?',
-                answer: 'Atlas operates on a freemium subscription model. Free users get a generous planning allowance. Pro subscribers pay a monthly fee for unlimited access and premium features. We do not sell your data, show ads, or take affiliate commissions that bias our recommendations.',
+                question: `How does ${APP_NAME} make money?`,
+                answer: `${APP_NAME} operates on a freemium subscription model. Free users get a generous planning allowance. Pro subscribers pay a monthly fee for unlimited access and premium features. We do not sell your data, show ads, or take affiliate commissions that bias our recommendations.`,
             },
             {
                 question: 'Will recommendations be biased toward partners?',
-                answer: 'No. Atlas has no affiliate partnerships or pay-for-placement deals. The agent optimizes purely for your stated preferences and budget. What you see is what the APIs return, filtered by your criteria.',
+                answer: `No. ${APP_NAME} has no affiliate partnerships or pay-for-placement deals. The agent optimizes purely for your stated preferences and budget. What you see is what the APIs return, filtered by your criteria.`,
             },
         ],
     },
@@ -74,7 +74,7 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
         heading: 'Privacy & Data',
         items: [
             {
-                question: 'What data does Atlas store?',
+                question: `What data does ${APP_NAME} store?`,
                 answer: 'We store your account information (email, name), your saved trips and itineraries, and conversation history so you can pick up where you left off. We cache API responses briefly to improve performance but do not store raw travel search data long-term.',
             },
             {
@@ -91,12 +91,12 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
         heading: 'Technical Details',
         items: [
             {
-                question: 'What AI model powers Atlas?',
-                answer: "Atlas is powered by Anthropic's Claude, using the tool-use API. The agent has access to structured tools for searching flights, hotels, experiences, calculating budgets, and looking up destination information. It decides which tools to call and in what order based on your request.",
+                question: `What AI model powers ${APP_NAME}?`,
+                answer: `${APP_NAME} is powered by Anthropic's Claude, using the tool-use API. The agent has access to structured tools for searching flights, hotels, experiences, calculating budgets, and looking up destination information. It decides which tools to call and in what order based on your request.`,
             },
             {
                 question: 'What is the "tool-use loop"?',
-                answer: 'Traditional chatbots generate a single text response. Atlas uses an agentic loop: the AI receives your message, decides to call a tool (like searching flights), reads the result, reasons about it, then decides the next action. This loop continues until the agent has enough information to present a complete plan. A single turn may involve 3-8 tool calls with reasoning between each one.',
+                answer: `Traditional chatbots generate a single text response. ${APP_NAME} uses an agentic loop: the AI receives your message, decides to call a tool (like searching flights), reads the result, reasons about it, then decides the next action. This loop continues until the agent has enough information to present a complete plan. A single turn may involve 3-8 tool calls with reasoning between each one.`,
             },
             {
                 question:
@@ -141,8 +141,8 @@ export default function FaqPage() {
                 <header className={styles.hero}>
                     <h1>Frequently Asked Questions</h1>
                     <p>
-                        Everything you need to know about how Atlas plans your
-                        trips.
+                        Everything you need to know about how {APP_NAME} plans
+                        your trips.
                     </p>
                 </header>
 

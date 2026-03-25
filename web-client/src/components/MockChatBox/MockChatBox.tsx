@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { APP_NAME } from '@/lib/constants';
+
 import styles from './MockChatBox.module.scss';
 
 interface MockMessage {
@@ -167,7 +169,7 @@ export function MockChatBox() {
                         className={`${styles.message} ${styles[msg.role]} ${styles.fadeIn}`}
                     >
                         <div className={styles.roleBadge}>
-                            {msg.role === 'user' ? 'You' : 'Atlas'}
+                            {msg.role === 'user' ? 'You' : APP_NAME}
                         </div>
                         <div className={styles.bubble}>
                             {msg.content.split('\n').map((line, li) => (
@@ -203,7 +205,7 @@ export function MockChatBox() {
                         <div className={styles.roleBadge}>
                             {DEMO_MESSAGES[visibleCount]?.role === 'user'
                                 ? 'You'
-                                : 'Atlas'}
+                                : APP_NAME}
                         </div>
                         <div className={styles.bubble}>
                             <div className={styles.typing}>

@@ -7,6 +7,7 @@ import { FormEvent, useState } from 'react';
 import { Toast } from '@/components/Toast/Toast';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError, put } from '@/lib/api';
+import { APP_NAME } from '@/lib/constants';
 
 import styles from '../auth.module.scss';
 
@@ -116,7 +117,7 @@ export default function RegisterPage() {
         <div className={styles.page}>
             <div className={styles.card}>
                 <div className={styles.header}>
-                    <h1>Atlas</h1>
+                    <h1>{APP_NAME}</h1>
                     <p>
                         {step === 1
                             ? 'Create an account to get started'
@@ -319,7 +320,7 @@ export default function RegisterPage() {
                         </p>
 
                         <Link href="/faq" className={styles.faqLink}>
-                            How does Atlas work? &rarr;
+                            How does {APP_NAME} work? &rarr;
                         </Link>
                     </>
                 )}

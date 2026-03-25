@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { useAuth } from '@/context/AuthContext';
+import { APP_NAME } from '@/lib/constants';
 
 import styles from './Header.module.scss';
 
@@ -25,7 +26,7 @@ export function Header() {
         <header className={styles.header}>
             <div className={styles.inner}>
                 <Link href="/" className={styles.logo}>
-                    Atlas
+                    {APP_NAME}
                 </Link>
                 <nav className={styles.nav}>
                     {navLinks.map((link) => (

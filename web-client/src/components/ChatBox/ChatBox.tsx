@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 import { get } from '@/lib/api';
+import { APP_NAME } from '@/lib/constants';
 
 import styles from './ChatBox.module.scss';
 import { TripDetailsForm, parseTripFormFields } from './TripDetailsForm';
@@ -212,13 +213,14 @@ export function ChatBox({ tripId }: ChatBoxProps) {
             <div className={styles.messageList}>
                 {allMessages.length === 0 && !isSending && (
                     <div className={`${styles.message} ${styles.assistant}`}>
-                        <div className={styles.roleBadge}>Atlas</div>
+                        <div className={styles.roleBadge}>{APP_NAME}</div>
                         <div className={styles.bubble}>
                             <p>
-                                Hi! I&apos;m Atlas, your AI travel planner. Tell
-                                me where you&apos;d like to go, your budget, and
-                                your dates — I&apos;ll search real flights,
-                                hotels, and experiences to build your itinerary.
+                                Hi! I&apos;m {APP_NAME}, your AI travel planner.
+                                Tell me where you&apos;d like to go, your
+                                budget, and your dates — I&apos;ll search real
+                                flights, hotels, and experiences to build your
+                                itinerary.
                             </p>
                         </div>
                     </div>
@@ -235,7 +237,7 @@ export function ChatBox({ tripId }: ChatBoxProps) {
                             className={`${styles.message} ${styles[msg.role]}`}
                         >
                             <div className={styles.roleBadge}>
-                                {msg.role === 'user' ? 'You' : 'Atlas'}
+                                {msg.role === 'user' ? 'You' : APP_NAME}
                             </div>
                             <div className={styles.bubble}>
                                 {formData ? (
@@ -258,7 +260,7 @@ export function ChatBox({ tripId }: ChatBoxProps) {
 
                 {isSending && tools.length === 0 && !streamingText && (
                     <div className={`${styles.message} ${styles.assistant}`}>
-                        <div className={styles.roleBadge}>Atlas</div>
+                        <div className={styles.roleBadge}>{APP_NAME}</div>
                         <div className={styles.bubble}>
                             <span className={styles.typing}>
                                 <span />
@@ -271,7 +273,7 @@ export function ChatBox({ tripId }: ChatBoxProps) {
 
                 {isSending && tools.length > 0 && (
                     <div className={`${styles.message} ${styles.assistant}`}>
-                        <div className={styles.roleBadge}>Atlas</div>
+                        <div className={styles.roleBadge}>{APP_NAME}</div>
                         <div className={styles.toolProgress}>
                             {tools.map((t) => (
                                 <div key={t.tool_id} className={styles.toolRow}>
@@ -289,7 +291,7 @@ export function ChatBox({ tripId }: ChatBoxProps) {
 
                 {streamingText && isSending && (
                     <div className={`${styles.message} ${styles.assistant}`}>
-                        <div className={styles.roleBadge}>Atlas</div>
+                        <div className={styles.roleBadge}>{APP_NAME}</div>
                         <div className={styles.bubble}>
                             {streamingText.split('\n').map((line, i) => (
                                 <p key={i}>{line}</p>

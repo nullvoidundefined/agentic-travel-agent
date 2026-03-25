@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 
 import { ChatBox } from '@/components/ChatBox/ChatBox';
 import { get } from '@/lib/api';
+import { APP_NAME } from '@/lib/constants';
 
 import styles from './tripDetail.module.scss';
 
@@ -342,7 +343,7 @@ export default function TripDetailPage() {
                 )}
 
             <div className={styles.chatSection}>
-                <h2>Chat with Atlas</h2>
+                <h2>Chat with {APP_NAME}</h2>
                 <ChatBox tripId={trip.id} />
             </div>
         </div>
