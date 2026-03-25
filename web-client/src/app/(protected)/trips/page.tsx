@@ -65,7 +65,20 @@ export default function TripsPage() {
 
     const deleteMutation = useMutation({
         mutationFn: (tripId: string) => del(`/trips/${tripId}`),
-        onSuccess: () => {
+        onMutate: async (tripId: string) => {
+            await queryClient.cancelQueries({ queryKey: ['trips'] });
+            const previous = queryClient.getQueryData<Trip[]>(['trips']);
+            queryClient.setQueryData<Trip[]>(['trips'], (old) =>
+                old ? old.filter((t) => t.id !== tripId) : [],
+            );
+            return { previous };
+        },
+        onError: (_err, _tripId, context) => {
+            if (context?.previous) {
+                queryClient.setQueryData(['trips'], context.previous);
+            }
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ['trips'] });
         },
     });

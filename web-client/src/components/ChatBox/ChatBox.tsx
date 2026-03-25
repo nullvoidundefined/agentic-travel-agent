@@ -56,6 +56,53 @@ export function ChatBox({ tripId }: ChatBoxProps) {
                 return;
             }
 
+            function handleSSEEvent(
+                eventType: string,
+                data: Record<string, unknown>,
+            ) {
+                switch (eventType) {
+                    case 'tool_start':
+                        setTools((prev) => [
+                            ...prev,
+                            {
+                                tool_name: data.tool_name as string,
+                                tool_id: data.tool_id as string,
+                                status: 'running',
+                            },
+                        ]);
+                        break;
+                    case 'tool_result':
+                        setTools((prev) => {
+                            const completedTool = prev.find(
+                                (t) => t.tool_id === data.tool_id,
+                            );
+                            // Refresh trip data when update_trip completes
+                            if (completedTool?.tool_name === 'update_trip') {
+                                queryClient.invalidateQueries({
+                                    queryKey: ['trips', tripId],
+                                });
+                            }
+                            return prev.map((t) =>
+                                t.tool_id === data.tool_id
+                                    ? { ...t, status: 'done' as const }
+                                    : t,
+                            );
+                        });
+                        break;
+                    case 'assistant':
+                        setStreamingText(data.text as string);
+                        break;
+                    case 'done':
+                        setStreamingText(data.response as string);
+                        break;
+                    case 'error':
+                        setStreamingText(
+                            (data.error as string) ?? 'An error occurred.',
+                        );
+                        break;
+                }
+            }
+
             setInput('');
             setIsSending(true);
             setStreamingText('');
@@ -132,41 +179,6 @@ export function ChatBox({ tripId }: ChatBoxProps) {
         },
         [input, isSending, tripId, queryClient],
     );
-
-    function handleSSEEvent(eventType: string, data: Record<string, unknown>) {
-        switch (eventType) {
-            case 'tool_start':
-                setTools((prev) => [
-                    ...prev,
-                    {
-                        tool_name: data.tool_name as string,
-                        tool_id: data.tool_id as string,
-                        status: 'running',
-                    },
-                ]);
-                break;
-            case 'tool_result':
-                setTools((prev) =>
-                    prev.map((t) =>
-                        t.tool_id === data.tool_id
-                            ? { ...t, status: 'done' as const }
-                            : t,
-                    ),
-                );
-                break;
-            case 'assistant':
-                setStreamingText(data.text as string);
-                break;
-            case 'done':
-                setStreamingText(data.response as string);
-                break;
-            case 'error':
-                setStreamingText(
-                    (data.error as string) ?? 'An error occurred.',
-                );
-                break;
-        }
-    }
 
     const toolLabel = (name: string) =>
         name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
