@@ -6,6 +6,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { get } from '@/lib/api';
 
 import styles from './ChatBox.module.scss';
+import { TripDetailsForm, parseTripFormFields } from './TripDetailsForm';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -48,10 +49,8 @@ export function ChatBox({ tripId }: ChatBoxProps) {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [allMessages.length, streamingText]);
 
-    const handleSubmit = useCallback(
-        async (e: FormEvent) => {
-            e.preventDefault();
-            const msg = input.trim();
+    const sendMessage = useCallback(
+        async (msg: string) => {
             if (!msg || isSending) {
                 return;
             }
@@ -76,7 +75,6 @@ export function ChatBox({ tripId }: ChatBoxProps) {
                             const completedTool = prev.find(
                                 (t) => t.tool_id === data.tool_id,
                             );
-                            // Refresh trip data when update_trip completes
                             if (completedTool?.tool_name === 'update_trip') {
                                 queryClient.invalidateQueries({
                                     queryKey: ['trips', tripId],
@@ -103,12 +101,10 @@ export function ChatBox({ tripId }: ChatBoxProps) {
                 }
             }
 
-            setInput('');
             setIsSending(true);
             setStreamingText('');
             setTools([]);
 
-            // Add user message locally
             const userMsg: Message = {
                 id: `local-${Date.now()}`,
                 role: 'user',
@@ -166,7 +162,6 @@ export function ChatBox({ tripId }: ChatBoxProps) {
                 ]);
             } finally {
                 setIsSending(false);
-                // Wait for server messages to load before clearing local state
                 await queryClient.invalidateQueries({
                     queryKey: ['messages', tripId],
                 });
@@ -177,11 +172,40 @@ export function ChatBox({ tripId }: ChatBoxProps) {
                 });
             }
         },
-        [input, isSending, tripId, queryClient],
+        [isSending, tripId, queryClient],
+    );
+
+    const handleSubmit = useCallback(
+        (e: FormEvent) => {
+            e.preventDefault();
+            const msg = input.trim();
+            if (!msg) {
+                return;
+            }
+            setInput('');
+            sendMessage(msg);
+        },
+        [input, sendMessage],
     );
 
     const toolLabel = (name: string) =>
         name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+    function renderText(text: string) {
+        if (!text.trim()) {
+            return null;
+        }
+        return text.split('\n').map((line, i) => (
+            <p key={i}>
+                {line.split(/(\*\*.*?\*\*)/).map((part, j) => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                        return <strong key={j}>{part.slice(2, -2)}</strong>;
+                    }
+                    return part;
+                })}
+            </p>
+        ));
+    }
 
     return (
         <div className={styles.chatBox}>
@@ -199,37 +223,38 @@ export function ChatBox({ tripId }: ChatBoxProps) {
                         </div>
                     </div>
                 )}
-                {allMessages.map((msg) => (
-                    <div
-                        key={msg.id}
-                        className={`${styles.message} ${styles[msg.role]}`}
-                    >
-                        <div className={styles.roleBadge}>
-                            {msg.role === 'user' ? 'You' : 'Atlas'}
+                {allMessages.map((msg) => {
+                    const formData =
+                        msg.role === 'assistant'
+                            ? parseTripFormFields(msg.content)
+                            : null;
+
+                    return (
+                        <div
+                            key={msg.id}
+                            className={`${styles.message} ${styles[msg.role]}`}
+                        >
+                            <div className={styles.roleBadge}>
+                                {msg.role === 'user' ? 'You' : 'Atlas'}
+                            </div>
+                            <div className={styles.bubble}>
+                                {formData ? (
+                                    <>
+                                        {renderText(formData.before)}
+                                        <TripDetailsForm
+                                            fields={formData.fields}
+                                            onSubmit={sendMessage}
+                                            disabled={isSending}
+                                        />
+                                        {renderText(formData.after)}
+                                    </>
+                                ) : (
+                                    renderText(msg.content)
+                                )}
+                            </div>
                         </div>
-                        <div className={styles.bubble}>
-                            {msg.content.split('\n').map((line, i) => (
-                                <p key={i}>
-                                    {line
-                                        .split(/(\*\*.*?\*\*)/)
-                                        .map((part, j) => {
-                                            if (
-                                                part.startsWith('**') &&
-                                                part.endsWith('**')
-                                            ) {
-                                                return (
-                                                    <strong key={j}>
-                                                        {part.slice(2, -2)}
-                                                    </strong>
-                                                );
-                                            }
-                                            return part;
-                                        })}
-                                </p>
-                            ))}
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
 
                 {isSending && tools.length === 0 && !streamingText && (
                     <div className={`${styles.message} ${styles.assistant}`}>
