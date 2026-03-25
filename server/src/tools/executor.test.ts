@@ -5,10 +5,12 @@ vi.mock("app/tools/hotels.tool.js");
 vi.mock("app/tools/experiences.tool.js");
 vi.mock("app/tools/budget.tool.js");
 vi.mock("app/tools/destination.tool.js");
+vi.mock("app/repositories/trips/trips.js");
 vi.mock("app/utils/logs/logger.js", () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
+import { updateTrip } from "app/repositories/trips/trips.js";
 import { calculateRemainingBudget } from "app/tools/budget.tool.js";
 import { getDestinationInfo } from "app/tools/destination.tool.js";
 import { executeTool } from "app/tools/executor.js";
@@ -106,6 +108,42 @@ describe("executor", () => {
 
       expect(getDestinationInfo).toHaveBeenCalledWith({ city_name: "Barcelona" });
       expect(result).toEqual(destResult);
+    });
+
+    it("dispatches update_trip to trips repository", async () => {
+      vi.mocked(updateTrip).mockResolvedValueOnce({
+        id: "trip-1",
+        user_id: "user-1",
+        destination: "Barcelona",
+        origin: null,
+        departure_date: "2026-07-01",
+        return_date: "2026-07-06",
+        budget_total: 3000,
+        budget_currency: "USD",
+        travelers: 1,
+        preferences: {},
+        status: "planning",
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+
+      const result = await executeTool(
+        "update_trip",
+        { destination: "Barcelona", budget_total: 3000 },
+        { tripId: "trip-1", userId: "user-1" },
+      );
+
+      expect(updateTrip).toHaveBeenCalledWith("trip-1", "user-1", {
+        destination: "Barcelona",
+        budget_total: 3000,
+      });
+      expect(result).toEqual({ success: true, message: "Trip updated successfully" });
+    });
+
+    it("throws for update_trip without context", async () => {
+      await expect(executeTool("update_trip", { destination: "Barcelona" })).rejects.toThrow(
+        "update_trip requires trip context",
+      );
     });
 
     it("throws for unknown tool name", async () => {

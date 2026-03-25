@@ -98,6 +98,7 @@ export async function chat(req: Request, res: Response) {
         res.write(`event: ${eventType}\ndata: ${JSON.stringify(event)}\n\n`);
       },
       conversation.id,
+      { tripId, userId },
     );
 
     // Persist assistant message

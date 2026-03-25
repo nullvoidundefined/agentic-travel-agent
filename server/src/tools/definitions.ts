@@ -121,6 +121,37 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    name: "update_trip",
+    description:
+      "Update the current trip's destination, dates, and/or budget. Call this as soon as the user's destination, travel dates, or budget are determined from the conversation. This persists the information so the trip card shows real details instead of placeholders.",
+    input_schema: {
+      type: "object",
+      properties: {
+        destination: {
+          type: "string",
+          description: "Trip destination city name (e.g., Barcelona, Tokyo)",
+        },
+        origin: {
+          type: "string",
+          description: "Trip origin city name (optional)",
+        },
+        departure_date: {
+          type: "string",
+          description: "Departure date in YYYY-MM-DD format (optional)",
+        },
+        return_date: {
+          type: "string",
+          description: "Return date in YYYY-MM-DD format (optional)",
+        },
+        budget_total: {
+          type: "number",
+          description: "Total trip budget in USD (optional)",
+        },
+      },
+      required: [],
+    },
+  },
+  {
     name: "get_destination_info",
     description:
       "Look up IATA airport code, country, timezone, currency, and best time to visit for a city. Use this to resolve city names to IATA codes before calling search_flights or search_hotels.",

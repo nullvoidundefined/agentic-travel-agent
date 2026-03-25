@@ -4,7 +4,7 @@ import { buildSystemPrompt } from "app/prompts/system-prompt.js";
 import type { TripContext } from "app/prompts/trip-context.js";
 import { insertToolCallLog } from "app/repositories/tool-call-log/tool-call-log.js";
 import { TOOL_DEFINITIONS } from "app/tools/definitions.js";
-import { executeTool } from "app/tools/executor.js";
+import { executeTool, type ToolContext } from "app/tools/executor.js";
 import { logger } from "app/utils/logs/logger.js";
 
 const MAX_TOOL_CALLS = 15;
@@ -32,6 +32,7 @@ export async function runAgentLoop(
   tripContext: TripContext | undefined,
   onEvent: (event: ProgressEvent) => void,
   conversationId?: string | null,
+  toolContext?: ToolContext,
 ): Promise<AgentResult> {
   const client = new Anthropic();
   const systemPrompt = buildSystemPrompt(tripContext);
@@ -91,7 +92,7 @@ export async function runAgentLoop(
 
         const startTime = Date.now();
         try {
-          result = await executeTool(block.name, input);
+          result = await executeTool(block.name, input, toolContext);
         } catch (err) {
           isError = true;
           errorMessage = err instanceof Error ? err.message : String(err);

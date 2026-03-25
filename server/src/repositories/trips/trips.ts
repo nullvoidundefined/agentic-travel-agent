@@ -68,6 +68,41 @@ export async function getTripWithDetails(
   };
 }
 
+export interface UpdateTripInput {
+  destination?: string;
+  origin?: string;
+  departure_date?: string;
+  return_date?: string;
+  budget_total?: number;
+}
+
+export async function updateTrip(
+  tripId: string,
+  userId: string,
+  input: UpdateTripInput,
+): Promise<Trip | null> {
+  const setClauses: string[] = [];
+  const values: unknown[] = [];
+  let paramIndex = 1;
+
+  for (const [key, value] of Object.entries(input)) {
+    if (value !== undefined) {
+      setClauses.push(`${key} = $${paramIndex}`);
+      values.push(value);
+      paramIndex++;
+    }
+  }
+
+  if (setClauses.length === 0) return null;
+
+  values.push(tripId, userId);
+  const result = await query<Trip>(
+    `UPDATE trips SET ${setClauses.join(", ")} WHERE id = $${paramIndex} AND user_id = $${paramIndex + 1} RETURNING *`,
+    values,
+  );
+  return result.rows[0] ?? null;
+}
+
 export async function deleteTrip(tripId: string, userId: string): Promise<boolean> {
   const result = await query(`DELETE FROM trips WHERE id = $1 AND user_id = $2 RETURNING id`, [
     tripId,

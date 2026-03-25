@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { TOOL_DEFINITIONS } from "app/tools/definitions.js";
 
 describe("tool definitions", () => {
-  it("exports exactly 5 tool definitions", () => {
-    expect(TOOL_DEFINITIONS).toHaveLength(5);
+  it("exports exactly 6 tool definitions", () => {
+    expect(TOOL_DEFINITIONS).toHaveLength(6);
   });
 
   const expectedTools = [
@@ -12,6 +12,7 @@ describe("tool definitions", () => {
     "search_hotels",
     "search_experiences",
     "calculate_remaining_budget",
+    "update_trip",
     "get_destination_info",
   ];
 
