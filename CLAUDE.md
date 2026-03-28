@@ -34,24 +34,24 @@ The agent loop runs synchronously on the API server. The agent needs immediate r
 ```bash
 cd web-client && npx vercel --prod
 ```
-- Vercel project `app-8-agentic-travel-agent`, domain `interviewiangreenough.xyz`
+- Vercel project `agentic-travel-agent`, domain `interviewiangreenough.xyz`
 - `.vercel/` link lives in `web-client/` — always deploy from there
 - `web-client/vercel.json` sets `"framework": "nextjs"`
 - Do NOT set `outputFileTracingRoot` in `next.config.ts` (causes Vercel path doubling error)
 
 ### Railway (server)
 ```bash
-cd application && railway up --detach
+railway up --detach
 ```
-- Railway CLI is linked to `application/` (the monorepo root, where `Dockerfile.server` lives)
+- Railway CLI is linked to the monorepo root, where `Dockerfile.server` lives
 - `railway.toml` sets `dockerfilePath = "Dockerfile.server"`
 - Railway dashboard Build → Dockerfile Path must be `Dockerfile.server`
 - `CORS_ORIGIN` env var is comma-separated: `https://interviewiangreenough.xyz,https://web-client-green-ten.vercel.app`
 
 ### Deploy pitfalls
-- **Wrong directory:** Railway must run from `application/`, not `server/` or the parent. Vercel must run from `web-client/`, not the root.
+- **Wrong directory:** Railway must run from the monorepo root, not `server/`. Vercel must run from `web-client/`, not the root.
 - **Nixpacks conflict:** Never set `NIXPACKS_ROOT_DIR` or `NIXPACKS_CONFIG_FILE` env vars — they override the Dockerfile.
-- **Stale Railway link:** If build logs show `application/` as a subdirectory, relink: `railway link -p d05e2e2b-d70f-4ea6-ae2c-4e0f61a928b4 -s 97a57f4c-65d1-403c-80cf-8c0b742af04f -e production` from inside `application/`.
+- **Stale Railway link:** If build logs show the wrong directory, relink: `railway link -p d05e2e2b-d70f-4ea6-ae2c-4e0f61a928b4 -s 97a57f4c-65d1-403c-80cf-8c0b742af04f -e production` from the monorepo root.
 
 ## Commit conventions
 - Make **separate commits** for unrelated tasks — do not bundle unrelated changes into one commit.
