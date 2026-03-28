@@ -74,7 +74,11 @@ query("SELECT NOW()")
   .then(() => logger.info("Connected to database"))
   .catch((err: unknown) => logger.error({ err }, "Database connection failed"));
 
-app.get("/health", async (_req, res) => {
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
+app.get("/health/ready", async (_req, res) => {
   try {
     await query("SELECT 1");
     res.status(200).json({ status: "ok", db: "connected" });
