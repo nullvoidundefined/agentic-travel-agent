@@ -13,3 +13,6 @@ coverage/
 # Logs
 *.log
 .vercel
+
+# Claude Code local settings
+.claude/
