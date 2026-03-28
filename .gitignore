@@ -16,3 +16,7 @@ coverage/
 
 # Claude Code local settings
 .claude/
+.DS_Store
+
+web-client/playwright-report/
+web-client/test-results/
