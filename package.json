@@ -15,9 +15,16 @@
     "format:check": "pnpm -r run format:check",
     "test": "pnpm --filter agentic-travel-agent-server run test",
     "test:coverage": "pnpm --filter agentic-travel-agent-server run test:coverage",
-    "prepare": "git rev-parse --git-dir > /dev/null 2>&1 && lefthook install || true"
+    "prepare": "git rev-parse --git-dir > /dev/null 2>&1 && lefthook install || true",
+    "bottomlessmargaritas:format": "prettier --config prettier.config.bottomlessmargaritas.js --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "bottomlessmargaritas:format:check": "prettier --config prettier.config.bottomlessmargaritas.js --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "bottomlessmargaritas:lint": "eslint --config eslint.config.bottomlessmargaritas.js .",
+    "bottomlessmargaritas:lint:fix": "eslint --config eslint.config.bottomlessmargaritas.js . --fix"
   },
   "devDependencies": {
     "lefthook": "^2.1.1"
+  },
+  "dependencies": {
+    "@bottomlessmargaritas/formatting-configs": "^2.1.0"
   }
 }
