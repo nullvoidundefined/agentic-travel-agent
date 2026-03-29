@@ -61,6 +61,7 @@ describe('auth handlers', () => {
     it('returns 400 when body invalid', async () => {
       const res = await request(app).post('/register').send({});
       expect(res.status).toBe(400);
+      expect(res.body.error).toBe('VALIDATION_ERROR');
       expect(authRepo.createUserAndSession).not.toHaveBeenCalled();
     });
     it('returns 201 and sets cookie when created', async () => {
@@ -105,7 +106,8 @@ describe('auth handlers', () => {
       });
 
       expect(res.status).toBe(409);
-      expect(res.body.error.message).toBe('Email already registered');
+      expect(res.body.error).toBe('CONFLICT');
+      expect(res.body.message).toBe('Email already registered');
     });
     it('returns 500 on other errors', async () => {
       vi.mocked(authRepo.createUserAndSession).mockRejectedValueOnce(
@@ -120,7 +122,8 @@ describe('auth handlers', () => {
       });
 
       expect(res.status).toBe(500);
-      expect(res.body.error.message).toBeDefined();
+      expect(res.body.error).toBe('INTERNAL_ERROR');
+      expect(res.body.message).toBeDefined();
     });
   });
 
@@ -128,6 +131,7 @@ describe('auth handlers', () => {
     it('returns 400 when body invalid', async () => {
       const res = await request(app).post('/login').send({});
       expect(res.status).toBe(400);
+      expect(res.body.error).toBe('VALIDATION_ERROR');
       expect(authRepo.findUserByEmail).not.toHaveBeenCalled();
     });
     it('returns 401 when user not found', async () => {
@@ -138,7 +142,8 @@ describe('auth handlers', () => {
         .send({ email: 'nobody@example.com', password: 'any' });
 
       expect(res.status).toBe(401);
-      expect(res.body.error.message).toBe('Invalid email or password');
+      expect(res.body.error).toBe('UNAUTHORIZED');
+      expect(res.body.message).toBe('Invalid email or password');
     });
     it('returns 401 when password invalid', async () => {
       vi.mocked(authRepo.findUserByEmail).mockResolvedValueOnce(mockUser);
@@ -149,7 +154,8 @@ describe('auth handlers', () => {
         .send({ email: 'user@example.com', password: 'wrong' });
 
       expect(res.status).toBe(401);
-      expect(res.body.error.message).toBe('Invalid email or password');
+      expect(res.body.error).toBe('UNAUTHORIZED');
+      expect(res.body.message).toBe('Invalid email or password');
     });
     it('returns 200 and sets cookie when valid', async () => {
       vi.mocked(authRepo.findUserByEmail).mockResolvedValueOnce(mockUser);
@@ -181,7 +187,8 @@ describe('auth handlers', () => {
         .send({ email: 'user@example.com', password: 'password123' });
 
       expect(res.status).toBe(500);
-      expect(res.body.error.message).toBeDefined();
+      expect(res.body.error).toBe('INTERNAL_ERROR');
+      expect(res.body.message).toBeDefined();
     });
   });
 
@@ -218,7 +225,8 @@ describe('auth handlers', () => {
     it('returns 401 when not authenticated', async () => {
       const res = await request(app).get('/me');
       expect(res.status).toBe(401);
-      expect(res.body.error.message).toBe('Authentication required');
+      expect(res.body.error).toBe('UNAUTHORIZED');
+      expect(res.body.message).toBe('Authentication required');
     });
     it('returns 200 with user when req.user set', async () => {
       const res = await request(app).get('/me').set('x-test-user', '1');

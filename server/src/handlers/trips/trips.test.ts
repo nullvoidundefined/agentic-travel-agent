@@ -65,6 +65,7 @@ describe('trip handlers', () => {
     it('returns 400 when destination is missing', async () => {
       const res = await request(app).post('/trips').send({});
       expect(res.status).toBe(400);
+      expect(res.body.error).toBe('VALIDATION_ERROR');
       expect(tripRepo.createTrip).not.toHaveBeenCalled();
     });
 
@@ -122,6 +123,7 @@ describe('trip handlers', () => {
         .send({ destination: 'Barcelona' });
 
       expect(res.status).toBe(500);
+      expect(res.body.error).toBe('INTERNAL_ERROR');
     });
   });
 
@@ -154,7 +156,8 @@ describe('trip handlers', () => {
       const res = await request(app).get(`/trips/${tripId}`);
 
       expect(res.status).toBe(404);
-      expect(res.body.error.message).toBe('Trip not found');
+      expect(res.body.error).toBe('NOT_FOUND');
+      expect(res.body.message).toBe('Trip not found');
     });
 
     it('returns trip with details', async () => {
@@ -181,6 +184,7 @@ describe('trip handlers', () => {
       const res = await request(app).delete(`/trips/${tripId}`);
 
       expect(res.status).toBe(404);
+      expect(res.body.error).toBe('NOT_FOUND');
     });
 
     it('returns 204 on successful delete', async () => {

@@ -52,6 +52,7 @@ describe('userPreferences handlers', () => {
       const app = buildApp(false);
       const res = await request(app).get('/user-preferences');
       expect(res.status).toBe(401);
+      expect(res.body.error).toBe('UNAUTHORIZED');
     });
 
     it('returns 200 with preferences when found', async () => {
@@ -92,6 +93,7 @@ describe('userPreferences handlers', () => {
       const app = buildApp(false);
       const res = await request(app).put('/user-preferences').send({});
       expect(res.status).toBe(401);
+      expect(res.body.error).toBe('UNAUTHORIZED');
     });
 
     it('returns 400 when body invalid', async () => {
@@ -101,6 +103,7 @@ describe('userPreferences handlers', () => {
         .send({ dietary: ['invalid_option'], intensity: 'extreme' });
 
       expect(res.status).toBe(400);
+      expect(res.body.error).toBe('VALIDATION_ERROR');
       expect(prefsRepo.upsert).not.toHaveBeenCalled();
     });
 
@@ -161,6 +164,7 @@ describe('userPreferences handlers', () => {
         .send({ dietary: [], intensity: 'moderate', social: 'solo' });
 
       expect(res.status).toBe(500);
+      expect(res.body.error).toBe('INTERNAL_ERROR');
     });
   });
 });

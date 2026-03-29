@@ -16,14 +16,16 @@ export async function chat(req: Request, res: Response) {
   const { message } = req.body;
 
   if (!message || typeof message !== 'string') {
-    res.status(400).json({ error: 'message is required' });
+    res
+      .status(400)
+      .json({ error: 'VALIDATION_ERROR', message: 'message is required' });
     return;
   }
 
   // Load trip
   const trip = await getTripWithDetails(tripId, userId);
   if (!trip) {
-    res.status(404).json({ error: 'Trip not found' });
+    res.status(404).json({ error: 'NOT_FOUND', message: 'Trip not found' });
     return;
   }
 
@@ -128,7 +130,7 @@ export async function chat(req: Request, res: Response) {
   } catch (err) {
     logger.error({ err, tripId }, 'Agent loop failed');
     res.write(
-      `event: error\ndata: ${JSON.stringify({ error: 'Agent encountered an error' })}\n\n`,
+      `event: error\ndata: ${JSON.stringify({ error: 'AI_SERVICE_ERROR', message: 'Agent encountered an error' })}\n\n`,
     );
   }
 

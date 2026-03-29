@@ -20,7 +20,7 @@ export function csrfGuard(
   if (!value) {
     res
       .status(403)
-      .json({ error: { message: 'Missing X-Requested-With header' } });
+      .json({ error: 'FORBIDDEN', message: 'Missing X-Requested-With header' });
     return;
   }
   next();

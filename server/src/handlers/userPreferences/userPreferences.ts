@@ -19,7 +19,7 @@ export async function upsertPreferences(
   const parsed = userPreferencesSchema.safeParse(req.body);
   if (!parsed.success) {
     const message = parsed.error.issues.map((e) => e.message).join('; ');
-    res.status(400).json({ error: { message } });
+    res.status(400).json({ error: 'VALIDATION_ERROR', message });
     return;
   }
 

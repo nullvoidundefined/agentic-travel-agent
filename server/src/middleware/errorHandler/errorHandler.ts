@@ -1,3 +1,4 @@
+import { ApiError } from 'app/utils/ApiError.js';
 import { logger } from 'app/utils/logs/logger.js';
 import type { NextFunction, Request, Response } from 'express';
 
@@ -10,18 +11,26 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ) {
-  const status = 500;
+  if (err instanceof ApiError) {
+    logger.error({ err, reqId: req.id }, 'Request error');
+    const body: { error: string; message: string; details?: unknown } = {
+      error: err.code,
+      message: err.message,
+    };
+    if (err.details !== undefined) body.details = err.details;
+    res.status(err.statusCode).json(body);
+    return;
+  }
 
   logger.error({ err, reqId: req.id }, 'Unhandled error in request handler');
 
-  res.status(status).json({
-    error: {
-      message:
-        process.env.NODE_ENV === 'production'
-          ? 'Internal server error'
-          : err instanceof Error
-            ? err.message
-            : 'Internal server error',
-    },
+  res.status(500).json({
+    error: 'INTERNAL_ERROR',
+    message:
+      process.env.NODE_ENV === 'production'
+        ? 'Internal server error'
+        : err instanceof Error
+          ? err.message
+          : 'Internal server error',
   });
 }
