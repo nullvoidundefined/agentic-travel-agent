@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+import type Anthropic from '@anthropic-ai/sdk';
 import { buildSystemPrompt } from 'app/prompts/system-prompt.js';
 import type { TripContext } from 'app/prompts/trip-context.js';
 import { insertToolCallLog } from 'app/repositories/tool-call-log/tool-call-log.js';
