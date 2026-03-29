@@ -12,9 +12,8 @@ describe('notFoundHandler', () => {
 
     expect(res.status).toBe(404);
     expect(res.body).toEqual({
-      error: {
-        message: 'Not found',
-      },
+      error: 'NOT_FOUND',
+      message: 'Not found',
     });
   });
 });

@@ -23,7 +23,8 @@ describe('requireAuth', () => {
   it('returns 401 when req.user is not set', async () => {
     const res = await request(app).get('/protected');
     expect(res.status).toBe(401);
-    expect(res.body.error.message).toBe('Authentication required');
+    expect(res.body.error).toBe('UNAUTHORIZED');
+    expect(res.body.message).toBe('Authentication required');
   });
 });
 

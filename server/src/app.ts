@@ -63,7 +63,7 @@ app.use(loadSession);
 app.use((_req, res, next) => {
   res.setTimeout(REQUEST_TIMEOUT_MS, () => {
     if (!res.headersSent) {
-      res.status(408).json({ error: { message: 'Request timeout' } });
+      res.status(408).json({ error: 'REQUEST_TIMEOUT', message: 'Request timeout' });
     }
   });
   next();

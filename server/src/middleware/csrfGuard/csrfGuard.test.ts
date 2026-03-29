@@ -22,7 +22,8 @@ describe('csrfGuard', () => {
   it('rejects POST without X-Requested-With with 403', async () => {
     const res = await request(app).post('/post-ok').send({});
     expect(res.status).toBe(403);
-    expect(res.body.error.message).toBe('Missing X-Requested-With header');
+    expect(res.body.error).toBe('FORBIDDEN');
+    expect(res.body.message).toBe('Missing X-Requested-With header');
   });
 
   it('allows POST with X-Requested-With header', async () => {

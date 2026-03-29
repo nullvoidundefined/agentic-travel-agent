@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('app/repositories/conversations/conversations.js');
 vi.mock('app/repositories/trips/trips.js');
+vi.mock('app/repositories/userPreferences/userPreferences.js');
 vi.mock('app/services/agent.service.js');
 vi.mock('app/utils/logs/logger.js', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },

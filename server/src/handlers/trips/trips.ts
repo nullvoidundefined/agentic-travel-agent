@@ -7,7 +7,7 @@ export async function createTrip(req: Request, res: Response): Promise<void> {
   const parsed = createTripSchema.safeParse(req.body);
   if (!parsed.success) {
     const message = parsed.error.issues.map((e) => e.message).join('; ');
-    res.status(400).json({ error: { message } });
+    res.status(400).json({ error: 'VALIDATION_ERROR', message });
     return;
   }
 
@@ -32,7 +32,7 @@ export async function getTrip(req: Request, res: Response): Promise<void> {
 
   const trip = await tripRepo.getTripWithDetails(tripId, userId);
   if (!trip) {
-    res.status(404).json({ error: { message: 'Trip not found' } });
+    res.status(404).json({ error: 'NOT_FOUND', message: 'Trip not found' });
     return;
   }
 
@@ -45,7 +45,7 @@ export async function deleteTrip(req: Request, res: Response): Promise<void> {
 
   const deleted = await tripRepo.deleteTrip(tripId, userId);
   if (!deleted) {
-    res.status(404).json({ error: { message: 'Trip not found' } });
+    res.status(404).json({ error: 'NOT_FOUND', message: 'Trip not found' });
     return;
   }
 

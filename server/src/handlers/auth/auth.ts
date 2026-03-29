@@ -2,6 +2,7 @@ import { isProduction } from 'app/config/env.js';
 import { SESSION_COOKIE_NAME, SESSION_TTL_MS } from 'app/constants/session.js';
 import * as authRepo from 'app/repositories/auth/auth.js';
 import { loginSchema, registerSchema } from 'app/schemas/auth.js';
+import { ApiError } from 'app/utils/ApiError.js';
 import { logger } from 'app/utils/logs/logger.js';
 import type { Request, Response } from 'express';
 
@@ -17,7 +18,9 @@ export async function register(req: Request, res: Response): Promise<void> {
   const parsed = registerSchema.safeParse(req.body);
   if (!parsed.success) {
     const message = parsed.error.issues.map((e) => e.message).join('; ');
-    res.status(400).json({ error: { message } });
+    res
+      .status(400)
+      .json({ error: 'VALIDATION_ERROR', message });
     return;
   }
   const { email, password, first_name, last_name } = parsed.data;
@@ -52,7 +55,9 @@ export async function register(req: Request, res: Response): Promise<void> {
         { event: 'register_duplicate_email', ip: req.ip },
         'Registration failed: email already registered',
       );
-      res.status(409).json({ error: { message: 'Email already registered' } });
+      res
+        .status(409)
+        .json({ error: 'CONFLICT', message: 'Email already registered' });
       return;
     }
     throw err;
@@ -63,7 +68,9 @@ export async function login(req: Request, res: Response): Promise<void> {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
     const message = parsed.error.issues.map((e) => e.message).join('; ');
-    res.status(400).json({ error: { message } });
+    res
+      .status(400)
+      .json({ error: 'VALIDATION_ERROR', message });
     return;
   }
   const { email, password } = parsed.data;
@@ -73,7 +80,9 @@ export async function login(req: Request, res: Response): Promise<void> {
       { event: 'login_failure', reason: 'user_not_found', ip: req.ip },
       'Login failed: user not found',
     );
-    res.status(401).json({ error: { message: 'Invalid email or password' } });
+    res
+      .status(401)
+      .json({ error: 'UNAUTHORIZED', message: 'Invalid email or password' });
     return;
   }
   const valid = await authRepo.verifyPassword(password, user.password_hash);
@@ -87,7 +96,9 @@ export async function login(req: Request, res: Response): Promise<void> {
       },
       'Login failed: wrong password',
     );
-    res.status(401).json({ error: { message: 'Invalid email or password' } });
+    res
+      .status(401)
+      .json({ error: 'UNAUTHORIZED', message: 'Invalid email or password' });
     return;
   }
   const sessionId = await authRepo.loginUser(user.id);

@@ -28,7 +28,9 @@ export function requireAuth(
   next: NextFunction,
 ): void {
   if (!req.user) {
-    res.status(401).json({ error: { message: 'Authentication required' } });
+    res
+      .status(401)
+      .json({ error: 'UNAUTHORIZED', message: 'Authentication required' });
     return;
   }
   next();
