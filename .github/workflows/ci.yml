@@ -56,7 +56,12 @@ jobs:
       - name: Build
         run: pnpm --filter agentic-travel-agent-server build
 
-      - name: Test
+      - name: Run migrations
+        run: pnpm --filter agentic-travel-agent-server run migrate:up
+        env:
+          DATABASE_URL: postgres://test:test@localhost:5432/test
+
+      - name: Unit tests
         run: pnpm test
         env:
           DATABASE_URL: postgres://test:test@localhost:5432/test
@@ -64,4 +69,13 @@ jobs:
           NODE_ENV: test
           SESSION_SECRET: test-secret
           CSRF_SECRET: test-csrf-secret
+          ANTHROPIC_API_KEY: sk-ant-test
+
+      - name: Integration tests
+        run: pnpm --filter agentic-travel-agent-server run test:integration
+        env:
+          DATABASE_URL: postgres://test:test@localhost:5432/test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+          SESSION_SECRET: test-secret
           ANTHROPIC_API_KEY: sk-ant-test

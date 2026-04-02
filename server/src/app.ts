@@ -27,6 +27,7 @@ function validateEnv(): void {
 }
 
 const app = express();
+export { app };
 const REQUEST_TIMEOUT_MS = 30_000;
 
 // Trust the first hop (reverse proxy / load balancer) so req.ip, req.protocol, and rate limiting work

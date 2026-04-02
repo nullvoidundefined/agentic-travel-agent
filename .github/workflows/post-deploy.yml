@@ -1,0 +1,73 @@
+name: Post-Deploy Health Check
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Wait for Railway deploy
+        run: sleep 90
+
+      - name: Check backend health
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ vars.RAILWAY_URL }}/health" \
+            --max-time 15)
+          if [ "$STATUS" != "200" ]; then
+            echo "Backend health check failed: $STATUS"
+            exit 1
+          fi
+          echo "Backend healthy"
+
+      - name: Check CORS headers
+        run: |
+          CORS=$(curl -s -D - -o /dev/null \
+            "${{ vars.RAILWAY_URL }}/health" \
+            -H "Origin: ${{ vars.VERCEL_URL }}" \
+            --max-time 15 | grep -i "access-control-allow-origin" || echo "MISSING")
+          if ! echo "$CORS" | grep -q "${{ vars.VERCEL_URL }}"; then
+            echo "CORS check failed: $CORS"
+            exit 1
+          fi
+          echo "CORS correctly configured"
+
+      - name: Check frontend
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ vars.VERCEL_URL }}" \
+            --max-time 15)
+          if [ "$STATUS" != "200" ]; then
+            echo "Frontend check failed: $STATUS"
+            exit 1
+          fi
+          echo "Frontend healthy"
+
+      - name: Check frontend login page
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ vars.VERCEL_URL }}/login" \
+            --max-time 15)
+          if [ "$STATUS" != "200" ]; then
+            echo "Frontend login page failed: $STATUS"
+            exit 1
+          fi
+          echo "Frontend login page healthy"
+
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Deploy health check failed - ${new Date().toISOString()}`,
+              body: `Post-deploy health check failed after push to main.\n\nCommit: ${context.sha}\nWorkflow: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              labels: ['deploy-failure']
+            });
