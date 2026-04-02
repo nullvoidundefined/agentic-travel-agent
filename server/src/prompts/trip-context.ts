@@ -29,6 +29,13 @@ export interface TripContext {
     total_price: number;
     star_rating: number;
   }>;
+  selected_car_rentals: Array<{
+    provider: string;
+    car_name: string;
+    car_type: string;
+    price_per_day: number;
+    total_price: number;
+  }>;
   selected_experiences: Array<{
     name: string;
     estimated_cost: number;
@@ -88,6 +95,15 @@ export function formatTripContext(ctx: TripContext): string {
     for (const h of ctx.selected_hotels) {
       lines.push(
         `- ${h.name}: $${h.price_per_night}/night ($${h.total_price} total), ${h.star_rating}★`,
+      );
+    }
+  }
+
+  if (ctx.selected_car_rentals.length > 0) {
+    lines.push('\n### Selected Car Rentals');
+    for (const car of ctx.selected_car_rentals) {
+      lines.push(
+        `- ${car.car_name} from ${car.provider}: $${car.total_price} ($${car.price_per_day}/day)`,
       );
     }
   }

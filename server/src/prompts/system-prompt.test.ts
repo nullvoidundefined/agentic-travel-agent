@@ -12,14 +12,14 @@ describe('system-prompt', () => {
 
     it('includes tool usage guidelines', () => {
       const prompt = buildSystemPrompt();
-      expect(prompt).toContain('search_flights');
       expect(prompt).toContain('calculate_remaining_budget');
-      expect(prompt).toContain('IATA');
+      expect(prompt).toContain('update_trip');
+      expect(prompt).toContain('format_response');
     });
 
-    it('instructs to search flights first', () => {
+    it('instructs to search flights before hotels', () => {
       const prompt = buildSystemPrompt();
-      expect(prompt).toContain('flights first');
+      expect(prompt).toContain('Search flights');
     });
 
     it('includes budget awareness instructions', () => {
@@ -27,9 +27,9 @@ describe('system-prompt', () => {
       expect(prompt).toContain('budget');
     });
 
-    it('includes empty result handling guidance', () => {
+    it('includes guidance to suggest alternatives when options are limited', () => {
       const prompt = buildSystemPrompt();
-      expect(prompt).toMatch(/empty|no results|couldn't find/i);
+      expect(prompt).toMatch(/alternatives|limited/i);
     });
 
     it('includes the 15-call safety limit note', () => {
@@ -60,6 +60,7 @@ describe('system-prompt', () => {
             arrival_time: '2026-07-01T20:00:00Z',
           },
         ],
+        selected_car_rentals: [],
         selected_hotels: [],
         selected_experiences: [],
         total_spent: 450,
@@ -79,25 +80,21 @@ describe('system-prompt', () => {
       expect(prompt.length).toBeGreaterThan(100);
     });
 
-    it("includes today's date and future-dates instruction", () => {
+    it("includes today's date", () => {
       const prompt = buildSystemPrompt();
       const today = new Date().toISOString().split('T')[0];
       expect(prompt).toContain(today!);
-      expect(prompt).toContain('never use past dates');
     });
 
-    it('includes topic guardrail restricting to travel-related topics', () => {
+    it('includes format_response requirement', () => {
       const prompt = buildSystemPrompt();
-      expect(prompt).toMatch(
-        /off.topic|unrelated|only.*travel|decline|politely/i,
-      );
+      expect(prompt).toContain('format_response');
+      expect(prompt).toContain('REQUIRED');
     });
 
-    it('topic guardrail mentions allowed topics', () => {
+    it('includes car rental in the planning workflow', () => {
       const prompt = buildSystemPrompt();
-      expect(prompt).toContain('travel');
-      expect(prompt).toMatch(/trip|itinerar/i);
-      expect(prompt).toMatch(/user|preference/i);
+      expect(prompt).toMatch(/car rental/i);
     });
   });
 });

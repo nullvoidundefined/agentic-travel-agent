@@ -79,6 +79,7 @@ export async function chat(req: Request, res: Response) {
       total_price: h.total_price ?? 0,
       star_rating: h.star_rating ?? 0,
     })),
+    selected_car_rentals: [],
     selected_experiences: (trip.experiences ?? []).map((e) => ({
       name: e.name ?? '',
       estimated_cost: e.estimated_cost ?? 0,
