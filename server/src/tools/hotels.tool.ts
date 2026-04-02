@@ -29,6 +29,9 @@ export interface HotelResult {
   currency: string;
   check_in: string;
   check_out: string;
+  image_url: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface SerpApiHotel {
@@ -42,6 +45,7 @@ interface SerpApiHotel {
   check_in_time?: string;
   check_out_time?: string;
   link?: string;
+  images?: Array<{ thumbnail: string; original_image?: string }>;
 }
 
 interface SerpApiHotelsResponse {
@@ -78,6 +82,9 @@ function normalizeHotel(
     currency: 'USD',
     check_in: input.check_in,
     check_out: input.check_out,
+    image_url: entry.images?.[0]?.thumbnail ?? null,
+    latitude: entry.gps_coordinates?.latitude ?? null,
+    longitude: entry.gps_coordinates?.longitude ?? null,
   };
 }
 
