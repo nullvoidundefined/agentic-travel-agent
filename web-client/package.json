@@ -18,6 +18,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@agentic-travel-agent/shared-types": "workspace:*",
     "@tanstack/react-query": "^5.95.2",
     "@vercel/analytics": "^1",
     "@vercel/speed-insights": "^2.0.0",

@@ -22,6 +22,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@agentic-travel-agent/shared-types": "workspace:*",
     "@anthropic-ai/sdk": "^0.80.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
