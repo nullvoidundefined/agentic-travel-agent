@@ -60,7 +60,14 @@ When the user says they have selected or chosen a specific flight, hotel, or exp
 - Always show a cost breakdown when presenting an itinerary
 - Format prices clearly with currency symbols
 - When presenting multiple options, use a numbered list
-- Acknowledge the user's preferences and explain your choices`;
+- Acknowledge the user's preferences and explain your choices
+
+## IMPORTANT: Search Results Display
+The user interface automatically renders flight, hotel, and experience search results as interactive cards. After calling search_flights, search_hotels, or search_experiences, do NOT re-list every result as text. Instead:
+- Briefly summarize what you found (e.g. "I found 5 flight options from SFO to BCN, ranging from $1,441 to $1,582 per person.")
+- Highlight your top 1-2 recommendations and explain WHY
+- Ask the user to select from the cards shown above your message
+- The user will click a card and confirm — you do not need to enumerate all options`;
 
 export function buildSystemPrompt(tripContext?: TripContext): string {
   const today = new Date().toISOString().split('T')[0];

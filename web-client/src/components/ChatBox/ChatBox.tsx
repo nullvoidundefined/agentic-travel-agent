@@ -152,6 +152,7 @@ export function ChatBox({
             setIsSending(true);
             setStreamingText("");
             setTools([]);
+            setToolResults({});
 
             const userMsg: Message = {
                 id: `local-${Date.now()}`,
@@ -210,7 +211,6 @@ export function ChatBox({
                 ]);
             } finally {
                 setIsSending(false);
-                setToolResults({});
                 await queryClient.invalidateQueries({
                     queryKey: ["messages", tripId],
                 });
@@ -363,7 +363,11 @@ export function ChatBox({
                                 </div>
                             ))}
                         </div>
+                    </div>
+                )}
 
+                {Object.keys(toolResults).length > 0 && (
+                    <div>
                         {Object.entries(toolResults).map(
                             ([toolId, { tool_name, result }]) => {
                                 if (!Array.isArray(result) || result.length === 0)
