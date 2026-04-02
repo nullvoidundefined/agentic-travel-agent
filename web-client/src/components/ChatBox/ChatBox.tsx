@@ -18,6 +18,11 @@ import {
     parseTripFormFields,
     parseSubmittedValues,
 } from "./TripDetailsForm";
+import { FlightCard } from "./widgets/FlightCard";
+import { HotelCard } from "./widgets/HotelCard";
+import { ExperienceCard } from "./widgets/ExperienceCard";
+import { SelectableCardGroup } from "./widgets/SelectableCardGroup";
+import { QuickReplyChips, parseQuickReplies } from "./widgets/QuickReplyChips";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -52,6 +57,9 @@ export function ChatBox({
     const [streamingText, setStreamingText] = useState("");
     const [tools, setTools] = useState<ToolProgress[]>([]);
     const [isSending, setIsSending] = useState(false);
+    const [toolResults, setToolResults] = useState<
+        Record<string, { tool_name: string; result: unknown }>
+    >({});
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const { data: serverMessages } = useQuery({
@@ -93,13 +101,25 @@ export function ChatBox({
                         ]);
                         break;
                     case "tool_result":
-                        setTools((prev) =>
-                            prev.map((t) =>
+                        setTools((prev) => {
+                            const matched = prev.find(
+                                (t) => t.tool_id === data.tool_id,
+                            );
+                            if (matched) {
+                                setToolResults((r) => ({
+                                    ...r,
+                                    [data.tool_id as string]: {
+                                        tool_name: matched.tool_name,
+                                        result: data.result,
+                                    },
+                                }));
+                            }
+                            return prev.map((t) =>
                                 t.tool_id === data.tool_id
                                     ? { ...t, status: "done" as const }
                                     : t,
-                            ),
-                        );
+                            );
+                        });
                         queryClient.invalidateQueries({
                             queryKey: ["trips", tripId],
                         });
@@ -179,6 +199,7 @@ export function ChatBox({
                 ]);
             } finally {
                 setIsSending(false);
+                setToolResults({});
                 await queryClient.invalidateQueries({
                     queryKey: ["messages", tripId],
                 });
@@ -318,6 +339,202 @@ export function ChatBox({
                                 </div>
                             ))}
                         </div>
+
+                        {Object.entries(toolResults).map(
+                            ([toolId, { tool_name, result }]) => {
+                                if (!Array.isArray(result) || result.length === 0)
+                                    return null;
+
+                                if (tool_name === "search_flights") {
+                                    const items = (
+                                        result as Array<Record<string, unknown>>
+                                    ).map((f, i) => ({
+                                        id: String(i),
+                                        label: `${f.airline ?? "Flight"} ${f.flight_number ?? ""} (${f.origin ?? ""}→${f.destination ?? ""}) - $${f.price ?? "?"}`,
+                                        node: (
+                                            selected: boolean,
+                                            onClick: () => void,
+                                        ) => (
+                                            <FlightCard
+                                                key={i}
+                                                airline={
+                                                    (f.airline as string) ?? ""
+                                                }
+                                                airlineLogo={
+                                                    (f.airline_logo as string) ??
+                                                    null
+                                                }
+                                                flightNumber={
+                                                    (f.flight_number as string) ??
+                                                    ""
+                                                }
+                                                origin={
+                                                    (f.origin as string) ?? ""
+                                                }
+                                                destination={
+                                                    (f.destination as string) ??
+                                                    ""
+                                                }
+                                                departureTime={
+                                                    (f.departure_time as string) ??
+                                                    ""
+                                                }
+                                                price={
+                                                    (f.price as number) ?? 0
+                                                }
+                                                currency={
+                                                    (f.currency as string) ??
+                                                    "USD"
+                                                }
+                                                selected={selected}
+                                                onClick={onClick}
+                                            />
+                                        ),
+                                    }));
+                                    return (
+                                        <div
+                                            key={toolId}
+                                            className={styles.resultCards}
+                                        >
+                                            <SelectableCardGroup
+                                                items={items}
+                                                onConfirm={(label) =>
+                                                    sendMessage(
+                                                        `I'll go with ${label}`,
+                                                    )
+                                                }
+                                                disabled={false}
+                                            />
+                                        </div>
+                                    );
+                                }
+
+                                if (tool_name === "search_hotels") {
+                                    const items = (
+                                        result as Array<Record<string, unknown>>
+                                    ).map((h, i) => ({
+                                        id: String(i),
+                                        label: `${h.name ?? "Hotel"} - $${h.price_per_night ?? "?"}/night`,
+                                        node: (
+                                            selected: boolean,
+                                            onClick: () => void,
+                                        ) => (
+                                            <HotelCard
+                                                key={i}
+                                                name={
+                                                    (h.name as string) ?? ""
+                                                }
+                                                city={
+                                                    (h.city as string) ?? ""
+                                                }
+                                                imageUrl={
+                                                    (h.image_url as string) ??
+                                                    null
+                                                }
+                                                starRating={
+                                                    (h.star_rating as number) ??
+                                                    null
+                                                }
+                                                pricePerNight={
+                                                    (h.price_per_night as number) ??
+                                                    0
+                                                }
+                                                totalPrice={
+                                                    (h.total_price as number) ??
+                                                    0
+                                                }
+                                                currency={
+                                                    (h.currency as string) ??
+                                                    "USD"
+                                                }
+                                                checkIn={
+                                                    (h.check_in as string) ??
+                                                    ""
+                                                }
+                                                checkOut={
+                                                    (h.check_out as string) ??
+                                                    ""
+                                                }
+                                                selected={selected}
+                                                onClick={onClick}
+                                            />
+                                        ),
+                                    }));
+                                    return (
+                                        <div
+                                            key={toolId}
+                                            className={styles.resultCards}
+                                        >
+                                            <SelectableCardGroup
+                                                items={items}
+                                                onConfirm={(label) =>
+                                                    sendMessage(
+                                                        `I'll go with ${label}`,
+                                                    )
+                                                }
+                                                disabled={false}
+                                            />
+                                        </div>
+                                    );
+                                }
+
+                                if (tool_name === "search_experiences") {
+                                    const items = (
+                                        result as Array<Record<string, unknown>>
+                                    ).map((e, i) => ({
+                                        id: String(i),
+                                        label: `${e.name ?? "Experience"} (~$${e.estimated_cost ?? "?"})`,
+                                        node: (
+                                            selected: boolean,
+                                            onClick: () => void,
+                                        ) => (
+                                            <ExperienceCard
+                                                key={i}
+                                                name={
+                                                    (e.name as string) ?? ""
+                                                }
+                                                category={
+                                                    (e.category as string) ??
+                                                    null
+                                                }
+                                                photoRef={
+                                                    (e.photo_ref as string) ??
+                                                    null
+                                                }
+                                                rating={
+                                                    (e.rating as number) ??
+                                                    null
+                                                }
+                                                estimatedCost={
+                                                    (e.estimated_cost as number) ??
+                                                    null
+                                                }
+                                                selected={selected}
+                                                onClick={onClick}
+                                            />
+                                        ),
+                                    }));
+                                    return (
+                                        <div
+                                            key={toolId}
+                                            className={styles.resultCards}
+                                        >
+                                            <SelectableCardGroup
+                                                items={items}
+                                                onConfirm={(label) =>
+                                                    sendMessage(
+                                                        `I'll go with ${label}`,
+                                                    )
+                                                }
+                                                disabled={false}
+                                            />
+                                        </div>
+                                    );
+                                }
+
+                                return null;
+                            },
+                        )}
                     </div>
                 )}
 
@@ -331,6 +548,23 @@ export function ChatBox({
                         </div>
                     </div>
                 )}
+
+                {!isSending &&
+                    allMessages.length > 0 &&
+                    allMessages[allMessages.length - 1].role ===
+                        "assistant" &&
+                    (() => {
+                        const chips = parseQuickReplies(
+                            allMessages[allMessages.length - 1].content,
+                        );
+                        return chips ? (
+                            <QuickReplyChips
+                                chips={chips}
+                                onSelect={sendMessage}
+                                disabled={isSending}
+                            />
+                        ) : null;
+                    })()}
 
                 {showBookingActions && (
                     <div className={styles.bookingActions}>
