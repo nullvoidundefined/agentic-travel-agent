@@ -58,8 +58,17 @@ importers:
         specifier: ^8
         version: 8.57.2(eslint@9.39.4)(typescript@5.9.3)
 
+  packages/shared-types:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   server:
     dependencies:
+      '@agentic-travel-agent/shared-types':
+        specifier: workspace:*
+        version: link:../packages/shared-types
       '@anthropic-ai/sdk':
         specifier: ^0.80.0
         version: 0.80.0(zod@4.3.6)
@@ -187,6 +196,9 @@ importers:
 
   web-client:
     dependencies:
+      '@agentic-travel-agent/shared-types':
+        specifier: workspace:*
+        version: link:../packages/shared-types
       '@tanstack/react-query':
         specifier: ^5.95.2
         version: 5.95.2(react@19.2.4)
