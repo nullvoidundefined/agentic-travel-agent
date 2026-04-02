@@ -1,8 +1,8 @@
-import { APP_NAME } from '@/lib/constants';
-import type { Metadata } from 'next';
-import Link from 'next/link';
+import { APP_NAME } from "@/lib/constants";
+import type { Metadata } from "next";
+import Link from "next/link";
 
-import styles from './faq.module.scss';
+import styles from "./faq.module.scss";
 
 export const metadata: Metadata = {
   title: `FAQ — ${APP_NAME} | AI Trip Planner`,
@@ -10,10 +10,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: `FAQ — ${APP_NAME} | AI Trip Planner`,
     description: `Learn how ${APP_NAME} uses AI to plan trips with real flight, hotel, and experience data — all within your budget.`,
-    type: 'website',
+    type: "website",
   },
   alternates: {
-    canonical: '/faq',
+    canonical: "/faq",
   },
 };
 
@@ -31,16 +31,16 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
         answer: `${APP_NAME} is an AI-powered travel planning agent. You describe your trip — destination, dates, budget, and preferences — and the agent searches real APIs for flights, hotels, and experiences to assemble a complete, budget-aware itinerary. You can then iterate conversationally to refine the plan.`,
       },
       {
-        question: 'How does the AI agent work?',
+        question: "How does the AI agent work?",
         answer: `${APP_NAME} uses a multi-step tool-use loop powered by Claude. When you describe a trip, the agent reasons about your requirements and calls real APIs 3-8 times per turn — searching flights, comparing hotels, finding experiences, and tracking your budget between each step. Unlike simple chatbots, the agent makes decisions based on the results it gets back, just like a human travel advisor would.`,
       },
       {
-        question: 'Where does the travel data come from?',
+        question: "Where does the travel data come from?",
         answer:
-          'Flight and hotel data comes from the Amadeus API, the same data source used by major travel agencies worldwide. Experience and restaurant recommendations come from the Google Places API. All prices and availability are pulled in real time when you make a request.',
+          "Flight and hotel data comes from the Amadeus API, the same data source used by major travel agencies worldwide. Experience and restaurant recommendations come from the Google Places API. All prices and availability are pulled in real time when you make a request.",
       },
       {
-        question: 'How accurate are the prices?',
+        question: "How accurate are the prices?",
         answer: `Prices are pulled from live APIs at the time of your search and reflect real availability. However, travel prices change frequently — a price shown during planning may shift by the time you book. ${APP_NAME} is a planning tool, not a booking engine. We always recommend verifying the final price when you book through the airline or hotel directly.`,
       },
       {
@@ -50,49 +50,49 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
     ],
   },
   {
-    heading: 'Pricing & Business Model',
+    heading: "Pricing & Business Model",
     items: [
       {
         question: `Is ${APP_NAME} free to use?`,
         answer: `${APP_NAME} offers a free tier that lets you plan up to 3 trips per month. Each trip includes full agent conversations with real flight, hotel, and experience searches.`,
       },
       {
-        question: 'What does the paid plan include?',
+        question: "What does the paid plan include?",
         answer:
-          'The Pro plan ($9/month) gives you unlimited trips, priority API access for faster searches, the ability to save and share itineraries, and export to PDF or calendar formats.',
+          "The Pro plan ($9/month) gives you unlimited trips, priority API access for faster searches, the ability to save and share itineraries, and export to PDF or calendar formats.",
       },
       {
         question: `How does ${APP_NAME} make money?`,
         answer: `${APP_NAME} operates on a freemium subscription model. Free users get a generous planning allowance. Pro subscribers pay a monthly fee for unlimited access and premium features. We do not sell your data, show ads, or take affiliate commissions that bias our recommendations.`,
       },
       {
-        question: 'Will recommendations be biased toward partners?',
+        question: "Will recommendations be biased toward partners?",
         answer: `No. ${APP_NAME} has no affiliate partnerships or pay-for-placement deals. The agent optimizes purely for your stated preferences and budget. What you see is what the APIs return, filtered by your criteria.`,
       },
     ],
   },
   {
-    heading: 'Privacy & Data',
+    heading: "Privacy & Data",
     items: [
       {
         question: `What data does ${APP_NAME} store?`,
         answer:
-          'We store your account information (email, name), your saved trips and itineraries, and conversation history so you can pick up where you left off. We cache API responses briefly to improve performance but do not store raw travel search data long-term.',
+          "We store your account information (email, name), your saved trips and itineraries, and conversation history so you can pick up where you left off. We cache API responses briefly to improve performance but do not store raw travel search data long-term.",
       },
       {
-        question: 'Is my data shared with third parties?',
+        question: "Is my data shared with third parties?",
         answer:
           "Your data is never sold. We send search queries to Amadeus and Google Places to fulfill your requests — those queries contain trip parameters (dates, destinations) but not your personal identity. Conversations are processed by Anthropic's Claude API under their data usage policies.",
       },
       {
-        question: 'Can I delete my account and data?',
+        question: "Can I delete my account and data?",
         answer:
-          'Yes. You can delete your account at any time from the Account page. This permanently removes all your trips, conversations, and personal data from our systems within 30 days.',
+          "Yes. You can delete your account at any time from the Account page. This permanently removes all your trips, conversations, and personal data from our systems within 30 days.",
       },
     ],
   },
   {
-    heading: 'Technical Details',
+    heading: "Technical Details",
     items: [
       {
         question: `What AI model powers ${APP_NAME}?`,
@@ -103,12 +103,12 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
         answer: `Traditional chatbots generate a single text response. ${APP_NAME} uses an agentic loop: the AI receives your message, decides to call a tool (like searching flights), reads the result, reasons about it, then decides the next action. This loop continues until the agent has enough information to present a complete plan. A single turn may involve 3-8 tool calls with reasoning between each one.`,
       },
       {
-        question: 'Is there a limit on how many searches the agent can do?',
+        question: "Is there a limit on how many searches the agent can do?",
         answer:
-          'The agent is limited to 15 tool calls per turn as a safety measure. In practice, most trip plans require 4-8 calls. If you need more detail, you can ask follow-up questions and the agent will make additional searches.',
+          "The agent is limited to 15 tool calls per turn as a safety measure. In practice, most trip plans require 4-8 calls. If you need more detail, you can ask follow-up questions and the agent will make additional searches.",
       },
       {
-        question: 'What happens if an API is down?',
+        question: "What happens if an API is down?",
         answer:
           "If a data source is temporarily unavailable, the agent will let you know which part of the search couldn't be completed and offer to try again. It won't fabricate data — if it can't reach the flight API, it will say so rather than making up prices.",
       },
@@ -118,14 +118,14 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
 
 function generateFaqJsonLd() {
   return {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
     mainEntity: FAQ_SECTIONS.flatMap((section) =>
       section.items.map((item) => ({
-        '@type': 'Question',
+        "@type": "Question",
         name: item.question,
         acceptedAnswer: {
-          '@type': 'Answer',
+          "@type": "Answer",
           text: item.answer,
         },
       })),
@@ -139,7 +139,7 @@ export default function FaqPage() {
   return (
     <>
       <script
-        type='application/ld+json'
+        type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className={styles.page}>
@@ -166,7 +166,7 @@ export default function FaqPage() {
 
         <div className={styles.cta}>
           <p>Ready to plan your next trip?</p>
-          <Link href='/login' className={styles.ctaButton}>
+          <Link href="/login" className={styles.ctaButton}>
             Get Started
           </Link>
         </div>

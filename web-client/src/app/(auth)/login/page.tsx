@@ -1,30 +1,30 @@
-'use client';
+"use client";
 
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useState } from "react";
 
-import { Toast } from '@/components/Toast/Toast';
-import { useAuth } from '@/context/AuthContext';
-import { ApiError, get } from '@/lib/api';
-import { APP_NAME } from '@/lib/constants';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { Toast } from "@/components/Toast/Toast";
+import { useAuth } from "@/context/AuthContext";
+import { ApiError, get } from "@/lib/api";
+import { APP_NAME } from "@/lib/constants";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-import styles from '../auth.module.scss';
+import styles from "../auth.module.scss";
 
 export default function LoginPage() {
   const { login, isLoading } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [toast, setToast] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [toast, setToast] = useState("");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!email || !password) {
-      setError('Please fill in all fields.');
+      setError("Please fill in all fields.");
       return;
     }
 
@@ -32,13 +32,13 @@ export default function LoginPage() {
       await login(email, password);
       const { trips } = await get<{
         trips: { id: string }[];
-      }>('/trips');
-      router.push(trips.length > 0 ? '/trips' : '/trips/new');
+      }>("/trips");
+      router.push(trips.length > 0 ? "/trips" : "/trips/new");
     } catch (err) {
       const msg =
         err instanceof ApiError
           ? err.message
-          : 'Something went wrong. Please try again.';
+          : "Something went wrong. Please try again.";
       setToast(msg);
     }
   }
@@ -71,46 +71,46 @@ export default function LoginPage() {
           <label className={styles.field}>
             <span>Email</span>
             <input
-              type='email'
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder='you@example.com'
-              autoComplete='email'
+              placeholder="you@example.com"
+              autoComplete="email"
             />
           </label>
 
           <label className={styles.field}>
             <span>Password</span>
             <input
-              type='password'
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder='••••••••'
-              autoComplete='current-password'
+              placeholder="••••••••"
+              autoComplete="current-password"
             />
           </label>
 
           <div className={styles.forgotLink}>
-            <Link href='/login'>Forgot password?</Link>
+            <Link href="/login">Forgot password?</Link>
           </div>
 
           {error && <p className={styles.error}>{error}</p>}
 
-          <button type='submit' className={styles.submit} disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign In'}
+          <button type="submit" className={styles.submit} disabled={isLoading}>
+            {isLoading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
         <p className={styles.switchLink}>
-          Don&apos;t have an account? <Link href='/register'>Sign up</Link>
+          Don&apos;t have an account? <Link href="/register">Sign up</Link>
         </p>
 
-        <Link href='/faq' className={styles.faqLink}>
+        <Link href="/faq" className={styles.faqLink}>
           How does {APP_NAME} work? &rarr;
         </Link>
       </div>
 
-      {toast && <Toast message={toast} onClose={() => setToast('')} />}
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
     </div>
   );
 }

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
-import { ChatBox } from '@/components/ChatBox/ChatBox';
-import { post } from '@/lib/api';
-import { APP_NAME } from '@/lib/constants';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { ChatBox } from "@/components/ChatBox/ChatBox";
+import { post } from "@/lib/api";
+import { APP_NAME } from "@/lib/constants";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-import styles from '../[id]/tripDetail.module.scss';
+import styles from "../[id]/tripDetail.module.scss";
 
 interface Trip {
   id: string;
@@ -17,7 +17,7 @@ interface Trip {
 export default function NewTripPage() {
   const router = useRouter();
   const [tripId, setTripId] = useState<string | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const creating = useRef(false);
 
   useEffect(() => {
@@ -26,13 +26,13 @@ export default function NewTripPage() {
     }
     creating.current = true;
 
-    post<{ trip: Trip }>('/trips', { destination: 'Planning...' })
+    post<{ trip: Trip }>("/trips", { destination: "Planning..." })
       .then(({ trip }) => {
         setTripId(trip.id);
         router.replace(`/trips/${trip.id}`);
       })
       .catch(() => {
-        setError('Failed to start a new trip. Please try again.');
+        setError("Failed to start a new trip. Please try again.");
         creating.current = false;
       });
   }, [router]);
@@ -40,7 +40,7 @@ export default function NewTripPage() {
   if (error) {
     return (
       <div className={styles.page}>
-        <Link href='/trips' className={styles.back}>
+        <Link href="/trips" className={styles.back}>
           &larr; Back to trips
         </Link>
         <p>{error}</p>
@@ -58,7 +58,7 @@ export default function NewTripPage() {
 
   return (
     <div className={styles.page}>
-      <Link href='/trips' className={styles.back}>
+      <Link href="/trips" className={styles.back}>
         &larr; Back to trips
       </Link>
 

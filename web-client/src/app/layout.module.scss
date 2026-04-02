@@ -1,9 +1,16 @@
 .appShell {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background:
+        radial-gradient(
+            ellipse 80% 50% at 50% -20%,
+            rgba(201, 168, 76, 0.04),
+            transparent
+        ),
+        var(--background);
 }
 
 .main {
-  flex: 1;
+    flex: 1;
 }

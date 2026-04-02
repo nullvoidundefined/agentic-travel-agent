@@ -1,134 +1,352 @@
 .landing {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 32px;
 }
 
+/* —————————— Hero —————————— */
+
 .hero {
-  text-align: center;
-  padding: 80px 0 48px;
+    position: relative;
+    padding: 100px 0 80px;
+    text-align: center;
+}
+
+.heroContent {
+    position: relative;
+    z-index: 1;
+}
+
+.heroVisual {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.heroGlow {
+    position: absolute;
+    top: -120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 500px;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(201, 168, 76, 0.08) 0%,
+        rgba(201, 168, 76, 0.03) 40%,
+        transparent 70%
+    );
+    filter: blur(40px);
+}
+
+.eyebrow {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    background: var(--background);
 }
 
 .title {
-  font-size: 48px;
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-  color: var(--foreground);
+    font-size: 72px;
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: var(--foreground);
+    margin-bottom: 24px;
 }
 
-.accent {
-  color: var(--accent);
+.titleAccent {
+    color: var(--accent);
+    font-style: italic;
 }
 
 .subtitle {
-  margin-top: 20px;
-  font-size: 18px;
-  line-height: 1.6;
-  color: var(--foreground-muted);
-  max-width: 560px;
-  margin-left: auto;
-  margin-right: auto;
+    font-size: 19px;
+    line-height: 1.7;
+    color: var(--foreground-muted);
+    max-width: 540px;
+    margin: 0 auto 40px;
 }
 
 .ctas {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-top: 32px;
-}
-
-.primaryCta,
-.secondaryCta {
-  padding: 12px 28px;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  transition: background 0.15s;
+    display: flex;
+    gap: 14px;
+    justify-content: center;
 }
 
 .primaryCta {
-  background: var(--accent);
-  color: #fff;
+    display: inline-flex;
+    align-items: center;
+    padding: 14px 36px;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    font-family: var(--font-body);
+    background: var(--accent);
+    color: #fff;
+    transition:
+        background var(--transition-fast),
+        box-shadow var(--transition-fast),
+        transform var(--transition-fast);
+    text-decoration: none;
 
-  &:hover {
-    background: var(--accent-hover);
-  }
+    &:hover {
+        background: var(--accent-hover);
+        box-shadow: var(--shadow-gold);
+        transform: translateY(-1px);
+    }
 }
 
 .secondaryCta {
-  border: 1px solid var(--border);
-  color: var(--foreground);
+    display: inline-flex;
+    align-items: center;
+    padding: 14px 36px;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    font-family: var(--font-body);
+    border: 1.5px solid var(--border);
+    color: var(--foreground);
+    transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast);
+    text-decoration: none;
 
-  &:hover {
-    background: var(--surface-hover);
-  }
+    &:hover {
+        background: var(--surface);
+        border-color: var(--accent);
+    }
 }
+
+/* —————————— Section headers —————————— */
+
+.sectionTitle {
+    font-size: 40px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--foreground);
+    margin-bottom: 12px;
+}
+
+.sectionSubtitle {
+    font-size: 17px;
+    color: var(--foreground-muted);
+    text-align: center;
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* —————————— Demo —————————— */
 
 .demo {
-  max-width: 700px;
-  margin: 0 auto 64px;
+    padding: 40px 0 80px;
 }
 
+.demoHeader {
+    margin-bottom: 40px;
+}
+
+.demoBox {
+    max-width: 720px;
+    margin: 0 auto;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+/* —————————— How it works —————————— */
+
+.howItWorks {
+    padding: 80px 0;
+    border-top: 1px solid var(--border-light);
+}
+
+.steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-top: 48px;
+}
+
+.step {
+    text-align: center;
+    padding: 40px 24px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    background: var(--background);
+    transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
+
+    &:hover {
+        border-color: var(--accent);
+        box-shadow: var(--shadow-gold);
+    }
+}
+
+.stepNum {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 16px;
+    line-height: 1;
+}
+
+.stepTitle {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--foreground);
+}
+
+.stepDesc {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--foreground-muted);
+}
+
+/* —————————— Features —————————— */
+
 .features {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  padding-bottom: 80px;
+    padding: 80px 0;
+    border-top: 1px solid var(--border-light);
+}
+
+.featureGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-top: 48px;
 }
 
 .feature {
-  text-align: center;
-  padding: 24px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+    padding: 32px 24px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    background: var(--background);
+    transition:
+        border-color var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+
+    &:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    h3 {
+        font-family: var(--font-display);
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--foreground);
+    }
+
+    p {
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--foreground-muted);
+    }
 }
 
 .featureIcon {
-  font-size: 32px;
-  display: block;
-  margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    background: var(--accent-light);
+    color: var(--accent);
+    margin-bottom: 20px;
 }
 
-.feature h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 8px;
+/* —————————— Final CTA —————————— */
+
+.finalCta {
+    text-align: center;
+    padding: 80px 0 100px;
+    border-top: 1px solid var(--border-light);
+
+    h2 {
+        font-size: 48px;
+        font-weight: 600;
+        color: var(--foreground);
+        margin-bottom: 12px;
+    }
+
+    p {
+        font-size: 17px;
+        color: var(--foreground-muted);
+        margin-bottom: 32px;
+    }
 }
 
-.feature p {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--foreground-muted);
-}
+/* —————————— Responsive —————————— */
 
 @media (max-width: 800px) {
-  .hero {
-    padding: 48px 0 32px;
-  }
+    .landing {
+        padding: 0 20px;
+    }
 
-  .title {
-    font-size: 32px;
-  }
+    .hero {
+        padding: 60px 0 48px;
+    }
 
-  .subtitle {
-    font-size: 16px;
-  }
+    .title {
+        font-size: 44px;
+    }
 
-  .features {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
+    .subtitle {
+        font-size: 16px;
+    }
+
+    .sectionTitle {
+        font-size: 30px;
+    }
+
+    .steps {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .step {
+        padding: 28px 20px;
+    }
+
+    .featureGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .finalCta h2 {
+        font-size: 36px;
+    }
 }
 
 @media (max-width: 480px) {
-  .features {
-    grid-template-columns: 1fr;
-  }
+    .title {
+        font-size: 36px;
+    }
 
-  .ctas {
-    flex-direction: column;
-    align-items: center;
-  }
+    .ctas {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .featureGrid {
+        grid-template-columns: 1fr;
+    }
 }

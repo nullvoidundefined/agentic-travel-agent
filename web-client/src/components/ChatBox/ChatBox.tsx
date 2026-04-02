@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   type FormEvent,
@@ -6,27 +6,27 @@ import {
   useEffect,
   useRef,
   useState,
-} from 'react';
+} from "react";
 
-import { get } from '@/lib/api';
-import { APP_NAME } from '@/lib/constants';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { get } from "@/lib/api";
+import { APP_NAME } from "@/lib/constants";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import styles from './ChatBox.module.scss';
-import { TripDetailsForm, parseTripFormFields } from './TripDetailsForm';
+import styles from "./ChatBox.module.scss";
+import { TripDetailsForm, parseTripFormFields } from "./TripDetailsForm";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 }
 
 interface ToolProgress {
   tool_name: string;
   tool_id: string;
-  status: 'running' | 'done';
+  status: "running" | "done";
 }
 
 interface ChatBoxProps {
@@ -35,15 +35,15 @@ interface ChatBoxProps {
 
 export function ChatBox({ tripId }: ChatBoxProps) {
   const queryClient = useQueryClient();
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
-  const [streamingText, setStreamingText] = useState('');
+  const [streamingText, setStreamingText] = useState("");
   const [tools, setTools] = useState<ToolProgress[]>([]);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: serverMessages } = useQuery({
-    queryKey: ['messages', tripId],
+    queryKey: ["messages", tripId],
     queryFn: () =>
       get<{ messages: Message[] }>(`/trips/${tripId}/messages`).then(
         (r) => r.messages,
@@ -53,7 +53,7 @@ export function ChatBox({ tripId }: ChatBoxProps) {
   const allMessages = [...(serverMessages ?? []), ...localMessages];
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [allMessages.length, streamingText]);
 
   const sendMessage = useCallback(
@@ -67,74 +67,74 @@ export function ChatBox({ tripId }: ChatBoxProps) {
         data: Record<string, unknown>,
       ) {
         switch (eventType) {
-          case 'tool_start':
+          case "tool_start":
             setTools((prev) => [
               ...prev,
               {
                 tool_name: data.tool_name as string,
                 tool_id: data.tool_id as string,
-                status: 'running',
+                status: "running",
               },
             ]);
             break;
-          case 'tool_result':
+          case "tool_result":
             setTools((prev) => {
               const completedTool = prev.find(
                 (t) => t.tool_id === data.tool_id,
               );
-              if (completedTool?.tool_name === 'update_trip') {
+              if (completedTool?.tool_name === "update_trip") {
                 queryClient.invalidateQueries({
-                  queryKey: ['trips', tripId],
+                  queryKey: ["trips", tripId],
                 });
               }
               return prev.map((t) =>
                 t.tool_id === data.tool_id
-                  ? { ...t, status: 'done' as const }
+                  ? { ...t, status: "done" as const }
                   : t,
               );
             });
             break;
-          case 'assistant':
+          case "assistant":
             setStreamingText(data.text as string);
             break;
-          case 'done':
+          case "done":
             setStreamingText(data.response as string);
             break;
-          case 'error':
-            setStreamingText((data.error as string) ?? 'An error occurred.');
+          case "error":
+            setStreamingText((data.error as string) ?? "An error occurred.");
             break;
         }
       }
 
       setIsSending(true);
-      setStreamingText('');
+      setStreamingText("");
       setTools([]);
 
       const userMsg: Message = {
         id: `local-${Date.now()}`,
-        role: 'user',
+        role: "user",
         content: msg,
       };
       setLocalMessages((prev) => [...prev, userMsg]);
 
       try {
         const res = await fetch(`${API_BASE}/trips/${tripId}/chat`, {
-          method: 'POST',
-          credentials: 'include',
+          method: "POST",
+          credentials: "include",
           headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
           },
           body: JSON.stringify({ message: msg }),
         });
 
         if (!res.ok || !res.body) {
-          throw new Error('Chat request failed');
+          throw new Error("Chat request failed");
         }
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
-        let buffer = '';
+        let buffer = "";
 
         while (true) {
           const { done, value } = await reader.read();
@@ -143,14 +143,14 @@ export function ChatBox({ tripId }: ChatBoxProps) {
           }
 
           buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() ?? '';
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
 
-          let eventType = '';
+          let eventType = "";
           for (const line of lines) {
-            if (line.startsWith('event: ')) {
+            if (line.startsWith("event: ")) {
               eventType = line.slice(7);
-            } else if (line.startsWith('data: ')) {
+            } else if (line.startsWith("data: ")) {
               const data = JSON.parse(line.slice(6));
               handleSSEEvent(eventType, data);
             }
@@ -161,19 +161,19 @@ export function ChatBox({ tripId }: ChatBoxProps) {
           ...prev,
           {
             id: `error-${Date.now()}`,
-            role: 'assistant',
-            content: 'Something went wrong. Please try again.',
+            role: "assistant",
+            content: "Something went wrong. Please try again.",
           },
         ]);
       } finally {
         setIsSending(false);
         await queryClient.invalidateQueries({
-          queryKey: ['messages', tripId],
+          queryKey: ["messages", tripId],
         });
         setLocalMessages([]);
-        setStreamingText('');
+        setStreamingText("");
         queryClient.invalidateQueries({
-          queryKey: ['trips', tripId],
+          queryKey: ["trips", tripId],
         });
       }
     },
@@ -187,23 +187,23 @@ export function ChatBox({ tripId }: ChatBoxProps) {
       if (!msg) {
         return;
       }
-      setInput('');
+      setInput("");
       sendMessage(msg);
     },
     [input, sendMessage],
   );
 
   const toolLabel = (name: string) =>
-    name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   function renderText(text: string) {
     if (!text.trim()) {
       return null;
     }
-    return text.split('\n').map((line, i) => (
+    return text.split("\n").map((line, i) => (
       <p key={i}>
         {line.split(/(\*\*.*?\*\*)/).map((part, j) => {
-          if (part.startsWith('**') && part.endsWith('**')) {
+          if (part.startsWith("**") && part.endsWith("**")) {
             return <strong key={j}>{part.slice(2, -2)}</strong>;
           }
           return part;
@@ -230,7 +230,7 @@ export function ChatBox({ tripId }: ChatBoxProps) {
         )}
         {allMessages.map((msg) => {
           const formData =
-            msg.role === 'assistant' ? parseTripFormFields(msg.content) : null;
+            msg.role === "assistant" ? parseTripFormFields(msg.content) : null;
 
           return (
             <div
@@ -238,7 +238,7 @@ export function ChatBox({ tripId }: ChatBoxProps) {
               className={`${styles.message} ${styles[msg.role]}`}
             >
               <div className={styles.roleBadge}>
-                {msg.role === 'user' ? 'You' : APP_NAME}
+                {msg.role === "user" ? "You" : APP_NAME}
               </div>
               <div className={styles.bubble}>
                 {formData ? (
@@ -279,7 +279,7 @@ export function ChatBox({ tripId }: ChatBoxProps) {
               {tools.map((t) => (
                 <div key={t.tool_id} className={styles.toolRow}>
                   <span className={styles.toolIcon}>
-                    {t.status === 'running' ? '\u23F3' : '\u2705'}
+                    {t.status === "running" ? "\u23F3" : "\u2705"}
                   </span>
                   <span>{toolLabel(t.tool_name)}</span>
                 </div>
@@ -292,7 +292,7 @@ export function ChatBox({ tripId }: ChatBoxProps) {
           <div className={`${styles.message} ${styles.assistant}`}>
             <div className={styles.roleBadge}>{APP_NAME}</div>
             <div className={styles.bubble}>
-              {streamingText.split('\n').map((line, i) => (
+              {streamingText.split("\n").map((line, i) => (
                 <p key={i}>{line}</p>
               ))}
             </div>
@@ -304,20 +304,20 @@ export function ChatBox({ tripId }: ChatBoxProps) {
 
       <form onSubmit={handleSubmit} className={styles.inputArea}>
         <input
-          type='text'
+          type="text"
           className={styles.input}
-          placeholder='Ask the agent to plan your trip...'
-          aria-label='Ask the agent to plan your trip...'
+          placeholder="Ask the agent to plan your trip..."
+          aria-label="Ask the agent to plan your trip..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={isSending}
         />
         <button
-          type='submit'
+          type="submit"
           className={styles.sendButton}
           disabled={isSending || !input.trim()}
         >
-          {isSending ? '...' : 'Send'}
+          {isSending ? "..." : "Send"}
         </button>
       </form>
     </div>

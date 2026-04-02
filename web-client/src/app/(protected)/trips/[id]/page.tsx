@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { ChatBox } from '@/components/ChatBox/ChatBox';
-import { get } from '@/lib/api';
-import { APP_NAME } from '@/lib/constants';
-import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { ChatBox } from "@/components/ChatBox/ChatBox";
+import { get } from "@/lib/api";
+import { APP_NAME } from "@/lib/constants";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
-import styles from './tripDetail.module.scss';
+import styles from "./tripDetail.module.scss";
 
 interface TripFlight {
   id: string;
@@ -56,24 +56,24 @@ interface Trip {
 
 function formatDate(d: string | null): string {
   if (!d) {
-    return 'TBD';
+    return "TBD";
   }
-  return new Date(d).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  return new Date(d).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
 function formatCurrency(
   amount: number | null,
-  currency: string = 'USD',
+  currency: string = "USD",
 ): string {
   if (amount == null) {
-    return '-';
+    return "-";
   }
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
     currency,
     maximumFractionDigits: 0,
   }).format(amount);
@@ -87,7 +87,7 @@ export default function TripDetailPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['trips', id],
+    queryKey: ["trips", id],
     queryFn: () => get<{ trip: Trip }>(`/trips/${id}`).then((r) => r.trip),
   });
 
@@ -102,7 +102,7 @@ export default function TripDetailPage() {
   if (error || !trip) {
     return (
       <div className={styles.page}>
-        <Link href='/trips' className={styles.back}>
+        <Link href="/trips" className={styles.back}>
           &larr; Back to trips
         </Link>
         <p>Trip not found.</p>
@@ -125,7 +125,7 @@ export default function TripDetailPage() {
 
   return (
     <div className={styles.page}>
-      <Link href='/trips' className={styles.back}>
+      <Link href="/trips" className={styles.back}>
         &larr; Back to trips
       </Link>
 
@@ -133,7 +133,7 @@ export default function TripDetailPage() {
         <div>
           <h1>{trip.destination}</h1>
           <p className={styles.dates}>
-            {formatDate(trip.departure_date)} &ndash;{' '}
+            {formatDate(trip.departure_date)} &ndash;{" "}
             {formatDate(trip.return_date)}
           </p>
         </div>
@@ -221,7 +221,7 @@ export default function TripDetailPage() {
             {trip.hotels.map((h) => (
               <div key={h.id} className={styles.dayCard}>
                 <div className={styles.dayHeader}>
-                  <span className={styles.dayNumber}>{h.name ?? 'Hotel'}</span>
+                  <span className={styles.dayNumber}>{h.name ?? "Hotel"}</span>
                   <span className={styles.dayTitle}>{h.city}</span>
                 </div>
                 <ul className={styles.dayItems}>
@@ -251,7 +251,7 @@ export default function TripDetailPage() {
               <div key={exp.id} className={styles.dayCard}>
                 <div className={styles.dayHeader}>
                   <span className={styles.dayNumber}>
-                    {exp.name ?? 'Experience'}
+                    {exp.name ?? "Experience"}
                   </span>
                   {exp.category && (
                     <span className={styles.dayTitle}>{exp.category}</span>

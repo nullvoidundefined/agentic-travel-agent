@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/context/AuthContext';
-import { APP_NAME } from '@/lib/constants';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useAuth } from "@/context/AuthContext";
+import { APP_NAME } from "@/lib/constants";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-import styles from './Header.module.scss';
+import styles from "./Header.module.scss";
 
-const publicLinks = [{ href: '/faq', label: 'FAQ' }];
+const publicLinks = [{ href: "/faq", label: "FAQ" }];
 
 const authedLinks = [
-  { href: '/trips', label: 'My Trips' },
-  { href: '/account', label: 'Account' },
-  { href: '/faq', label: 'FAQ' },
+  { href: "/trips", label: "My Trips" },
+  { href: "/account", label: "Account" },
+  { href: "/faq", label: "FAQ" },
 ];
 
 export function Header() {
@@ -24,15 +24,16 @@ export function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <Link href='/' className={styles.logo}>
+        <Link href="/" className={styles.logo}>
           {APP_NAME}
+          <span className={styles.logoAccent}>.</span>
         </Link>
-        <nav className={styles.nav}>
+        <nav className={styles.nav} aria-label="Main navigation">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`${styles.navLink} ${pathname === link.href ? styles.active : ''}`}
+              className={`${styles.navLink} ${pathname === link.href ? styles.active : ""}`}
             >
               {link.label}
             </Link>
@@ -43,7 +44,7 @@ export function Header() {
             Sign Out
           </button>
         ) : (
-          <Link href='/login' className={styles.signIn}>
+          <Link href="/login" className={styles.signIn}>
             Sign In
           </Link>
         )}

@@ -1,44 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap');
+
 :root {
-  --background: #ffffff;
-  --foreground: #222222;
-  --foreground-muted: #717171;
-  --border: #ebebeb;
-  --surface: #f7f7f7;
-  --surface-alt: #f0f0f0;
-  --surface-hover: #f0f0f0;
-  --surface-active: #e0e0e0;
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-light: #eff6ff;
-  --background-translucent: rgba(255, 255, 255, 0.92);
+    /* — Typography — */
+    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-body: 'Outfit', system-ui, sans-serif;
+
+    /* — Palette — */
+    --background: #fdfbf7;
+    --background-alt: #f8f4ed;
+    --foreground: #1a1a2e;
+    --foreground-muted: #6b6b80;
+    --border: #ddd5c5;
+    --border-light: #ece6da;
+    --surface: #f3ede3;
+    --surface-alt: #eae2d4;
+    --surface-hover: #e4dccf;
+    --surface-active: #dbd2c3;
+    --accent: #c9a84c;
+    --accent-hover: #b08a3e;
+    --accent-light: rgba(201, 168, 76, 0.1);
+    --accent-text: #a58930;
+    --background-translucent: rgba(253, 251, 247, 0.92);
+    --success: #2d8b5f;
+    --danger: #c24b4b;
+
+    /* — Shadows — */
+    --shadow-sm: 0 1px 3px rgba(26, 26, 46, 0.04);
+    --shadow-md: 0 4px 16px rgba(26, 26, 46, 0.06);
+    --shadow-lg: 0 8px 32px rgba(26, 26, 46, 0.08);
+    --shadow-gold: 0 4px 20px rgba(201, 168, 76, 0.15);
+
+    /* — Radii — */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+
+    /* — Transitions — */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-fast: 0.15s var(--ease-out);
+    --transition-med: 0.3s var(--ease-out);
 }
 
 html,
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
+    max-width: 100vw;
+    overflow-x: hidden;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  position: relative;
+    color: var(--foreground);
+    background: var(--background);
+    font-family: var(--font-body);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+    line-height: 1.6;
 }
 
 * {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
 }
 
 a {
-  color: inherit;
-  text-decoration: none;
+    color: inherit;
+    text-decoration: none;
 }
 
 html {
-  color-scheme: light;
+    color-scheme: light;
+}
+
+/* — Global heading style — */
+h1,
+h2,
+h3,
+h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+}
+
+/* — Focus styles — */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* — Scrollbar — */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+
+    &:hover {
+        background: var(--foreground-muted);
+    }
+}
+
+/* — Selection — */
+::selection {
+    background: rgba(201, 168, 76, 0.2);
+    color: var(--foreground);
 }

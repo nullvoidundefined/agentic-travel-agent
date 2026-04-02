@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
-import styles from './Toast.module.scss';
+import styles from "./Toast.module.scss";
 
 interface ToastProps {
   message: string;
@@ -20,10 +20,10 @@ export function Toast({ message, onClose, duration = 5000 }: ToastProps) {
     <div className={styles.toast}>
       <span>{message}</span>
       <button
-        type='button'
+        type="button"
         className={styles.close}
         onClick={onClose}
-        aria-label='Dismiss'
+        aria-label="Dismiss"
       >
         &times;
       </button>

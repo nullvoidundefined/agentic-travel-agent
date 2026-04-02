@@ -1,153 +1,193 @@
 .page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 48px 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 32px;
 }
 
 .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
 
-  h1 {
-    font-size: 28px;
-    font-weight: 700;
-  }
+    h1 {
+        font-family: var(--font-display);
+        font-size: 36px;
+        font-weight: 600;
+    }
 }
 
 .newTrip {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
+    padding: 11px 24px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font-body);
+    cursor: pointer;
+    text-decoration: none;
+    transition:
+        background var(--transition-fast),
+        box-shadow var(--transition-fast),
+        transform var(--transition-fast);
 
-  &:hover {
-    background: var(--accent-hover);
-  }
+    &:hover {
+        background: var(--accent-hover);
+        box-shadow: var(--shadow-gold);
+        transform: translateY(-1px);
+    }
 }
 
 .tripList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
 .tripCard {
-  position: relative;
-  display: flex;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  transition:
-    border-color 0.15s,
-    background 0.15s;
+    position: relative;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--background);
+    box-shadow: var(--shadow-sm);
+    transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast),
+        transform var(--transition-fast);
 
-  &:hover {
-    border-color: var(--accent);
-    background: var(--surface-hover);
-  }
+    &:hover {
+        border-color: var(--accent);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+    }
 }
 
 .tripLink {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex: 1;
-  padding: 20px 24px;
-  min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    padding: 24px 28px;
+    min-width: 0;
 }
 
 .deleteBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  margin-right: 16px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--foreground-muted);
-  font-size: 18px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition:
-    background 0.15s,
-    color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-right: 20px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--foreground-muted);
+    font-size: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition:
+        background var(--transition-fast),
+        color var(--transition-fast);
 
-  &:hover {
-    background: rgba(255, 59, 48, 0.1);
-    color: #ff3b30;
-  }
+    &:hover {
+        background: rgba(194, 75, 75, 0.08);
+        color: var(--danger);
+    }
 }
 
 .tripInfo h2 {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 4px;
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 4px;
 }
 
 .dates {
-  font-size: 14px;
-  color: var(--foreground-muted);
+    font-size: 14px;
+    color: var(--foreground-muted);
 }
 
 .tripMeta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
 
 .budget {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--foreground);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--foreground);
 }
 
 .status {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
+    padding: 5px 14px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
 
-  &.planned {
-    background: var(--accent-light);
-    color: var(--accent);
-  }
+    &.planning {
+        background: var(--accent-light);
+        color: var(--accent-text);
+    }
 
-  &.draft {
-    background: var(--surface-alt);
-    color: var(--foreground-muted);
-  }
+    &.saved {
+        background: rgba(45, 139, 95, 0.1);
+        color: var(--success);
+    }
+
+    &.archived {
+        background: var(--surface);
+        color: var(--foreground-muted);
+    }
+
+    &.draft {
+        background: var(--surface);
+        color: var(--foreground-muted);
+    }
 }
 
 .empty {
-  text-align: center;
-  padding: 64px 0;
-  color: var(--foreground-muted);
+    text-align: center;
+    padding: 80px 0;
+    color: var(--foreground-muted);
 
-  p {
-    margin-bottom: 16px;
-    font-size: 16px;
-  }
+    p {
+        margin-bottom: 20px;
+        font-size: 17px;
+    }
+}
+
+.loading,
+.error {
+    text-align: center;
+    padding: 48px 0;
+    color: var(--foreground-muted);
+    font-size: 15px;
 }
 
 @media (max-width: 600px) {
-  .tripCard {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
+    .page {
+        padding: 32px 20px;
+    }
 
-  .tripMeta {
-    width: 100%;
-    justify-content: space-between;
-  }
+    .header h1 {
+        font-size: 28px;
+    }
+
+    .tripLink {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 20px;
+    }
+
+    .tripMeta {
+        width: 100%;
+        justify-content: space-between;
+    }
 }

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/context/AuthContext';
-import { get } from '@/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useAuth } from "@/context/AuthContext";
+import { get } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 
-import styles from './account.module.scss';
+import styles from "./account.module.scss";
 
 interface UserPreferences {
   dietary: string[];
@@ -35,16 +35,16 @@ export default function AccountPage() {
   const { user } = useAuth();
 
   const { data: preferences } = useQuery({
-    queryKey: ['preferences'],
+    queryKey: ["preferences"],
     queryFn: () =>
-      get<{ preferences: UserPreferences | null }>('/user-preferences').then(
+      get<{ preferences: UserPreferences | null }>("/user-preferences").then(
         (r) => r.preferences,
       ),
   });
 
   const { data: trips } = useQuery({
-    queryKey: ['trips'],
-    queryFn: () => get<{ trips: Trip[] }>('/trips').then((r) => r.trips),
+    queryKey: ["trips"],
+    queryFn: () => get<{ trips: Trip[] }>("/trips").then((r) => r.trips),
   });
 
   return (
@@ -57,20 +57,20 @@ export default function AccountPage() {
           <div className={styles.avatar}>
             {user
               ? initials(user.first_name, user.last_name, user.email)
-              : '??'}
+              : "??"}
           </div>
           <div className={styles.info}>
             <p className={styles.name}>
               {user?.first_name && user?.last_name
                 ? `${user.first_name} ${user.last_name}`
-                : (user?.email ?? 'Loading...')}
+                : (user?.email ?? "Loading...")}
             </p>
             <p className={styles.email}>{user?.email}</p>
             <p className={styles.email}>
-              Member since{' '}
+              Member since{" "}
               {user?.created_at
                 ? new Date(user.created_at).toLocaleDateString()
-                : '...'}
+                : "..."}
             </p>
           </div>
         </div>
@@ -83,8 +83,8 @@ export default function AccountPage() {
             <span>Dietary</span>
             <span className={styles.prefValue}>
               {preferences?.dietary?.length
-                ? preferences.dietary.map(capitalize).join(', ')
-                : 'Not set'}
+                ? preferences.dietary.map(capitalize).join(", ")
+                : "Not set"}
             </span>
           </div>
           <div className={styles.prefRow}>
@@ -92,13 +92,13 @@ export default function AccountPage() {
             <span className={styles.prefValue}>
               {preferences?.intensity
                 ? capitalize(preferences.intensity)
-                : 'Not set'}
+                : "Not set"}
             </span>
           </div>
           <div className={styles.prefRow}>
             <span>Usually Traveling</span>
             <span className={styles.prefValue}>
-              {preferences?.social ? capitalize(preferences.social) : 'Not set'}
+              {preferences?.social ? capitalize(preferences.social) : "Not set"}
             </span>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function AccountPage() {
         <div className={styles.card}>
           <div className={styles.prefRow}>
             <span>Trips planned</span>
-            <span className={styles.prefValue}>{trips?.length ?? '...'}</span>
+            <span className={styles.prefValue}>{trips?.length ?? "..."}</span>
           </div>
         </div>
       </section>
