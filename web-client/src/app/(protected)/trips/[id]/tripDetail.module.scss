@@ -39,6 +39,23 @@
     margin-top: 6px;
 }
 
+.headerRight {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.bookedBadge {
+    padding: 8px 20px;
+    border-radius: 100px;
+    background: rgba(52, 211, 153, 0.1);
+    color: var(--success);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
 .budgetCard {
     display: flex;
     flex-direction: column;
