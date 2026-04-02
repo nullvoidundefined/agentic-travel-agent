@@ -93,20 +93,15 @@ export function ChatBox({
                         ]);
                         break;
                     case "tool_result":
-                        setTools((prev) => {
-                            const completedTool = prev.find(
-                                (t) => t.tool_id === data.tool_id,
-                            );
-                            if (completedTool?.tool_name === "update_trip") {
-                                queryClient.invalidateQueries({
-                                    queryKey: ["trips", tripId],
-                                });
-                            }
-                            return prev.map((t) =>
+                        setTools((prev) =>
+                            prev.map((t) =>
                                 t.tool_id === data.tool_id
                                     ? { ...t, status: "done" as const }
                                     : t,
-                            );
+                            ),
+                        );
+                        queryClient.invalidateQueries({
+                            queryKey: ["trips", tripId],
                         });
                         break;
                     case "assistant":

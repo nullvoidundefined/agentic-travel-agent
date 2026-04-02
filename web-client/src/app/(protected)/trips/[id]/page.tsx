@@ -106,6 +106,7 @@ export default function TripDetailPage() {
         queryClient.setQueryData<Trip>(["trips", id], (old) =>
             old ? { ...old, status: "saved" } : old,
         );
+        await queryClient.invalidateQueries({ queryKey: ["trips", id] });
         setShowConfirmation(false);
     }, [id, queryClient]);
 
