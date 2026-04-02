@@ -1,6 +1,7 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary/ErrorBoundary";
 import { Footer } from "@/components/Footer/Footer";
 import { Header } from "@/components/Header/Header";
+import { VibeLensBar } from "@/components/VibeLensBar/VibeLensBar";
 import { AuthProvider } from "@/context/AuthContext";
 import { APP_NAME } from "@/lib/constants";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -36,6 +37,7 @@ export default function RootLayout({
             </div>
           </AuthProvider>
         </QueryProvider>
+        <VibeLensBar />
         <Analytics />
         <SpeedInsights />
       </body>
