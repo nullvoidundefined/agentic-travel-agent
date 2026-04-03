@@ -310,6 +310,39 @@ export async function chat(req: Request, res: Response) {
           transport_mode: updatedTrip.transport_mode ?? null,
         },
       );
+
+      // Empty itinerary guard: if all categories are done/skipped but none are 'done',
+      // block advancement to CONFIRM by resetting the first skipped category to idle
+      const categories = [
+        'flights',
+        'hotels',
+        'car_rental',
+        'experiences',
+      ] as const;
+      const hasDone = categories.some(
+        (cat) => newBookingState[cat].status === 'done',
+      );
+      const allFinished = categories.every(
+        (cat) =>
+          newBookingState[cat].status === 'done' ||
+          newBookingState[cat].status === 'skipped',
+      );
+
+      if (allFinished && !hasDone) {
+        result.nodes.push({
+          type: 'text',
+          content:
+            "You haven't selected anything for your trip yet. Want to go back and explore some options?",
+        });
+        // Reset the first skipped category back to idle so the flow continues
+        for (const cat of categories) {
+          if (newBookingState[cat].status === 'skipped') {
+            newBookingState[cat] = { status: 'idle' };
+            break;
+          }
+        }
+      }
+
       await updateBookingState(
         conversation.id,
         newBookingState as unknown as Record<string, unknown>,

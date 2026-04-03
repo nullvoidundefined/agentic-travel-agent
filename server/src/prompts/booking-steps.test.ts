@@ -398,4 +398,36 @@ describe('advanceBookingState', () => {
     );
     expect(result.version).toBe(CURRENT_BOOKING_STATE_VERSION);
   });
+
+  it('should reset done to presented when search tool is called (category undo)', () => {
+    const state: BookingState = {
+      version: 1,
+      flights: { status: 'done' },
+      hotels: { status: 'idle' },
+      car_rental: { status: 'idle' },
+      experiences: { status: 'idle' },
+    };
+    const result = advanceBookingState(
+      state,
+      'flights',
+      'done',
+      {
+        tool_calls: [{ tool_name: 'search_flights' }],
+        formatResponse: null,
+      },
+      {
+        destination: 'Paris',
+        origin: 'JFK',
+        departure_date: '2026-06-01',
+        return_date: '2026-06-10',
+        budget_total: 5000,
+        transport_mode: 'flying',
+        flights: [{ id: '1' }],
+        hotels: [],
+        experiences: [],
+        status: 'planning',
+      },
+    );
+    expect(result.flights.status).toBe('presented');
+  });
 });

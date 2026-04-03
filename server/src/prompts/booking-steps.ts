@@ -259,6 +259,13 @@ export function advanceBookingState(
       // If search called again (re-search), stay in presented
       break;
 
+    case 'done':
+      // Category undo: if user re-searches a completed category, reset to presented
+      if (searchCalled) {
+        newState[cat] = { ...newState[cat], status: 'presented' };
+      }
+      break;
+
     default:
       break;
   }
