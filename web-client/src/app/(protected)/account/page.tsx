@@ -1,16 +1,14 @@
 'use client';
 
+import { useState } from 'react';
+
+import { PreferencesWizard } from '@/components/PreferencesWizard/PreferencesWizard';
 import { useAuth } from '@/context/AuthContext';
 import { get } from '@/lib/api';
+import { type UserPreferences } from '@/lib/preferenceOptions';
 import { useQuery } from '@tanstack/react-query';
 
 import styles from './account.module.scss';
-
-interface UserPreferences {
-  dietary: string[];
-  intensity: string;
-  social: string;
-}
 
 interface Trip {
   id: string;
@@ -31,8 +29,28 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+function formatPrefValue(value: string | string[] | null | undefined): string {
+  if (!value || (Array.isArray(value) && value.length === 0)) return 'Not set';
+  if (Array.isArray(value)) return value.map(capitalize).join(', ');
+  return capitalize(value.replace(/-/g, ' '));
+}
+
+const PREFERENCE_CATEGORIES: {
+  label: string;
+  key: keyof UserPreferences;
+}[] = [
+  { label: 'Accommodation', key: 'accommodation' },
+  { label: 'Travel Pace', key: 'travel_pace' },
+  { label: 'Dietary', key: 'dietary' },
+  { label: 'Dining Style', key: 'dining_style' },
+  { label: 'Activities', key: 'activities' },
+  { label: 'Travel Party', key: 'travel_party' },
+  { label: 'Budget Comfort', key: 'budget_comfort' },
+];
+
 export default function AccountPage() {
   const { user } = useAuth();
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   const { data: preferences } = useQuery({
     queryKey: ['preferences'],
@@ -46,6 +64,8 @@ export default function AccountPage() {
     queryKey: ['trips'],
     queryFn: () => get<{ trips: Trip[] }>('/trips').then((r) => r.trips),
   });
+
+  const completedCount = preferences?.completed_steps?.length ?? 0;
 
   return (
     <div className={styles.page}>
@@ -79,28 +99,28 @@ export default function AccountPage() {
       <section className={styles.section}>
         <h2>Preferences</h2>
         <div className={styles.card}>
-          <div className={styles.prefRow}>
-            <span>Dietary</span>
-            <span className={styles.prefValue}>
-              {preferences?.dietary?.length
-                ? preferences.dietary.map(capitalize).join(', ')
-                : 'Not set'}
+          <div className={styles.prefHeader}>
+            <span className={styles.prefCompletion}>
+              {completedCount} of 6 categories completed
             </span>
+            <button
+              type='button'
+              className={styles.editButton}
+              onClick={() => setWizardOpen(true)}
+            >
+              Edit Preferences
+            </button>
           </div>
-          <div className={styles.prefRow}>
-            <span>Travel Intensity</span>
-            <span className={styles.prefValue}>
-              {preferences?.intensity
-                ? capitalize(preferences.intensity)
-                : 'Not set'}
-            </span>
-          </div>
-          <div className={styles.prefRow}>
-            <span>Usually Traveling</span>
-            <span className={styles.prefValue}>
-              {preferences?.social ? capitalize(preferences.social) : 'Not set'}
-            </span>
-          </div>
+          {PREFERENCE_CATEGORIES.map((cat) => (
+            <div key={cat.key} className={styles.prefRow}>
+              <span>{cat.label}</span>
+              <span className={styles.prefValue}>
+                {formatPrefValue(
+                  preferences?.[cat.key] as string | string[] | null,
+                )}
+              </span>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -113,6 +133,12 @@ export default function AccountPage() {
           </div>
         </div>
       </section>
+
+      <PreferencesWizard
+        isOpen={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        initialPreferences={preferences ?? null}
+      />
     </div>
   );
 }

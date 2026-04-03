@@ -66,6 +66,38 @@
   color: var(--foreground-muted);
 }
 
+.prefHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.prefCompletion {
+  font-size: 13px;
+  color: var(--foreground-muted);
+}
+
+.editButton {
+  padding: 8px 18px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--cta);
+  color: var(--cta-text);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
+
+  &:hover {
+    background: var(--cta-hover);
+    box-shadow: var(--shadow-glow);
+  }
+}
+
 .prefRow {
   display: flex;
   justify-content: space-between;

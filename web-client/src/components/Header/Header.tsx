@@ -1,7 +1,10 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
+import { get } from '@/lib/api';
 import { APP_NAME } from '@/lib/constants';
+import { type UserPreferences } from '@/lib/preferenceOptions';
+import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -20,6 +23,18 @@ export function Header() {
   const { user, logout } = useAuth();
 
   const navLinks = user ? authedLinks : publicLinks;
+
+  const { data: preferences } = useQuery({
+    queryKey: ['preferences'],
+    queryFn: () =>
+      get<{ preferences: UserPreferences | null }>('/user-preferences').then(
+        (r) => r.preferences,
+      ),
+    enabled: !!user,
+  });
+
+  const prefsIncomplete =
+    !!user && (preferences?.completed_steps?.length ?? 0) < 6;
 
   return (
     <header className={styles.header}>
@@ -53,6 +68,12 @@ export function Header() {
               className={`${styles.navLink} ${pathname === link.href ? styles.active : ''}`}
             >
               {link.label}
+              {link.href === '/account' && prefsIncomplete && (
+                <span
+                  className={styles.incompleteBadge}
+                  aria-label='Preferences incomplete'
+                />
+              )}
             </Link>
           ))}
         </nav>
