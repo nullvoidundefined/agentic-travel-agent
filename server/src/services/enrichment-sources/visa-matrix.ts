@@ -79,7 +79,7 @@ export function getVisaRequirement(
   return {
     type: 'advisory',
     severity: 'warning',
-    title: 'Visa Required',
-    body: `Citizens of ${origin} require a visa to enter this country. Apply in advance through the destination country's embassy or consulate.`,
+    title: 'Visa Requirements — Check Before Travel',
+    body: `Visa requirements vary by nationality. We have detailed data for US and UK travelers. For other nationalities, please check your country's foreign affairs website before traveling. (Direct visa verification coming in a future update.)`,
   };
 }

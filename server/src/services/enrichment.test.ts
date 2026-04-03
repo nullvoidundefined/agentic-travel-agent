@@ -51,7 +51,7 @@ describe('getVisaRequirement', () => {
     const node = getVisaRequirement('US', 'CN');
     expect(node).not.toBeNull();
     if (node?.type === 'advisory') {
-      expect(node.title).toBe('Visa Required');
+      expect(node.title).toBe('Visa Requirements — Check Before Travel');
       expect(node.severity).toBe('warning');
     }
   });

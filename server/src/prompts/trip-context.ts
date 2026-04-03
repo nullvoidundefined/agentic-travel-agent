@@ -20,6 +20,8 @@ export interface TripContext {
     activities: string[];
     travel_party: string | null;
     budget_comfort: string | null;
+    lgbtq_safety?: boolean;
+    gender?: string | null;
   };
   selected_flights: Array<{
     airline: string;
@@ -57,7 +59,9 @@ export function formatTripContext(ctx: TripContext): string {
   if (ctx.origin) lines.push(`- **Origin:** ${ctx.origin}`);
   if (ctx.departure_date) lines.push(`- **Departure:** ${ctx.departure_date}`);
   if (ctx.return_date) lines.push(`- **Return:** ${ctx.return_date}`);
-  lines.push(`- **Budget:** ${ctx.budget_currency} ${ctx.budget_total}`);
+  if (ctx.budget_total > 0) {
+    lines.push(`- **Budget:** ${ctx.budget_currency} ${ctx.budget_total}`);
+  }
   lines.push(`- **Travelers:** ${ctx.travelers}`);
   if (ctx.transport_mode) lines.push(`- **Transport:** ${ctx.transport_mode}`);
 
@@ -90,6 +94,38 @@ export function formatTripContext(ctx: TripContext): string {
       lines.push(`- Activities: ${up.activities.join(', ')}`);
     if (up.travel_party) lines.push(`- Travel party: ${up.travel_party}`);
     if (up.budget_comfort) lines.push(`- Budget comfort: ${up.budget_comfort}`);
+  }
+
+  // Safety-aware prompt injections
+  if (ctx.user_preferences) {
+    const up = ctx.user_preferences;
+    const safetyLines: string[] = [];
+
+    if (up.lgbtq_safety) {
+      safetyLines.push(
+        "The user has opted into LGBTQ+ travel safety information. If the destination's travel advisories mention laws or attitudes affecting LGBTQ+ travelers, proactively surface this information. Be factual and helpful — mention specific risks without being preachy.",
+      );
+    }
+
+    if (up.gender === 'woman' || up.gender === 'non_binary') {
+      const identity = up.gender === 'woman' ? 'a woman' : 'non-binary';
+      safetyLines.push(
+        `The user identifies as ${identity}. If the destination has advisories mentioning restrictions or safety concerns for women or gender non-conforming travelers (dress codes, solo travel restrictions, harassment risks), proactively surface this information.`,
+      );
+    }
+
+    if (up.travel_party === 'solo') {
+      safetyLines.push(
+        'The user is traveling solo. If relevant advisories exist for this destination, mention general solo travel safety tips.',
+      );
+    }
+
+    if (safetyLines.length > 0) {
+      lines.push('\n### Safety Context');
+      for (const line of safetyLines) {
+        lines.push(`- ${line}`);
+      }
+    }
   }
 
   if (ctx.selected_flights.length > 0) {
@@ -126,10 +162,12 @@ export function formatTripContext(ctx: TripContext): string {
     }
   }
 
-  const remaining = ctx.budget_total - ctx.total_spent;
-  lines.push(`\n### Budget Status`);
-  lines.push(`- Spent: $${ctx.total_spent} / $${ctx.budget_total}`);
-  lines.push(`- Remaining: $${remaining}`);
+  if (ctx.budget_total > 0) {
+    const remaining = ctx.budget_total - ctx.total_spent;
+    lines.push(`\n### Budget Status`);
+    lines.push(`- Spent: $${ctx.total_spent} / $${ctx.budget_total}`);
+    lines.push(`- Remaining: $${remaining}`);
+  }
 
   return lines.join('\n');
 }
