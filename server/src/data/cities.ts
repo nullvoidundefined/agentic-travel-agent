@@ -21,7 +21,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'America/New_York',
     currency: 'USD',
     best_time_to_visit: 'April to June, September to November',
-    unsplash_id: '1534430480872-3498386e7856',
+    unsplash_id: '1500289483460-00bdb46204f9',
   },
   'los angeles': {
     lat: 34.0522,
@@ -155,7 +155,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'America/Mexico_City',
     currency: 'MXN',
     best_time_to_visit: 'March to May',
-    unsplash_id: '1518659526054-e25d4cec600a',
+    unsplash_id: '1514060967642-aa09f273f887',
   },
   cancun: {
     lat: 21.1619,
@@ -212,7 +212,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'HAV',
     timezone: 'America/Havana',
     currency: 'CUP',
-    unsplash_id: '1500759285222-a95626b934cb',
+    unsplash_id: '1509239767605-0703ef611f08',
   },
   kingston: {
     lat: 17.997,
@@ -295,7 +295,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'LIM',
     timezone: 'America/Lima',
     currency: 'PEN',
-    unsplash_id: '1531968455002-3498ae6027a1',
+    unsplash_id: '1491613993002-8956ec08fddc',
   },
   'sao paulo': {
     lat: -23.5505,
@@ -399,7 +399,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/London',
     currency: 'GBP',
     best_time_to_visit: 'June to August',
-    unsplash_id: '1513635269975-59663e0ac1ad',
+    unsplash_id: '1448056975861-28196f26abd6',
   },
   edinburgh: {
     lat: 55.9533,
@@ -419,7 +419,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Paris',
     currency: 'EUR',
     best_time_to_visit: 'April to June, September to October',
-    unsplash_id: '1502602898657-3e91760cbb34',
+    unsplash_id: '1459455356093-6495cff2a2c4',
   },
   nice: {
     lat: 43.7102,
@@ -439,7 +439,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Madrid',
     currency: 'EUR',
     best_time_to_visit: 'May to June, September to October',
-    unsplash_id: '1583422409516-2895a77efded',
+    unsplash_id: '1510781768709-d1bfe138cf3b',
   },
   madrid: {
     lat: 40.4168,
@@ -469,7 +469,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Rome',
     currency: 'EUR',
     best_time_to_visit: 'April to June, September to October',
-    unsplash_id: '1552832230-c0197dd311b5',
+    unsplash_id: '1586421746416-1a96255a5ecb',
   },
   milan: {
     lat: 45.4654,
@@ -535,7 +535,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Amsterdam',
     currency: 'EUR',
     best_time_to_visit: 'April to May, September to November',
-    unsplash_id: '1534351590666-13e3e96b5017',
+    unsplash_id: '1523889310790-cb91a98b017b',
   },
   brussels: {
     lat: 50.8503,
@@ -572,7 +572,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'VIE',
     timezone: 'Europe/Vienna',
     currency: 'EUR',
-    unsplash_id: '1516550893923-42d28e5677af',
+    unsplash_id: '1680454469315-5778f0c91674',
   },
   lisbon: {
     lat: 38.7223,
@@ -583,7 +583,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Lisbon',
     currency: 'EUR',
     best_time_to_visit: 'March to May, September to October',
-    unsplash_id: '1555881400-74d7acaacd8b',
+    unsplash_id: '1484437732853-cc855bf85a49',
   },
   porto: {
     lat: 41.1579,
@@ -638,7 +638,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'KEF',
     timezone: 'Atlantic/Reykjavik',
     currency: 'ISK',
-    unsplash_id: '1504829857797-ddff29c27927',
+    unsplash_id: '1484619701999-76d79bbc51d1',
   },
   dublin: {
     lat: 53.3498,
@@ -668,7 +668,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Athens',
     currency: 'EUR',
     best_time_to_visit: 'April to October',
-    unsplash_id: '1570077188670-e3a8d69ac5ff',
+    unsplash_id: '1504752509934-8b4044d2135f',
   },
   prague: {
     lat: 50.0755,
@@ -678,7 +678,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'PRG',
     timezone: 'Europe/Prague',
     currency: 'CZK',
-    unsplash_id: '1519677100203-a0e668c92439',
+    unsplash_id: '1568477193171-2cd07447c83b',
   },
   budapest: {
     lat: 47.4979,
@@ -688,7 +688,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'BUD',
     timezone: 'Europe/Budapest',
     currency: 'HUF',
-    unsplash_id: '1549923746-c502d488b3ea',
+    unsplash_id: '1523168786345-2724a464d87e',
   },
   warsaw: {
     lat: 52.2297,
@@ -743,7 +743,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'DBV',
     timezone: 'Europe/Zagreb',
     currency: 'EUR',
-    unsplash_id: '1555990538-1e15a10e4c61',
+    unsplash_id: '1506098992531-b41d84746bb6',
   },
   belgrade: {
     lat: 44.7866,
@@ -809,7 +809,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Istanbul',
     currency: 'TRY',
     best_time_to_visit: 'April to May, September to November',
-    unsplash_id: '1524231757912-21f4fe3a7200',
+    unsplash_id: '1594707014495-1f553e9d0a8c',
   },
   ankara: {
     lat: 39.9334,
@@ -829,7 +829,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Asia/Dubai',
     currency: 'AED',
     best_time_to_visit: 'November to March',
-    unsplash_id: '1512453913961-1491d39ae3fc',
+    unsplash_id: '1518684079-3c830dcef090',
   },
   'abu dhabi': {
     lat: 24.4539,
@@ -984,7 +984,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'BOM',
     timezone: 'Asia/Kolkata',
     currency: 'INR',
-    unsplash_id: '1529253355930-ddbe423a2ac7',
+    unsplash_id: '1531589767116-64a48779e523',
   },
   delhi: {
     lat: 28.7041,
@@ -1123,7 +1123,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Asia/Tokyo',
     currency: 'JPY',
     best_time_to_visit: 'March to May, September to November',
-    unsplash_id: '1540959733332-eab848b19436',
+    unsplash_id: '1579992420740-537be2a3de31',
   },
   osaka: {
     lat: 34.6937,
@@ -1142,7 +1142,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'ITM',
     timezone: 'Asia/Tokyo',
     currency: 'JPY',
-    unsplash_id: '1493976040374-85c8e12f0c0e',
+    unsplash_id: '1569040584961-83a30d5ad8ff',
   },
   'hong kong': {
     lat: 22.3193,
@@ -1181,7 +1181,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Asia/Seoul',
     currency: 'KRW',
     best_time_to_visit: 'April to June, September to November',
-    unsplash_id: '1517154421773-0529f29ea451',
+    unsplash_id: '1570192134376-8ba4c3e8ffa1',
   },
   busan: {
     lat: 35.1796,
@@ -1273,7 +1273,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Asia/Bangkok',
     currency: 'THB',
     best_time_to_visit: 'November to February',
-    unsplash_id: '1508009603885-50cf7c579365',
+    unsplash_id: '1510377971269-d723c13cc478',
   },
   'chiang mai': {
     lat: 18.7061,
@@ -1365,7 +1365,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Asia/Singapore',
     currency: 'SGD',
     best_time_to_visit: 'February to April',
-    unsplash_id: '1525625293386-3f8f99389edd',
+    unsplash_id: '1517188206596-1e1f7c954177',
   },
   jakarta: {
     lat: -6.2088,
@@ -1384,7 +1384,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'DPS',
     timezone: 'Asia/Makassar',
     currency: 'IDR',
-    unsplash_id: '1537996194471-e657df975ab4',
+    unsplash_id: '1576019206484-54273acdfa89',
   },
   ubud: {
     lat: -8.5069,
@@ -1423,7 +1423,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Australia/Sydney',
     currency: 'AUD',
     best_time_to_visit: 'September to November, March to May',
-    unsplash_id: '1506973035872-a4ec16b8e8d9',
+    unsplash_id: '1513343987712-5da15ea2a9bb',
   },
   melbourne: {
     lat: -37.8136,
@@ -1478,7 +1478,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'AKL',
     timezone: 'Pacific/Auckland',
     currency: 'NZD',
-    unsplash_id: '1507699580474-99cf7c0cf42d',
+    unsplash_id: '1534551039924-409372dd29c3',
   },
   queenstown: {
     lat: -45.0312,
@@ -1534,7 +1534,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'RAK',
     timezone: 'Africa/Casablanca',
     currency: 'MAD',
-    unsplash_id: '1489749798305-4fea3ae63d43',
+    unsplash_id: '1517531991679-1e0625207aa1',
   },
   casablanca: {
     lat: 33.5731,
@@ -1581,7 +1581,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'CPT',
     timezone: 'Africa/Johannesburg',
     currency: 'ZAR',
-    unsplash_id: '1580060839134-75a5edca2e99',
+    unsplash_id: '1520513455472-b259f1ec720a',
   },
   johannesburg: {
     lat: -26.2041,
