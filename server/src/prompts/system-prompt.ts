@@ -29,7 +29,5 @@ export function buildSystemPrompt(
     );
   }
 
-  const    badlyFormatted    =     "this is intentionally ugly"
-  console.log(badlyFormatted)
   return parts.join('');
 }
