@@ -163,14 +163,14 @@ Progress events (`tool_start`, `tool_result`, `assistant`) are emitted via callb
 
 `server/src/services/node-builder.ts` maps raw tool results to `ChatNode` objects:
 
-| Tool result         | ChatNode produced  |
-| ------------------- | ------------------ |
-| `search_flights`    | `flight_tiles`     |
-| `search_hotels`     | `hotel_tiles`      |
-| `search_car_rentals`| `car_rental_tiles` |
-| `search_experiences`| `experience_tiles` |
-| `calculate_remaining_budget` | `budget_bar` |
-| Other tools         | `null` (no node)   |
+| Tool result                  | ChatNode produced  |
+| ---------------------------- | ------------------ |
+| `search_flights`             | `flight_tiles`     |
+| `search_hotels`              | `hotel_tiles`      |
+| `search_car_rentals`         | `car_rental_tiles` |
+| `search_experiences`         | `experience_tiles` |
+| `calculate_remaining_budget` | `budget_bar`       |
+| Other tools                  | `null` (no node)   |
 
 The node builder also normalizes raw API response shapes into the clean `Flight`, `Hotel`, `CarRental`, and `Experience` interfaces from `shared-types`, assigning UUIDs in the process.
 
@@ -178,13 +178,13 @@ The node builder also normalizes raw API response shapes into the clean `Flight`
 
 `server/src/services/enrichment.ts` is called by the chat handler after a destination is resolved. It returns a `ChatNode[]` that is appended to the message stream automatically, without any agent tool calls:
 
-| Source | Output |
-| ------ | ------ |
-| US State Dept advisory API | `advisory` node (severity: info/warning/critical) |
-| UK FCDO advisory API | `advisory` node |
-| Open-Meteo forecast API | `weather_forecast` node (7-day) |
-| Visa matrix (static lookup) | `advisory` node with visa requirements |
-| Driving requirements (static lookup) | `advisory` node with traffic side, license info |
+| Source                               | Output                                            |
+| ------------------------------------ | ------------------------------------------------- |
+| US State Dept advisory API           | `advisory` node (severity: info/warning/critical) |
+| UK FCDO advisory API                 | `advisory` node                                   |
+| Open-Meteo forecast API              | `weather_forecast` node (7-day)                   |
+| Visa matrix (static lookup)          | `advisory` node with visa requirements            |
+| Driving requirements (static lookup) | `advisory` node with traffic side, license info   |
 
 The service uses `Promise.allSettled` for the async sources, so a failure from any single source does not block the others. Coordinates for 25 cities are embedded in the service; destinations not in the list silently skip enrichment.
 
@@ -192,20 +192,20 @@ The service uses `Promise.allSettled` for the async sources, so a failure from a
 
 `packages/shared-types/src/nodes.ts` defines the `ChatNode` discriminated union with 12 variants:
 
-| Type | Description |
-| ---- | ----------- |
-| `text` | Markdown content with optional citations array |
-| `flight_tiles` | Flight search results, selectable |
-| `hotel_tiles` | Hotel search results, selectable |
-| `car_rental_tiles` | Car rental search results, selectable |
-| `experience_tiles` | Experience/activity search results, selectable |
-| `travel_plan_form` | Structured form for collecting trip details |
-| `itinerary` | Day-by-day plan (array of `DayPlan`) |
-| `advisory` | Travel advisory, visa info, driving rules (severity: info/warning/critical) |
-| `weather_forecast` | 7-day weather outlook (array of `WeatherDay`) |
-| `budget_bar` | Budget allocation tracker (allocated, total, currency) |
-| `quick_replies` | Suggested next action buttons |
-| `tool_progress` | Tool execution status indicator (running/done) |
+| Type               | Description                                                                 |
+| ------------------ | --------------------------------------------------------------------------- |
+| `text`             | Markdown content with optional citations array                              |
+| `flight_tiles`     | Flight search results, selectable                                           |
+| `hotel_tiles`      | Hotel search results, selectable                                            |
+| `car_rental_tiles` | Car rental search results, selectable                                       |
+| `experience_tiles` | Experience/activity search results, selectable                              |
+| `travel_plan_form` | Structured form for collecting trip details                                 |
+| `itinerary`        | Day-by-day plan (array of `DayPlan`)                                        |
+| `advisory`         | Travel advisory, visa info, driving rules (severity: info/warning/critical) |
+| `weather_forecast` | 7-day weather outlook (array of `WeatherDay`)                               |
+| `budget_bar`       | Budget allocation tracker (allocated, total, currency)                      |
+| `quick_replies`    | Suggested next action buttons                                               |
+| `tool_progress`    | Tool execution status indicator (running/done)                              |
 
 The `ChatNodeOfType<T>` helper type extracts a specific variant for narrowly-typed component props.
 
@@ -213,13 +213,13 @@ The `ChatNodeOfType<T>` helper type extracts a specific variant for narrowly-typ
 
 The chat endpoint emits these typed SSE event shapes (defined in `SSEEvent` in shared-types):
 
-| Event type | Payload | Purpose |
-| ---------- | ------- | ------- |
-| `node` | `{ node: ChatNode }` | A complete node ready to display |
-| `text_delta` | `{ content: string }` | Streaming text fragment |
-| `tool_progress` | `{ tool_id, tool_name, status }` | Tool execution start/completion |
-| `done` | `{}` | Stream complete |
-| `error` | `{ error: string }` | Error condition |
+| Event type      | Payload                          | Purpose                          |
+| --------------- | -------------------------------- | -------------------------------- |
+| `node`          | `{ node: ChatNode }`             | A complete node ready to display |
+| `text_delta`    | `{ content: string }`            | Streaming text fragment          |
+| `tool_progress` | `{ tool_id, tool_name, status }` | Tool execution start/completion  |
+| `done`          | `{}`                             | Stream complete                  |
+| `error`         | `{ error: string }`              | Error condition                  |
 
 ### Middleware Stack
 
@@ -251,20 +251,20 @@ Custom session-based auth (not Supabase):
 
 13 migrations in `server/migrations/` create:
 
-| Table              | Purpose                                                                 |
-| ------------------ | ----------------------------------------------------------------------- |
-| `users`            | Email, password hash, first/last name                                   |
-| `sessions`         | Session ID (SHA-256 hash), user_id, expires_at                          |
-| `trips`            | Destination, origin, dates, budget, travelers, preferences, status      |
-| `trip_flights`     | Selected flights for a trip (origin, destination, airline, price, etc.) |
-| `trip_hotels`      | Selected hotels (name, city, star rating, prices, dates)                |
-| `trip_experiences` | Selected experiences (name, category, rating, estimated cost)           |
-| `trip_car_rentals` | Selected car rentals (provider, car name, type, price, dates)           |
-| `conversations`    | One conversation per trip (1:1 relationship, UPSERT on trip_id)         |
+| Table              | Purpose                                                                   |
+| ------------------ | ------------------------------------------------------------------------- |
+| `users`            | Email, password hash, first/last name                                     |
+| `sessions`         | Session ID (SHA-256 hash), user_id, expires_at                            |
+| `trips`            | Destination, origin, dates, budget, travelers, preferences, status        |
+| `trip_flights`     | Selected flights for a trip (origin, destination, airline, price, etc.)   |
+| `trip_hotels`      | Selected hotels (name, city, star rating, prices, dates)                  |
+| `trip_experiences` | Selected experiences (name, category, rating, estimated cost)             |
+| `trip_car_rentals` | Selected car rentals (provider, car name, type, price, dates)             |
+| `conversations`    | One conversation per trip (1:1 relationship, UPSERT on trip_id)           |
 | `messages`         | Dual-column: `nodes` JSONB for UI + `content`/`tool_calls_json` for agent |
-| `api_cache`        | Unused (caching moved to Redis)                                         |
-| `tool_call_log`    | Observability: tool name, input/result JSON, latency, cache hit, error  |
-| `user_preferences` | Dietary restrictions, travel intensity, social style per user           |
+| `api_cache`        | Unused (caching moved to Redis)                                           |
+| `tool_call_log`    | Observability: tool name, input/result JSON, latency, cache hit, error    |
+| `user_preferences` | Dietary restrictions, travel intensity, social style per user             |
 
 The `messages` table uses a **dual-column pattern**: `nodes` (JSONB `ChatNode[]`) is the display representation; `content` + `tool_calls_json` are the API conversation representation. These evolve independently. Two new columns support the typed protocol: `schema_version` (INTEGER) for forward-compatible rendering, and `sequence` (INTEGER, unique per conversation) for strict ordering.
 

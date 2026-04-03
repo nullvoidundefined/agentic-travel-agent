@@ -1,13 +1,13 @@
 import type {
-  ChatNode,
   ChatMessage,
+  ChatNode,
   SSEEvent,
 } from '@agentic-travel-agent/shared-types';
 import {
-  getFlowPosition,
-  advanceBookingState,
-  normalizeBookingState,
   DEFAULT_BOOKING_STATE,
+  advanceBookingState,
+  getFlowPosition,
+  normalizeBookingState,
 } from 'app/prompts/booking-steps.js';
 import type { TripContext } from 'app/prompts/trip-context.js';
 import {
@@ -18,8 +18,8 @@ import {
 } from 'app/repositories/conversations/conversations.js';
 import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { findByUserId as findUserPreferences } from 'app/repositories/userPreferences/userPreferences.js';
-import { getEnrichmentNodes } from 'app/services/enrichment.js';
 import { runAgentLoop } from 'app/services/agent.service.js';
+import { getEnrichmentNodes } from 'app/services/enrichment.js';
 import { logger } from 'app/utils/logs/logger.js';
 import type { Request, Response } from 'express';
 
@@ -108,8 +108,14 @@ export async function chat(req: Request, res: Response) {
     total_spent:
       (trip.flights ?? []).reduce((sum, f) => sum + (f.price ?? 0), 0) +
       (trip.hotels ?? []).reduce((sum, h) => sum + (h.total_price ?? 0), 0) +
-      (trip.car_rentals ?? []).reduce((sum, c) => sum + (c.total_price ?? 0), 0) +
-      (trip.experiences ?? []).reduce((sum, e) => sum + (e.estimated_cost ?? 0), 0),
+      (trip.car_rentals ?? []).reduce(
+        (sum, c) => sum + (c.total_price ?? 0),
+        0,
+      ) +
+      (trip.experiences ?? []).reduce(
+        (sum, e) => sum + (e.estimated_cost ?? 0),
+        0,
+      ),
   };
 
   // Set up SSE
@@ -217,29 +223,73 @@ export async function chat(req: Request, res: Response) {
           transport_mode: updatedTrip.transport_mode ?? null,
           flights: (updatedTrip.flights ?? []).map((f) => ({ id: f.id })),
           hotels: (updatedTrip.hotels ?? []).map((h) => ({ id: h.id })),
-          car_rentals: (updatedTrip.car_rentals ?? []).map((c) => ({ id: c.id })),
-          experiences: (updatedTrip.experiences ?? []).map((e) => ({ id: e.id })),
+          car_rentals: (updatedTrip.car_rentals ?? []).map((c) => ({
+            id: c.id,
+          })),
+          experiences: (updatedTrip.experiences ?? []).map((e) => ({
+            id: e.id,
+          })),
           status: updatedTrip.status ?? 'planning',
         },
         currentBookingState,
       );
       if (updatedPosition.phase === 'COLLECT_DETAILS') {
-        const isPlaceholder = !updatedTrip.destination || updatedTrip.destination === 'Planning...';
+        const isPlaceholder =
+          !updatedTrip.destination || updatedTrip.destination === 'Planning...';
         const missingFields: Array<{
           name: string;
           label: string;
           field_type: 'text' | 'date' | 'number' | 'select';
           required: boolean;
         }> = [];
-        if (isPlaceholder) missingFields.push({ name: 'destination', label: 'Where do you want to go?', field_type: 'text', required: true });
-        if (!updatedTrip.origin) missingFields.push({ name: 'origin', label: 'Where are you traveling from?', field_type: 'text', required: true });
-        if (!updatedTrip.departure_date) missingFields.push({ name: 'departure_date', label: 'Departure date', field_type: 'date', required: true });
-        if (!updatedTrip.return_date) missingFields.push({ name: 'return_date', label: 'Return date', field_type: 'date', required: true });
-        if (!updatedTrip.budget_total) missingFields.push({ name: 'budget', label: 'Total budget (USD)', field_type: 'number', required: true });
-        if (!updatedTrip.travelers || updatedTrip.travelers <= 1) missingFields.push({ name: 'travelers', label: 'Number of travelers', field_type: 'number', required: true });
+        if (isPlaceholder)
+          missingFields.push({
+            name: 'destination',
+            label: 'Where do you want to go?',
+            field_type: 'text',
+            required: true,
+          });
+        if (!updatedTrip.origin)
+          missingFields.push({
+            name: 'origin',
+            label: 'Where are you traveling from?',
+            field_type: 'text',
+            required: true,
+          });
+        if (!updatedTrip.departure_date)
+          missingFields.push({
+            name: 'departure_date',
+            label: 'Departure date',
+            field_type: 'date',
+            required: true,
+          });
+        if (!updatedTrip.return_date)
+          missingFields.push({
+            name: 'return_date',
+            label: 'Return date',
+            field_type: 'date',
+            required: true,
+          });
+        if (!updatedTrip.budget_total)
+          missingFields.push({
+            name: 'budget',
+            label: 'Total budget (USD)',
+            field_type: 'number',
+            required: true,
+          });
+        if (!updatedTrip.travelers || updatedTrip.travelers <= 1)
+          missingFields.push({
+            name: 'travelers',
+            label: 'Number of travelers',
+            field_type: 'number',
+            required: true,
+          });
 
         if (missingFields.length > 0) {
-          result.nodes.push({ type: 'travel_plan_form', fields: missingFields });
+          result.nodes.push({
+            type: 'travel_plan_form',
+            fields: missingFields,
+          });
         }
       }
     }
@@ -325,14 +375,13 @@ export async function getMessages(req: Request, res: Response) {
   // Generate a welcome message on-the-fly for new trips — text only, no form.
   // The form appears in the agent's response after the user replies with partial info.
   if (messages.length === 0) {
-    const isPlaceholder = !trip.destination || trip.destination === 'Planning...';
+    const isPlaceholder =
+      !trip.destination || trip.destination === 'Planning...';
 
     const welcomeText = isPlaceholder
       ? "Hi! I'd love to help plan your trip. Where would you like to go, when are you traveling, and what's your budget?"
       : `Great choice! Let's plan your trip to **${trip.destination}**. When are you traveling, what's your budget, and where will you be coming from?`;
-    const welcomeNodes: ChatNode[] = [
-      { type: 'text', content: welcomeText },
-    ];
+    const welcomeNodes: ChatNode[] = [{ type: 'text', content: welcomeText }];
 
     const welcomeMessage: ChatMessage = {
       id: 'welcome',

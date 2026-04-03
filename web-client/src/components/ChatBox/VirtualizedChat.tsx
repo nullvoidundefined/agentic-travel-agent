@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import { APP_NAME } from '@/lib/constants';
 import type { ChatMessage, ChatNode } from '@agentic-travel-agent/shared-types';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
-import { APP_NAME } from '@/lib/constants';
 import { NodeRenderer } from './NodeRenderer';
 import styles from './VirtualizedChat.module.scss';
 
@@ -56,14 +56,17 @@ export function VirtualizedChat({
   // Build a temporary streaming message to append during active turns
   const streamingMessage = useMemo<ChatMessage | null>(
     () =>
-      isSending && (streamingNodes.length > 0 || toolProgress.length > 0 || streamingText)
+      isSending &&
+      (streamingNodes.length > 0 || toolProgress.length > 0 || streamingText)
         ? {
             id: '__streaming__',
             role: 'assistant',
             nodes: [
               ...toolProgress,
               ...streamingNodes,
-              ...(streamingText ? [{ type: 'text' as const, content: streamingText }] : []),
+              ...(streamingText
+                ? [{ type: 'text' as const, content: streamingText }]
+                : []),
             ],
             sequence: messages.length + 1,
             created_at: new Date().toISOString(),
@@ -81,10 +84,12 @@ export function VirtualizedChat({
   const virtualizer = useVirtualizer({
     count: allMessages.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: (index) => estimateMessageHeight(allMessages[index]?.nodes ?? []),
+    estimateSize: (index) =>
+      estimateMessageHeight(allMessages[index]?.nodes ?? []),
     overscan: 3,
     measureElement:
-      typeof window !== 'undefined' && navigator.userAgent.indexOf('Firefox') === -1
+      typeof window !== 'undefined' &&
+      navigator.userAgent.indexOf('Firefox') === -1
         ? (element) => element.getBoundingClientRect().height
         : undefined,
   });
@@ -100,11 +105,16 @@ export function VirtualizedChat({
   const handleScroll = useCallback(() => {
     const el = parentRef.current;
     if (!el) return;
-    wasAtBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+    wasAtBottomRef.current =
+      el.scrollHeight - el.scrollTop - el.clientHeight < 50;
   }, []);
 
   return (
-    <div ref={parentRef} className={styles.chatContainer} onScroll={handleScroll}>
+    <div
+      ref={parentRef}
+      className={styles.chatContainer}
+      onScroll={handleScroll}
+    >
       {allMessages.length === 0 && !isSending && (
         <div className={styles.emptyState}>
           <p className={styles.emptyIcon}>&#x2708;&#xFE0F;</p>
@@ -150,10 +160,14 @@ export function VirtualizedChat({
                       callbacks={{
                         onQuickReply,
                         onFormSubmit: onQuickReply,
-                        onConfirmFlight: (label) => onQuickReply(`I've selected the ${label} flight`),
-                        onConfirmHotel: (label) => onQuickReply(`I've selected ${label}`),
-                        onConfirmCarRental: (label) => onQuickReply(`I've selected the ${label} rental`),
-                        onConfirmExperience: (label) => onQuickReply(`I've selected ${label}`),
+                        onConfirmFlight: (label) =>
+                          onQuickReply(`I've selected the ${label} flight`),
+                        onConfirmHotel: (label) =>
+                          onQuickReply(`I've selected ${label}`),
+                        onConfirmCarRental: (label) =>
+                          onQuickReply(`I've selected the ${label} rental`),
+                        onConfirmExperience: (label) =>
+                          onQuickReply(`I've selected ${label}`),
                       }}
                     />
                   ))}

@@ -1,9 +1,15 @@
-import { describe, it, expect } from 'vitest';
-import { getCategoryPrompt, getPhasePrompt } from './category-prompts.js';
+import { describe, expect, it } from 'vitest';
+
 import type { CategoryName, CategoryStatus } from './booking-steps.js';
+import { getCategoryPrompt, getPhasePrompt } from './category-prompts.js';
 
 describe('category-prompts', () => {
-  const categories: CategoryName[] = ['flights', 'hotels', 'car_rental', 'experiences'];
+  const categories: CategoryName[] = [
+    'flights',
+    'hotels',
+    'car_rental',
+    'experiences',
+  ];
   const statuses: CategoryStatus[] = ['idle', 'asking', 'presented'];
 
   for (const cat of categories) {

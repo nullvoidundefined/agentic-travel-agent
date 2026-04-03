@@ -54,24 +54,25 @@ export async function getTripWithDetails(
   const trip = tripResult.rows[0];
   if (!trip) return null;
 
-  const [flightsResult, hotelsResult, carRentalsResult, experiencesResult] = await Promise.all([
-    query<TripFlight>(
-      `SELECT * FROM trip_flights WHERE trip_id = $1 ORDER BY created_at`,
-      [tripId],
-    ),
-    query<TripHotel>(
-      `SELECT * FROM trip_hotels WHERE trip_id = $1 ORDER BY created_at`,
-      [tripId],
-    ),
-    query<TripCarRental>(
-      `SELECT * FROM trip_car_rentals WHERE trip_id = $1 ORDER BY created_at`,
-      [tripId],
-    ),
-    query<TripExperience>(
-      `SELECT * FROM trip_experiences WHERE trip_id = $1 ORDER BY created_at`,
-      [tripId],
-    ),
-  ]);
+  const [flightsResult, hotelsResult, carRentalsResult, experiencesResult] =
+    await Promise.all([
+      query<TripFlight>(
+        `SELECT * FROM trip_flights WHERE trip_id = $1 ORDER BY created_at`,
+        [tripId],
+      ),
+      query<TripHotel>(
+        `SELECT * FROM trip_hotels WHERE trip_id = $1 ORDER BY created_at`,
+        [tripId],
+      ),
+      query<TripCarRental>(
+        `SELECT * FROM trip_car_rentals WHERE trip_id = $1 ORDER BY created_at`,
+        [tripId],
+      ),
+      query<TripExperience>(
+        `SELECT * FROM trip_experiences WHERE trip_id = $1 ORDER BY created_at`,
+        [tripId],
+      ),
+    ]);
 
   return {
     ...trip,

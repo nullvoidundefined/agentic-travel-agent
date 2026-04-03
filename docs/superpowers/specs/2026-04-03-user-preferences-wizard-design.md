@@ -31,8 +31,19 @@ interface UserPreferences {
   dietary: string[];
   dining_style: 'street-food' | 'casual' | 'fine-dining' | 'food-tours' | null;
   activities: string[];
-  travel_party: 'solo' | 'romantic-partner' | 'friends' | 'family-with-kids' | 'family-adults' | null;
-  budget_comfort: 'budget-conscious' | 'value-seeker' | 'comfort-first' | 'no-concerns' | null;
+  travel_party:
+    | 'solo'
+    | 'romantic-partner'
+    | 'friends'
+    | 'family-with-kids'
+    | 'family-adults'
+    | null;
+  budget_comfort:
+    | 'budget-conscious'
+    | 'value-seeker'
+    | 'comfort-first'
+    | 'no-concerns'
+    | null;
   completed_steps: string[]; // tracks which wizard steps have been visited/completed
 }
 ```
@@ -119,6 +130,7 @@ interface UserPreferences {
 ### Component
 
 `PreferencesWizard` — a modal component that:
+
 - Receives current `UserPreferences` (or null for new users)
 - Determines which steps are complete vs unanswered
 - Renders the appropriate step
@@ -132,27 +144,33 @@ interface UserPreferences {
 Each preference is injected into the relevant category prompt and trip context:
 
 ### Accommodation → LODGING prompt
+
 - `budget`: "Search for budget-friendly hotels, hostels, 1-3 star properties"
 - `mid-range`: "Search for 3-4 star hotels and vacation rentals"
 - `upscale`: "Search for 4-5 star hotels and boutique properties"
 - `unique`: "Search for unique stays — boutique hotels, eco-lodges, distinctive properties"
 
 ### Travel Pace → EXPERIENCES prompt + CONFIRM summary
+
 Controls activity density and tone. "Relaxed" = fewer activities, leisurely descriptions. "Packed" = maximize activities, efficient routing.
 
 ### Dietary → EXPERIENCES prompt (dining searches)
+
 Already works. Continues to filter dining recommendations.
 
 ### Dining Style → EXPERIENCES prompt (dining searches)
+
 - `street-food`: "Focus on street food, local markets, and food stalls"
 - `casual`: "Look for casual local restaurants"
 - `fine-dining`: "Search for upscale and fine dining restaurants"
 - `food-tours`: "Look for cooking classes, food tours, and culinary experiences"
 
 ### Activities & Interests → EXPERIENCES prompt
+
 Highest-impact preference. Provides explicit search categories instead of Claude guessing: "Search for history & culture, nature & outdoors, and wellness & spa experiences."
 
 ### Travel Party → ALL category prompts
+
 - `romantic-partner`: romantic restaurant suggestions, couples activities, scenic spots
 - `family-with-kids`: kid-friendly filters, safety considerations, family rooms, age-appropriate activities
 - `solo`: social hostels, group tours, walkable areas
@@ -160,6 +178,7 @@ Highest-impact preference. Provides explicit search categories instead of Claude
 - `family-adults`: cultural experiences, relaxed pace, no kid constraints
 
 ### Budget Comfort → Trip context (shapes all recommendations)
+
 - `budget-conscious`: "Prioritize cheapest options"
 - `value-seeker`: "Balance price and quality"
 - `comfort-first`: "Prioritize quality and convenience over price"
@@ -184,6 +203,7 @@ Highest-impact preference. Provides explicit search categories instead of Claude
 ### Version Migration
 
 `normalizePreferences(raw)`:
+
 - `null`/`undefined` → default empty preferences (version 1, all null/empty)
 - Missing `version` → treat as v0 (pre-versioning), upgrade to v1
 - `version < CURRENT_VERSION` → run migration functions in sequence
@@ -192,20 +212,20 @@ Highest-impact preference. Provides explicit search categories instead of Claude
 
 ## What Changes
 
-| Component | Change |
-|-----------|--------|
-| `server/migrations/` | New migration for JSONB preferences column, backfill, drop old columns/enums |
-| `server/src/schemas/userPreferences.ts` | New UserPreferences interface, option constants, normalizePreferences() |
-| `server/src/repositories/userPreferences/` | Read/write JSONB preferences column |
-| `server/src/handlers/userPreferences/` | Normalize on read, validate on write |
-| `server/src/prompts/trip-context.ts` | Expand user_preferences to all 7 categories |
-| `server/src/prompts/category-prompts.ts` | Interpolate preferences into category prompts |
-| `server/src/handlers/chat/chat.ts` | Map new preferences into tripContext |
-| `web-client/src/components/PreferencesWizard/` | NEW: 6-step modal component |
-| `web-client/src/app/(auth)/register/page.tsx` | Replace inline chips with PreferencesWizard |
-| `web-client/src/app/(protected)/account/page.tsx` | Add edit button, show all categories |
-| `web-client/src/components/Header/Header.tsx` | Badge for incomplete preferences |
-| `web-client/src/app/layout.tsx` | Auto-trigger for new users |
+| Component                                         | Change                                                                       |
+| ------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `server/migrations/`                              | New migration for JSONB preferences column, backfill, drop old columns/enums |
+| `server/src/schemas/userPreferences.ts`           | New UserPreferences interface, option constants, normalizePreferences()      |
+| `server/src/repositories/userPreferences/`        | Read/write JSONB preferences column                                          |
+| `server/src/handlers/userPreferences/`            | Normalize on read, validate on write                                         |
+| `server/src/prompts/trip-context.ts`              | Expand user_preferences to all 7 categories                                  |
+| `server/src/prompts/category-prompts.ts`          | Interpolate preferences into category prompts                                |
+| `server/src/handlers/chat/chat.ts`                | Map new preferences into tripContext                                         |
+| `web-client/src/components/PreferencesWizard/`    | NEW: 6-step modal component                                                  |
+| `web-client/src/app/(auth)/register/page.tsx`     | Replace inline chips with PreferencesWizard                                  |
+| `web-client/src/app/(protected)/account/page.tsx` | Add edit button, show all categories                                         |
+| `web-client/src/components/Header/Header.tsx`     | Badge for incomplete preferences                                             |
+| `web-client/src/app/layout.tsx`                   | Auto-trigger for new users                                                   |
 
 ### What Doesn't Change
 

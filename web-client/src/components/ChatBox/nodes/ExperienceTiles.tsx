@@ -38,7 +38,9 @@ export function ExperienceTiles({
 
   if (!node.selectable) {
     return (
-      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 }}>
+      <div
+        style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 }}
+      >
         {node.experiences.map((experience) => (
           <ExperienceCard
             key={experience.id}

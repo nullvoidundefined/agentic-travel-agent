@@ -3,8 +3,6 @@
 import type { ChatNode } from '@agentic-travel-agent/shared-types';
 
 import { TripDetailsForm } from './TripDetailsForm';
-import { ItineraryTimeline } from './widgets/ItineraryTimeline';
-import { QuickReplyChips } from './widgets/QuickReplyChips';
 import { AdvisoryCard } from './nodes/AdvisoryCard';
 import { BudgetBar } from './nodes/BudgetBar';
 import { CarRentalTiles } from './nodes/CarRentalTiles';
@@ -14,6 +12,8 @@ import { HotelTiles } from './nodes/HotelTiles';
 import { MarkdownText } from './nodes/MarkdownText';
 import { ToolProgressIndicator } from './nodes/ToolProgressIndicator';
 import { WeatherForecast } from './nodes/WeatherForecast';
+import { ItineraryTimeline } from './widgets/ItineraryTimeline';
+import { QuickReplyChips } from './widgets/QuickReplyChips';
 
 export interface NodeRendererCallbacks {
   onConfirmFlight?: (label: string) => void;
@@ -115,7 +115,13 @@ export function NodeRenderer({ node, callbacks = {} }: NodeRendererProps) {
     case 'travel_plan_form': {
       // Map FormField to TripField for the TripDetailsForm component
       const tripFields = node.fields.map((f) => ({
-        type: f.name as 'destination' | 'origin' | 'departure_date' | 'return_date' | 'budget' | 'travelers',
+        type: f.name as
+          | 'destination'
+          | 'origin'
+          | 'departure_date'
+          | 'return_date'
+          | 'budget'
+          | 'travelers',
         label: f.label,
       }));
       return (

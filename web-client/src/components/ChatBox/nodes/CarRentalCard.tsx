@@ -1,5 +1,4 @@
 import { formatCurrency, formatShortDate } from '@/lib/format';
-
 import type { CarRental } from '@agentic-travel-agent/shared-types';
 
 import styles from './CarRentalCard.module.scss';
@@ -10,7 +9,11 @@ interface CarRentalCardProps {
   onClick?: () => void;
 }
 
-export function CarRentalCard({ rental, selected = false, onClick }: CarRentalCardProps) {
+export function CarRentalCard({
+  rental,
+  selected = false,
+  onClick,
+}: CarRentalCardProps) {
   const fallbackCode = rental.provider.slice(0, 2).toUpperCase();
 
   return (
@@ -49,12 +52,17 @@ export function CarRentalCard({ rental, selected = false, onClick }: CarRentalCa
 
       <div className={styles.body}>
         {rental.image_url && (
-          <img src={rental.image_url} alt={rental.car_name} className={styles.carImage} />
+          <img
+            src={rental.image_url}
+            alt={rental.car_name}
+            className={styles.carImage}
+          />
         )}
         <div className={styles.details}>
           <span className={styles.carName}>{rental.car_name}</span>
           <span className={styles.dates}>
-            {formatShortDate(rental.pickup_date)} &ndash; {formatShortDate(rental.dropoff_date)}
+            {formatShortDate(rental.pickup_date)} &ndash;{' '}
+            {formatShortDate(rental.dropoff_date)}
           </span>
           <span className={styles.location}>{rental.pickup_location}</span>
           {rental.features.length > 0 && (

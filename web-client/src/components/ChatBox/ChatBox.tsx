@@ -2,8 +2,8 @@
 
 import { type FormEvent, useCallback, useState } from 'react';
 
-import type { ChatMessage } from '@agentic-travel-agent/shared-types';
 import { get } from '@/lib/api';
+import type { ChatMessage } from '@agentic-travel-agent/shared-types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import styles from './ChatBox.module.scss';
@@ -17,10 +17,16 @@ interface ChatBoxProps {
   onBookTrip?: () => void;
 }
 
-export function ChatBox({ tripId, hasFlights, tripStatus, onBookTrip }: ChatBoxProps) {
+export function ChatBox({
+  tripId,
+  hasFlights,
+  tripStatus,
+  onBookTrip,
+}: ChatBoxProps) {
   const queryClient = useQueryClient();
   const [input, setInput] = useState('');
-  const [pendingUserMessage, setPendingUserMessage] = useState<ChatMessage | null>(null);
+  const [pendingUserMessage, setPendingUserMessage] =
+    useState<ChatMessage | null>(null);
 
   const { data: serverMessages } = useQuery({
     queryKey: ['messages', tripId],
@@ -36,10 +42,16 @@ export function ChatBox({ tripId, hasFlights, tripStatus, onBookTrip }: ChatBoxP
     ...(pendingUserMessage ? [pendingUserMessage] : []),
   ];
 
-  const { sendMessage, isSending, streamingNodes, toolProgress, streamingText } =
-    useSSEChat({ tripId, onComplete: () => setPendingUserMessage(null) });
+  const {
+    sendMessage,
+    isSending,
+    streamingNodes,
+    toolProgress,
+    streamingText,
+  } = useSSEChat({ tripId, onComplete: () => setPendingUserMessage(null) });
 
-  const showBookingActions = hasFlights && tripStatus === 'planning' && !isSending;
+  const showBookingActions =
+    hasFlights && tripStatus === 'planning' && !isSending;
 
   const handleSend = useCallback(
     (msg: string) => {
@@ -87,7 +99,11 @@ export function ChatBox({ tripId, hasFlights, tripStatus, onBookTrip }: ChatBoxP
 
       {showBookingActions && (
         <div className={styles.bookingActions}>
-          <button type='button' className={styles.bookButton} onClick={handleBookTrip}>
+          <button
+            type='button'
+            className={styles.bookButton}
+            onClick={handleBookTrip}
+          >
             Book This Trip
           </button>
           <button

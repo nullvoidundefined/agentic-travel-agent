@@ -41,20 +41,20 @@ type BookingStep =
   | 'COMPLETE';
 
 function getBookingStep(trip: TripWithDetails): BookingStep {
-  if (!trip.budget_total || !trip.departure_date || !trip.return_date || !trip.origin)
+  if (
+    !trip.budget_total ||
+    !trip.departure_date ||
+    !trip.return_date ||
+    !trip.origin
+  )
     return 'COLLECT_DETAILS';
-  if (!trip.transport_mode)
-    return 'TRANSPORT';
+  if (!trip.transport_mode) return 'TRANSPORT';
   if (trip.transport_mode === 'flying' && trip.flights.length === 0)
     return 'TRANSPORT'; // still need to search/select flights
-  if (trip.hotels.length === 0)
-    return 'LODGING';
-  if (trip.car_rentals?.length === 0)
-    return 'CAR_RENTAL';
-  if (trip.experiences.length === 0)
-    return 'EXPERIENCES';
-  if (trip.status === 'planning')
-    return 'CONFIRM';
+  if (trip.hotels.length === 0) return 'LODGING';
+  if (trip.car_rentals?.length === 0) return 'CAR_RENTAL';
+  if (trip.experiences.length === 0) return 'EXPERIENCES';
+  if (trip.status === 'planning') return 'CONFIRM';
   return 'COMPLETE';
 }
 ```
@@ -68,27 +68,35 @@ Declined steps (user says "no" to car rental or experiences) are visible in the 
 Each step gets a focused prompt (5-15 lines). The prompt builder selects the right one based on `getBookingStep()`:
 
 **COLLECT_DETAILS:**
+
 > A form is being shown to collect trip details (dates, budget, origin, travelers). Acknowledge the user's destination in one sentence. Do NOT ask questions — the form handles data collection. Call format_response with brief welcoming text.
 
 **TRANSPORT:**
+
 > Ask the user: "Will you be flying or driving?" If flying, ask what time of day they prefer (morning, afternoon, evening). Then search flights and let the cards speak. If driving, acknowledge and call format_response to move on. Keep text to one sentence.
 
 **LODGING:**
+
 > Ask: "Do you need a hotel?" If yes, search hotels. The hotel cards show the results. Keep text to one sentence. If no, acknowledge and move on.
 
 **CAR_RENTAL:**
+
 > Ask: "Will you need a rental car?" If yes, search car rentals. The car cards show results. Keep text to one sentence. If the user already declined in conversation history, skip to suggesting experiences.
 
 **EXPERIENCES:**
+
 > Based on the user's preferences (dietary: {dietary}, intensity: {intensity}, social: {social}), suggest relevant experience categories in one sentence. Search experiences. The experience cards show results. Briefly acknowledge their preferences.
 
 **CONFIRM:**
+
 > Summarize the trip: destination, dates, flight, hotel, car rental (if any), experiences (if any), total cost. Ask: "Ready to book?" Provide quick_replies: ["Confirm booking", "Make changes"].
 
 **COMPLETE:**
+
 > The trip is booked. Answer any follow-up questions about the trip.
 
 Each prompt also includes the shared rules:
+
 - Keep text to 1-2 sentences max
 - Never describe search results in text — the cards handle it
 - Never use numbered lists
@@ -139,6 +147,7 @@ The frontend already handles incremental `text_delta` events via `useSSEChat`. N
 ### Error Recovery
 
 When a search tool fails:
+
 1. The tool executor catches the error and returns an error message
 2. Claude sees the error in the tool result
 3. The step-specific prompt says: "If a search fails, tell the user briefly and offer quick_replies to adjust criteria (dates, budget, destination)"
@@ -146,13 +155,13 @@ When a search tool fails:
 
 ### What Changes
 
-| File | Change |
-|------|--------|
-| `server/src/prompts/system-prompt.ts` | Replace monolithic prompt with step-specific prompt builder |
-| `server/src/prompts/booking-steps.ts` | NEW: step detection + per-step prompt templates |
-| `server/src/handlers/chat/chat.ts` | Add welcome message generation, pass booking step to prompt builder |
-| `server/src/services/AgentOrchestrator.ts` | Switch to messages.stream() for token streaming |
-| `web-client/src/components/ChatBox/ChatBox.tsx` | Handle welcome message on first load |
+| File                                            | Change                                                              |
+| ----------------------------------------------- | ------------------------------------------------------------------- |
+| `server/src/prompts/system-prompt.ts`           | Replace monolithic prompt with step-specific prompt builder         |
+| `server/src/prompts/booking-steps.ts`           | NEW: step detection + per-step prompt templates                     |
+| `server/src/handlers/chat/chat.ts`              | Add welcome message generation, pass booking step to prompt builder |
+| `server/src/services/AgentOrchestrator.ts`      | Switch to messages.stream() for token streaming                     |
+| `web-client/src/components/ChatBox/ChatBox.tsx` | Handle welcome message on first load                                |
 
 ### Database
 

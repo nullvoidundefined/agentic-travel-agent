@@ -43,6 +43,7 @@ interface CategoryState {
 ```
 
 Default for new conversations:
+
 ```json
 {
   "flights": { "status": "idle" },
@@ -61,14 +62,22 @@ The `meta` field stores category-specific context (e.g., `flights.meta.time_pref
 ```typescript
 type FlowPosition =
   | { phase: 'COLLECT_DETAILS' }
-  | { phase: 'CATEGORY'; category: 'flights' | 'hotels' | 'car_rental' | 'experiences'; status: CategoryStatus }
+  | {
+      phase: 'CATEGORY';
+      category: 'flights' | 'hotels' | 'car_rental' | 'experiences';
+      status: CategoryStatus;
+    }
   | { phase: 'CONFIRM' }
   | { phase: 'COMPLETE' };
 
-function getFlowPosition(trip: TripState, bookingState: BookingState): FlowPosition
+function getFlowPosition(
+  trip: TripState,
+  bookingState: BookingState,
+): FlowPosition;
 ```
 
 Logic:
+
 1. Missing required fields (budget, dates, origin) → `COLLECT_DETAILS`
 2. `transport_mode` is null → `{ phase: 'CATEGORY', category: 'flights', status: 'idle' }` (flights.idle handles the flying/driving question)
 3. `transport_mode === 'driving'` → flights auto-skipped, move to next category
@@ -87,7 +96,7 @@ function advanceBookingState(
   currentStatus: CategoryStatus,
   agentResult: AgentResult,
   updatedTrip: TripState,
-): BookingState
+): BookingState;
 ```
 
 **`idle` → `asking`**: When the coordinator returns a category with status `idle`, the chat handler promotes it to `asking` before running the agent loop. This ensures the prompt matches the `asking` state. The transition happens at the start of the turn, not after.
@@ -105,19 +114,23 @@ function advanceBookingState(
 Each category has prompts keyed by status:
 
 **Flights:**
+
 - `idle`: "Ask: 'Will you be flying or driving?' Call update_trip with transport_mode. Quick replies: ['I'll be flying', 'I'll drive']"
 - `asking`: "Ask time of day preference. Then search flights. One sentence."
 - `presented`: "User is browsing flights. Answer questions briefly. Do NOT describe results. Wait for selection."
 
 **Hotels:**
+
 - `idle`/`asking` (merged): "Ask: 'Do you need a hotel?' If yes, search. If no, set skip_category."
 - `presented`: "User is browsing hotels. Answer briefly. Wait for selection."
 
 **Car Rental:**
+
 - `idle`/`asking` (merged): "Ask: 'Need a rental car?' If yes, search. If no, set skip_category."
 - `presented`: "User is browsing cars. Answer briefly. Wait for selection."
 
 **Experiences:**
+
 - `idle`/`asking` (merged): "Suggest categories based on user preferences in one sentence. Search experiences."
 - `presented`: "User is browsing experiences. Answer briefly. Wait for selection."
 
@@ -162,18 +175,18 @@ ALTER TABLE conversations
 
 ### What Changes
 
-| Component | Change |
-|-----------|--------|
-| `server/src/prompts/booking-steps.ts` | Rewrite: new types, `getFlowPosition()`, `advanceBookingState()`, per-category prompts |
-| `server/src/prompts/booking-steps.test.ts` | Rewrite: test all transitions and prompts |
-| `server/src/prompts/system-prompt.ts` | Update: accept `FlowPosition` instead of `BookingStep` |
-| `server/src/prompts/system-prompt.test.ts` | Update tests |
-| `server/src/handlers/chat/chat.ts` | Read/write booking_state, call advanceBookingState after agent loop |
-| `server/src/handlers/chat/chat.test.ts` | Update tests |
-| `server/src/services/agent.service.ts` | Pass FlowPosition instead of BookingStep |
-| `server/src/tools/definitions.ts` | Add skip_category to format_response |
-| `server/src/repositories/conversations/conversations.ts` | Add booking_state to Conversation interface, add updateBookingState function |
-| `server/migrations/` | New migration for booking_state column |
+| Component                                                | Change                                                                                 |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `server/src/prompts/booking-steps.ts`                    | Rewrite: new types, `getFlowPosition()`, `advanceBookingState()`, per-category prompts |
+| `server/src/prompts/booking-steps.test.ts`               | Rewrite: test all transitions and prompts                                              |
+| `server/src/prompts/system-prompt.ts`                    | Update: accept `FlowPosition` instead of `BookingStep`                                 |
+| `server/src/prompts/system-prompt.test.ts`               | Update tests                                                                           |
+| `server/src/handlers/chat/chat.ts`                       | Read/write booking_state, call advanceBookingState after agent loop                    |
+| `server/src/handlers/chat/chat.test.ts`                  | Update tests                                                                           |
+| `server/src/services/agent.service.ts`                   | Pass FlowPosition instead of BookingStep                                               |
+| `server/src/tools/definitions.ts`                        | Add skip_category to format_response                                                   |
+| `server/src/repositories/conversations/conversations.ts` | Add booking_state to Conversation interface, add updateBookingState function           |
+| `server/migrations/`                                     | New migration for booking_state column                                                 |
 
 ### What Doesn't Change
 

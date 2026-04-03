@@ -1,4 +1,7 @@
-import type { ChatNodeOfType, WeatherDay } from '@agentic-travel-agent/shared-types';
+import type {
+  ChatNodeOfType,
+  WeatherDay,
+} from '@agentic-travel-agent/shared-types';
 
 import styles from './WeatherForecast.module.scss';
 
@@ -8,7 +11,11 @@ interface WeatherForecastProps {
 
 function formatDay(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 function DayCard({ day }: { day: WeatherDay }) {

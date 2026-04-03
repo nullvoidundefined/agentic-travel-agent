@@ -1,6 +1,6 @@
+import type { FlowPosition } from 'app/prompts/booking-steps.js';
 import { buildSystemPrompt } from 'app/prompts/system-prompt.js';
 import type { TripContext } from 'app/prompts/trip-context.js';
-import type { FlowPosition } from 'app/prompts/booking-steps.js';
 import { describe, expect, it } from 'vitest';
 
 const fullCtx: TripContext = {
@@ -46,7 +46,11 @@ describe('system-prompt', () => {
     });
 
     it('uses category prompt for flights/idle which contains flying/driving', () => {
-      const pos: FlowPosition = { phase: 'CATEGORY', category: 'flights', status: 'idle' };
+      const pos: FlowPosition = {
+        phase: 'CATEGORY',
+        category: 'flights',
+        status: 'idle',
+      };
       const prompt = buildSystemPrompt(undefined, pos);
       expect(prompt.toLowerCase()).toMatch(/flying|driving/);
     });

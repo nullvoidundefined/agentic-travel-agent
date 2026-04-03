@@ -47,7 +47,9 @@ export async function getOrCreateConversation(
   return row;
 }
 
-export async function insertMessage(input: InsertMessageInput): Promise<Message> {
+export async function insertMessage(
+  input: InsertMessageInput,
+): Promise<Message> {
   const result = await query<Message>(
     `INSERT INTO messages (conversation_id, role, content, tool_calls_json, nodes, schema_version, sequence, token_count)
      VALUES ($1, $2, $3, $4, $5, $6,

@@ -5,7 +5,13 @@ import { type FormEvent, useState } from 'react';
 import styles from './TripDetailsForm.module.scss';
 
 export interface TripField {
-  type: 'destination' | 'origin' | 'departure_date' | 'return_date' | 'budget' | 'travelers';
+  type:
+    | 'destination'
+    | 'origin'
+    | 'departure_date'
+    | 'return_date'
+    | 'budget'
+    | 'travelers';
   label: string;
 }
 
@@ -186,4 +192,3 @@ export function TripDetailsForm({
     </form>
   );
 }
-

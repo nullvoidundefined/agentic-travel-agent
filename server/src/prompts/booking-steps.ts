@@ -7,11 +7,7 @@ interface AgentResultForAdvance {
 
 // --- State types ---
 
-export type CategoryName =
-  | 'flights'
-  | 'hotels'
-  | 'car_rental'
-  | 'experiences';
+export type CategoryName = 'flights' | 'hotels' | 'car_rental' | 'experiences';
 
 export type CategoryStatus =
   | 'idle'
@@ -226,8 +222,7 @@ export function advanceBookingState(
   const newState = structuredClone(bookingState);
 
   // Check if skip_category was set
-  const skipCategory =
-    agentResult.formatResponse?.skip_category === true;
+  const skipCategory = agentResult.formatResponse?.skip_category === true;
 
   if (skipCategory) {
     newState[cat] = { ...newState[cat], status: 'skipped' };

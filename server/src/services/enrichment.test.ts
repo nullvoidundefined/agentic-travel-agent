@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { getDrivingRequirements } from './enrichment-sources/driving.js';
 import { getVisaRequirement } from './enrichment-sources/visa-matrix.js';
 

@@ -60,13 +60,19 @@ const PHASE_PROMPTS: Record<string, string> = {
   COMPLETE: `The trip is booked. Answer follow-up questions about the trip.`,
 };
 
-export function getCategoryPrompt(category: CategoryName, status: CategoryStatus): string {
+export function getCategoryPrompt(
+  category: CategoryName,
+  status: CategoryStatus,
+): string {
   const prompts = CATEGORY_PROMPTS[category];
-  const key = status === 'idle' ? 'idle' : status === 'asking' ? 'asking' : 'presented';
+  const key =
+    status === 'idle' ? 'idle' : status === 'asking' ? 'asking' : 'presented';
   const prompt = prompts[key] ?? prompts['asking'];
   return `You are a travel planning assistant.\n\n## Your Task\n${prompt}\n${SHARED_RULES}`;
 }
 
-export function getPhasePrompt(phase: 'COLLECT_DETAILS' | 'CONFIRM' | 'COMPLETE'): string {
+export function getPhasePrompt(
+  phase: 'COLLECT_DETAILS' | 'CONFIRM' | 'COMPLETE',
+): string {
   return `You are a travel planning assistant.\n\n## Your Task\n${PHASE_PROMPTS[phase]}\n${SHARED_RULES}`;
 }

@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { API_BASE } from '@/lib/api';
 import type { ChatNode, SSEEvent } from '@agentic-travel-agent/shared-types';
 import { useQueryClient } from '@tanstack/react-query';
-
-import { API_BASE } from '@/lib/api';
 
 interface UseSSEChatOptions {
   tripId: string;
@@ -20,7 +19,10 @@ interface UseSSEChatReturn {
   streamingText: string;
 }
 
-export function useSSEChat({ tripId, onComplete }: UseSSEChatOptions): UseSSEChatReturn {
+export function useSSEChat({
+  tripId,
+  onComplete,
+}: UseSSEChatOptions): UseSSEChatReturn {
   const [isSending, setIsSending] = useState(false);
   const [streamingNodes, setStreamingNodes] = useState<ChatNode[]>([]);
   const [toolProgress, setToolProgress] = useState<ChatNode[]>([]);

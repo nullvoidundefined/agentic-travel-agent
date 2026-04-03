@@ -1,12 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import {
-  getFlowPosition,
-  advanceBookingState,
-  normalizeBookingState,
-  DEFAULT_BOOKING_STATE,
-  CURRENT_BOOKING_STATE_VERSION,
   type BookingState,
+  CURRENT_BOOKING_STATE_VERSION,
+  DEFAULT_BOOKING_STATE,
   type TripState,
+  advanceBookingState,
+  getFlowPosition,
+  normalizeBookingState,
 } from './booking-steps.js';
 
 // Helper to build a trip state
@@ -32,15 +33,10 @@ function bs(overrides: Partial<BookingState> = {}): BookingState {
 }
 
 // Minimal mock matching AgentResultForAdvance shape
-function mockResult(
-  toolNames: string[] = [],
-  skipCategory = false,
-) {
+function mockResult(toolNames: string[] = [], skipCategory = false) {
   return {
     tool_calls: toolNames.map((name) => ({ tool_name: name })),
-    formatResponse: skipCategory
-      ? { skip_category: true }
-      : null,
+    formatResponse: skipCategory ? { skip_category: true } : null,
   };
 }
 
@@ -121,34 +117,22 @@ describe('normalizeBookingState', () => {
 
 describe('getFlowPosition', () => {
   it('returns COLLECT_DETAILS when budget is missing', () => {
-    const pos = getFlowPosition(
-      trip({ budget_total: null }),
-      bs(),
-    );
+    const pos = getFlowPosition(trip({ budget_total: null }), bs());
     expect(pos).toEqual({ phase: 'COLLECT_DETAILS' });
   });
 
   it('returns COLLECT_DETAILS when origin is missing', () => {
-    const pos = getFlowPosition(
-      trip({ origin: null }),
-      bs(),
-    );
+    const pos = getFlowPosition(trip({ origin: null }), bs());
     expect(pos).toEqual({ phase: 'COLLECT_DETAILS' });
   });
 
   it('returns COLLECT_DETAILS when departure_date is missing', () => {
-    const pos = getFlowPosition(
-      trip({ departure_date: null }),
-      bs(),
-    );
+    const pos = getFlowPosition(trip({ departure_date: null }), bs());
     expect(pos).toEqual({ phase: 'COLLECT_DETAILS' });
   });
 
   it('returns COLLECT_DETAILS when return_date is missing', () => {
-    const pos = getFlowPosition(
-      trip({ return_date: null }),
-      bs(),
-    );
+    const pos = getFlowPosition(trip({ return_date: null }), bs());
     expect(pos).toEqual({ phase: 'COLLECT_DETAILS' });
   });
 
@@ -186,10 +170,7 @@ describe('getFlowPosition', () => {
   });
 
   it('skips flights when driving, goes to hotels', () => {
-    const pos = getFlowPosition(
-      trip({ transport_mode: 'driving' }),
-      bs(),
-    );
+    const pos = getFlowPosition(trip({ transport_mode: 'driving' }), bs());
     expect(pos).toEqual({
       phase: 'CATEGORY',
       category: 'hotels',
@@ -265,10 +246,7 @@ describe('getFlowPosition', () => {
   });
 
   it('returns COMPLETE when status is not planning', () => {
-    const pos = getFlowPosition(
-      trip({ status: 'saved' }),
-      bs(),
-    );
+    const pos = getFlowPosition(trip({ status: 'saved' }), bs());
     expect(pos).toEqual({ phase: 'COMPLETE' });
   });
 });

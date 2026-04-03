@@ -41,7 +41,12 @@ interface Citation {
   label: string;
   url?: string;
   node_ref?: string;
-  source_type: 'travel_advisory' | 'visa_info' | 'weather' | 'vaccination' | 'general';
+  source_type:
+    | 'travel_advisory'
+    | 'visa_info'
+    | 'weather'
+    | 'vaccination'
+    | 'general';
 }
 
 type ChatNode =
@@ -52,11 +57,21 @@ type ChatNode =
   | { type: 'experience_tiles'; experiences: Experience[]; selectable: boolean }
   | { type: 'travel_plan_form'; fields: FormField[] }
   | { type: 'itinerary'; days: DayPlan[] }
-  | { type: 'advisory'; severity: 'info' | 'warning' | 'critical'; title: string; body: string }
+  | {
+      type: 'advisory';
+      severity: 'info' | 'warning' | 'critical';
+      title: string;
+      body: string;
+    }
   | { type: 'weather_forecast'; forecast: WeatherDay[] }
   | { type: 'budget_bar'; allocated: number; total: number; currency: string }
   | { type: 'quick_replies'; options: string[] }
-  | { type: 'tool_progress'; tool_name: string; tool_id: string; status: 'running' | 'done' };
+  | {
+      type: 'tool_progress';
+      tool_name: string;
+      tool_id: string;
+      status: 'running' | 'done';
+    };
 ```
 
 Each tile type (Flight, Hotel, CarRental, Experience, FormField, DayPlan, WeatherDay) has its own interface defined in the shared package.
@@ -81,7 +96,12 @@ User messages always contain a single `text` node. Assistant messages contain an
 type SSEEvent =
   | { type: 'node'; node: ChatNode }
   | { type: 'text_delta'; content: string }
-  | { type: 'tool_progress'; tool_name: string; tool_id: string; status: 'running' | 'done' }
+  | {
+      type: 'tool_progress';
+      tool_name: string;
+      tool_id: string;
+      status: 'running' | 'done';
+    }
   | { type: 'done'; message: ChatMessage }
   | { type: 'error'; error: string };
 ```
@@ -123,12 +143,36 @@ This is a tool call with a defined input schema — Claude must satisfy the cont
 A node builder layer maps each tool result to its typed node:
 
 ```typescript
-const nodeBuilders: Record<string, (result: unknown, context: TripContext) => ChatNode> = {
-  search_flights: (result, ctx) => ({ type: 'flight_tiles', flights: normalize(result), selectable: true }),
-  search_car_rentals: (result, ctx) => ({ type: 'car_rental_tiles', rentals: normalize(result), selectable: true }),
-  search_hotels: (result, ctx) => ({ type: 'hotel_tiles', hotels: normalize(result), selectable: true }),
-  search_experiences: (result, ctx) => ({ type: 'experience_tiles', experiences: normalize(result), selectable: true }),
-  calculate_remaining_budget: (result, ctx) => ({ type: 'budget_bar', allocated: ctx.total_spent, total: ctx.budget_total, currency: ctx.budget_currency }),
+const nodeBuilders: Record<
+  string,
+  (result: unknown, context: TripContext) => ChatNode
+> = {
+  search_flights: (result, ctx) => ({
+    type: 'flight_tiles',
+    flights: normalize(result),
+    selectable: true,
+  }),
+  search_car_rentals: (result, ctx) => ({
+    type: 'car_rental_tiles',
+    rentals: normalize(result),
+    selectable: true,
+  }),
+  search_hotels: (result, ctx) => ({
+    type: 'hotel_tiles',
+    hotels: normalize(result),
+    selectable: true,
+  }),
+  search_experiences: (result, ctx) => ({
+    type: 'experience_tiles',
+    experiences: normalize(result),
+    selectable: true,
+  }),
+  calculate_remaining_budget: (result, ctx) => ({
+    type: 'budget_bar',
+    allocated: ctx.total_spent,
+    total: ctx.budget_total,
+    currency: ctx.budget_currency,
+  }),
 };
 ```
 
@@ -155,14 +199,14 @@ For each assistant turn, the `ChatNode[]` array is assembled in this order:
 
 When `update_trip` is called with a destination, the server fires parallel enrichment fetches:
 
-| Data Need | Source | Endpoint | Node Type | License |
-|-----------|--------|----------|-----------|---------|
-| Advisory level (1-4) | US State Dept | `travel.state.gov/.../traveladvisories.json` | `advisory` | Public domain |
-| Safety + visa + health detail | UK FCDO | `gov.uk/api/content/foreign-travel-advice/[country]` | `advisory` | OGL v3.0 |
-| Visa requirement matrix | passport-index-dataset | GitHub CSV | `advisory` (info) | Check repo license |
-| Weather forecast | Open-Meteo | `api.open-meteo.com/v1/forecast` | `weather_forecast` | Free |
-| Vaccination requirements | UK FCDO health section | Parsed from FCDO response | `advisory` (info/warning) | OGL v3.0 |
-| Driving requirements | Static JSON dataset | Local file (driving side, IDP rules) | `advisory` (info) | Curated |
+| Data Need                     | Source                 | Endpoint                                             | Node Type                 | License            |
+| ----------------------------- | ---------------------- | ---------------------------------------------------- | ------------------------- | ------------------ |
+| Advisory level (1-4)          | US State Dept          | `travel.state.gov/.../traveladvisories.json`         | `advisory`                | Public domain      |
+| Safety + visa + health detail | UK FCDO                | `gov.uk/api/content/foreign-travel-advice/[country]` | `advisory`                | OGL v3.0           |
+| Visa requirement matrix       | passport-index-dataset | GitHub CSV                                           | `advisory` (info)         | Check repo license |
+| Weather forecast              | Open-Meteo             | `api.open-meteo.com/v1/forecast`                     | `weather_forecast`        | Free               |
+| Vaccination requirements      | UK FCDO health section | Parsed from FCDO response                            | `advisory` (info/warning) | OGL v3.0           |
+| Driving requirements          | Static JSON dataset    | Local file (driving side, IDP rules)                 | `advisory` (info)         | Curated            |
 
 **Cache aggressively.** Advisory and visa data changes infrequently — cache for 24 hours. Weather data caches for 6 hours.
 
@@ -186,14 +230,14 @@ CREATE UNIQUE INDEX messages_conversation_sequence
 
 **Dual-column pattern:**
 
-| Column | Purpose | Consumer |
-|--------|---------|----------|
-| `content` | Claude's raw text response | Agent service (API conversation reconstruction) |
-| `tool_calls_json` | Raw tool_use/tool_result blocks | Agent service (API conversation reconstruction) |
-| `nodes` | Ordered `ChatNode[]` for UI rendering | Frontend |
-| `schema_version` | Shape version for forward-compatible rendering | Frontend |
-| `sequence` | Strict ordering within conversation | Both |
-| `role` | `'user'` or `'assistant'` only (remove `'tool'`) | Both |
+| Column            | Purpose                                          | Consumer                                        |
+| ----------------- | ------------------------------------------------ | ----------------------------------------------- |
+| `content`         | Claude's raw text response                       | Agent service (API conversation reconstruction) |
+| `tool_calls_json` | Raw tool_use/tool_result blocks                  | Agent service (API conversation reconstruction) |
+| `nodes`           | Ordered `ChatNode[]` for UI rendering            | Frontend                                        |
+| `schema_version`  | Shape version for forward-compatible rendering   | Frontend                                        |
+| `sequence`        | Strict ordering within conversation              | Both                                            |
+| `role`            | `'user'` or `'assistant'` only (remove `'tool'`) | Both                                            |
 
 **Immutability:** Once a message is persisted, its `nodes` array is never rewritten. `schema_version` tells the frontend which shape to expect. Old messages render with their original shape; the frontend handles missing fields gracefully.
 

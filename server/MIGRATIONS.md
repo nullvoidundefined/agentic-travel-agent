@@ -6,18 +6,18 @@ The messages table uses a **dual-column pattern** separating display state from 
 
 ### Columns
 
-| Column | Type | Purpose | Consumer |
-|--------|------|---------|----------|
-| `id` | UUID | Primary key | Both |
-| `conversation_id` | UUID | FK to conversations | Both |
-| `role` | ENUM('user','assistant') | Message author | Both |
-| `content` | TEXT | Claude's raw text response | Agent service (API conversation reconstruction) |
-| `tool_calls_json` | JSONB | Raw tool_use/tool_result blocks | Agent service (API conversation reconstruction) |
-| `nodes` | JSONB | Ordered `ChatNode[]` for UI rendering | Frontend |
-| `schema_version` | INTEGER | Shape version for forward-compatible rendering | Frontend |
-| `sequence` | INTEGER | Strict ordering within conversation | Both |
-| `token_count` | INTEGER | Input + output tokens consumed | Observability |
-| `created_at` | TIMESTAMPTZ | Insertion timestamp | Both |
+| Column            | Type                     | Purpose                                        | Consumer                                        |
+| ----------------- | ------------------------ | ---------------------------------------------- | ----------------------------------------------- |
+| `id`              | UUID                     | Primary key                                    | Both                                            |
+| `conversation_id` | UUID                     | FK to conversations                            | Both                                            |
+| `role`            | ENUM('user','assistant') | Message author                                 | Both                                            |
+| `content`         | TEXT                     | Claude's raw text response                     | Agent service (API conversation reconstruction) |
+| `tool_calls_json` | JSONB                    | Raw tool_use/tool_result blocks                | Agent service (API conversation reconstruction) |
+| `nodes`           | JSONB                    | Ordered `ChatNode[]` for UI rendering          | Frontend                                        |
+| `schema_version`  | INTEGER                  | Shape version for forward-compatible rendering | Frontend                                        |
+| `sequence`        | INTEGER                  | Strict ordering within conversation            | Both                                            |
+| `token_count`     | INTEGER                  | Input + output tokens consumed                 | Observability                                   |
+| `created_at`      | TIMESTAMPTZ              | Insertion timestamp                            | Both                                            |
 
 ### Why Two Representations
 
@@ -38,20 +38,20 @@ Messages are ordered by `sequence` (INTEGER) within a conversation. There is a u
 
 The `nodes` JSONB column contains an ordered array of `ChatNode` objects. Each node has a `type` discriminator:
 
-| Type | Description | Selectable |
-|------|-------------|------------|
-| `text` | Markdown content with optional citations | No |
-| `flight_tiles` | Flight search results | Yes |
-| `hotel_tiles` | Hotel search results | Yes |
-| `car_rental_tiles` | Car rental search results | Yes |
-| `experience_tiles` | Experience/activity search results | Yes |
-| `travel_plan_form` | Structured form for trip details | No |
-| `itinerary` | Day-by-day plan | No |
-| `advisory` | Travel advisories, visa/vaccination info | No |
-| `weather_forecast` | Multi-day weather outlook | No |
-| `budget_bar` | Budget allocation tracker | No |
-| `quick_replies` | Suggested response buttons | No |
-| `tool_progress` | Tool execution status indicator | No |
+| Type               | Description                              | Selectable |
+| ------------------ | ---------------------------------------- | ---------- |
+| `text`             | Markdown content with optional citations | No         |
+| `flight_tiles`     | Flight search results                    | Yes        |
+| `hotel_tiles`      | Hotel search results                     | Yes        |
+| `car_rental_tiles` | Car rental search results                | Yes        |
+| `experience_tiles` | Experience/activity search results       | Yes        |
+| `travel_plan_form` | Structured form for trip details         | No         |
+| `itinerary`        | Day-by-day plan                          | No         |
+| `advisory`         | Travel advisories, visa/vaccination info | No         |
+| `weather_forecast` | Multi-day weather outlook                | No         |
+| `budget_bar`       | Budget allocation tracker                | No         |
+| `quick_replies`    | Suggested response buttons               | No         |
+| `tool_progress`    | Tool execution status indicator          | No         |
 
 Full type definitions are in `packages/shared-types/src/nodes.ts`.
 

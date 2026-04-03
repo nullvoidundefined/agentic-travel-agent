@@ -1,6 +1,6 @@
-import { formatTripContext, type TripContext } from './trip-context.js';
 import type { FlowPosition } from './booking-steps.js';
 import { getCategoryPrompt, getPhasePrompt } from './category-prompts.js';
+import { type TripContext, formatTripContext } from './trip-context.js';
 
 export function buildSystemPrompt(
   tripContext?: TripContext,
@@ -19,10 +19,14 @@ export function buildSystemPrompt(
   }
 
   const parts = [stepPrompt];
-  parts.push(`\n\n## Current Date\n\nToday is ${new Date().toISOString().split('T')[0]}.`);
+  parts.push(
+    `\n\n## Current Date\n\nToday is ${new Date().toISOString().split('T')[0]}.`,
+  );
 
   if (tripContext) {
-    parts.push(`\n\n## Current Trip State\n\n${formatTripContext(tripContext)}`);
+    parts.push(
+      `\n\n## Current Trip State\n\n${formatTripContext(tripContext)}`,
+    );
   }
 
   return parts.join('');

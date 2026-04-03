@@ -1,7 +1,8 @@
-import Anthropic from '@anthropic-ai/sdk';
 import type { ChatNode, SSEEvent } from '@agentic-travel-agent/shared-types';
-import { buildNodeFromToolResult } from './node-builder.js';
+import Anthropic from '@anthropic-ai/sdk';
 import { logger } from 'app/utils/logs/logger.js';
+
+import { buildNodeFromToolResult } from './node-builder.js';
 
 const DEFAULT_MAX_ITERATIONS = 15;
 const DEFAULT_MODEL = 'claude-sonnet-4-20250514';

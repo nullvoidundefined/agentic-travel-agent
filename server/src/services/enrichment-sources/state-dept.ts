@@ -1,5 +1,5 @@
-import { cacheGet, cacheSet } from 'app/services/cache.service.js';
 import type { ChatNode } from '@agentic-travel-agent/shared-types';
+import { cacheGet, cacheSet } from 'app/services/cache.service.js';
 
 const CACHE_TTL = 86400; // 24 hours
 const FEED_CACHE_KEY = 'enrichment:state_dept:feed';
@@ -36,8 +36,10 @@ export async function fetchStateDeptAdvisory(
 
     const match = advisories.find(
       (a) =>
-        (a['iso_code'] as string)?.toUpperCase() === countryCode.toUpperCase() ||
-        (a['country_code'] as string)?.toUpperCase() === countryCode.toUpperCase(),
+        (a['iso_code'] as string)?.toUpperCase() ===
+          countryCode.toUpperCase() ||
+        (a['country_code'] as string)?.toUpperCase() ===
+          countryCode.toUpperCase(),
     );
 
     if (!match) return null;

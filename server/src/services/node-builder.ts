@@ -1,5 +1,11 @@
+import type {
+  CarRental,
+  ChatNode,
+  Experience,
+  Flight,
+  Hotel,
+} from '@agentic-travel-agent/shared-types';
 import { randomUUID } from 'crypto';
-import type { ChatNode, Flight, Hotel, CarRental, Experience } from '@agentic-travel-agent/shared-types';
 
 interface FlightRaw {
   airline: string;
@@ -155,7 +161,9 @@ export function buildNodeFromToolResult(
     case 'search_car_rentals':
       return {
         type: 'car_rental_tiles',
-        rentals: normalizeCarRentals(extractArray<CarRentalRaw>(result, 'rentals')),
+        rentals: normalizeCarRentals(
+          extractArray<CarRentalRaw>(result, 'rentals'),
+        ),
         selectable: true,
       };
 

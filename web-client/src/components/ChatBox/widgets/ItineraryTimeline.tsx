@@ -67,4 +67,3 @@ export function ItineraryTimeline({ days }: ItineraryTimelineProps) {
     </div>
   );
 }
-

@@ -298,7 +298,9 @@ describe('chat handlers', () => {
       const doneMatch = res.body.match(/event: done\ndata: (.+)\n/);
       expect(doneMatch).toBeTruthy();
       const doneData = JSON.parse(doneMatch[1]);
-      const nodeTypes = doneData.message.nodes.map((n: { type: string }) => n.type);
+      const nodeTypes = doneData.message.nodes.map(
+        (n: { type: string }) => n.type,
+      );
 
       // Should have a form node
       expect(nodeTypes).toContain('travel_plan_form');
@@ -539,6 +541,5 @@ describe('chat handlers', () => {
 
       expect(res.status).toBe(404);
     });
-
   });
 });

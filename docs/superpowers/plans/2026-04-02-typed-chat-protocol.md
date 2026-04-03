@@ -98,6 +98,7 @@ Note: The components themselves (TripDetailsForm, ItineraryTimeline, QuickReplyC
 ## Task 1: Shared Types Package
 
 **Files:**
+
 - Create: `packages/shared-types/package.json`
 - Create: `packages/shared-types/tsconfig.json`
 - Create: `packages/shared-types/src/nodes.ts`
@@ -305,8 +306,8 @@ export interface ChatMessage {
 - [ ] **Step 5: Create events.ts**
 
 ```typescript
-import type { ChatNode } from './nodes.js';
 import type { ChatMessage } from './messages.js';
+import type { ChatNode } from './nodes.js';
 
 export type SSEEvent =
   | { type: 'node'; node: ChatNode }
@@ -343,11 +344,13 @@ packages:
 - [ ] **Step 8: Add shared-types dependency to server and web-client**
 
 In `server/package.json`, add to dependencies:
+
 ```json
 "@agentic-travel-agent/shared-types": "workspace:*"
 ```
 
 In `web-client/package.json`, add to dependencies:
+
 ```json
 "@agentic-travel-agent/shared-types": "workspace:*"
 ```
@@ -371,6 +374,7 @@ git commit -m "feat: add shared-types workspace package with ChatNode union, Cha
 ## Task 2: Database Migration — Typed Chat Columns
 
 **Files:**
+
 - Create: `server/migrations/TIMESTAMP_add-typed-chat-columns.js`
 - Modify: `server/src/repositories/conversations/conversations.ts`
 
@@ -457,6 +461,7 @@ export interface Message {
 ```
 
 Add import at top:
+
 ```typescript
 import type { ChatNode } from '@agentic-travel-agent/shared-types';
 ```
@@ -480,7 +485,9 @@ export interface InsertMessageInput {
 Update the `insertMessage` function to include `nodes`, `schema_version`, and auto-increment `sequence`:
 
 ```typescript
-export async function insertMessage(input: InsertMessageInput): Promise<Message> {
+export async function insertMessage(
+  input: InsertMessageInput,
+): Promise<Message> {
   const { rows } = await pool.query<Message>(
     `INSERT INTO messages (conversation_id, role, content, tool_calls_json, nodes, schema_version, sequence, token_count)
      VALUES ($1, $2, $3, $4, $5, $6,
@@ -518,6 +525,7 @@ git commit -m "feat: add nodes, schema_version, sequence columns to messages tab
 ## Task 3: Database Migration — Car Rentals Table
 
 **Files:**
+
 - Create: `server/migrations/1771879388554_create-trip-car-rentals-table.js`
 
 - [ ] **Step 1: Create car rentals migration**
@@ -584,6 +592,7 @@ git commit -m "feat: add trip_car_rentals table for car rental selections"
 ## Task 4: Migrations README
 
 **Files:**
+
 - Create: `server/migrations/README.md`
 
 - [ ] **Step 1: Write the schema documentation**
@@ -599,18 +608,18 @@ The messages table uses a **dual-column pattern** separating display state from 
 
 ### Columns
 
-| Column | Type | Purpose | Consumer |
-|--------|------|---------|----------|
-| `id` | UUID | Primary key | Both |
-| `conversation_id` | UUID | FK to conversations | Both |
-| `role` | ENUM('user','assistant') | Message author | Both |
-| `content` | TEXT | Claude's raw text response | Agent service (API conversation reconstruction) |
-| `tool_calls_json` | JSONB | Raw tool_use/tool_result blocks | Agent service (API conversation reconstruction) |
-| `nodes` | JSONB | Ordered `ChatNode[]` for UI rendering | Frontend |
-| `schema_version` | INTEGER | Shape version for forward-compatible rendering | Frontend |
-| `sequence` | INTEGER | Strict ordering within conversation | Both |
-| `token_count` | INTEGER | Input + output tokens consumed | Observability |
-| `created_at` | TIMESTAMPTZ | Insertion timestamp | Both |
+| Column            | Type                     | Purpose                                        | Consumer                                        |
+| ----------------- | ------------------------ | ---------------------------------------------- | ----------------------------------------------- |
+| `id`              | UUID                     | Primary key                                    | Both                                            |
+| `conversation_id` | UUID                     | FK to conversations                            | Both                                            |
+| `role`            | ENUM('user','assistant') | Message author                                 | Both                                            |
+| `content`         | TEXT                     | Claude's raw text response                     | Agent service (API conversation reconstruction) |
+| `tool_calls_json` | JSONB                    | Raw tool_use/tool_result blocks                | Agent service (API conversation reconstruction) |
+| `nodes`           | JSONB                    | Ordered `ChatNode[]` for UI rendering          | Frontend                                        |
+| `schema_version`  | INTEGER                  | Shape version for forward-compatible rendering | Frontend                                        |
+| `sequence`        | INTEGER                  | Strict ordering within conversation            | Both                                            |
+| `token_count`     | INTEGER                  | Input + output tokens consumed                 | Observability                                   |
+| `created_at`      | TIMESTAMPTZ              | Insertion timestamp                            | Both                                            |
 
 ### Why Two Representations
 
@@ -631,20 +640,20 @@ Messages are ordered by `sequence` (INTEGER) within a conversation. There is a u
 
 The `nodes` JSONB column contains an ordered array of `ChatNode` objects. Each node has a `type` discriminator:
 
-| Type | Description | Selectable |
-|------|-------------|------------|
-| `text` | Markdown content with optional citations | No |
-| `flight_tiles` | Flight search results | Yes |
-| `hotel_tiles` | Hotel search results | Yes |
-| `car_rental_tiles` | Car rental search results | Yes |
-| `experience_tiles` | Experience/activity search results | Yes |
-| `travel_plan_form` | Structured form for trip details | No |
-| `itinerary` | Day-by-day plan | No |
-| `advisory` | Travel advisories, visa/vaccination info | No |
-| `weather_forecast` | Multi-day weather outlook | No |
-| `budget_bar` | Budget allocation tracker | No |
-| `quick_replies` | Suggested response buttons | No |
-| `tool_progress` | Tool execution status indicator | No |
+| Type               | Description                              | Selectable |
+| ------------------ | ---------------------------------------- | ---------- |
+| `text`             | Markdown content with optional citations | No         |
+| `flight_tiles`     | Flight search results                    | Yes        |
+| `hotel_tiles`      | Hotel search results                     | Yes        |
+| `car_rental_tiles` | Car rental search results                | Yes        |
+| `experience_tiles` | Experience/activity search results       | Yes        |
+| `travel_plan_form` | Structured form for trip details         | No         |
+| `itinerary`        | Day-by-day plan                          | No         |
+| `advisory`         | Travel advisories, visa/vaccination info | No         |
+| `weather_forecast` | Multi-day weather outlook                | No         |
+| `budget_bar`       | Budget allocation tracker                | No         |
+| `quick_replies`    | Suggested response buttons               | No         |
+| `tool_progress`    | Tool execution status indicator          | No         |
 
 Full type definitions are in `packages/shared-types/src/nodes.ts`.
 
@@ -676,6 +685,7 @@ git commit -m "docs: add migrations README documenting dual-column pattern and c
 ## Task 5: Node Builder Layer
 
 **Files:**
+
 - Create: `server/src/services/node-builder.ts`
 - Create: `server/src/services/node-builder.test.ts`
 
@@ -684,9 +694,10 @@ git commit -m "docs: add migrations README documenting dual-column pattern and c
 Create `server/src/services/node-builder.test.ts`:
 
 ```typescript
-import { describe, it, expect } from 'vitest';
-import { buildNodeFromToolResult } from './node-builder.js';
 import type { ChatNode } from '@agentic-travel-agent/shared-types';
+import { describe, expect, it } from 'vitest';
+
+import { buildNodeFromToolResult } from './node-builder.js';
 
 describe('buildNodeFromToolResult', () => {
   it('maps search_flights result to flight_tiles node', () => {
@@ -826,8 +837,14 @@ Expected: FAIL — module not found
 Create `server/src/services/node-builder.ts`:
 
 ```typescript
+import type {
+  CarRental,
+  ChatNode,
+  Experience,
+  Flight,
+  Hotel,
+} from '@agentic-travel-agent/shared-types';
 import { randomUUID } from 'crypto';
-import type { ChatNode, Flight, Hotel, CarRental, Experience } from '@agentic-travel-agent/shared-types';
 
 interface FlightRaw {
   airline: string;
@@ -1017,6 +1034,7 @@ git commit -m "feat: add node builder layer for tool result → ChatNode mapping
 ## Task 6: Car Rentals Tool
 
 **Files:**
+
 - Create: `server/src/tools/car-rentals.tool.ts`
 - Create: `server/src/tools/car-rentals.tool.test.ts`
 - Modify: `server/src/tools/definitions.ts`
@@ -1027,7 +1045,8 @@ git commit -m "feat: add node builder layer for tool result → ChatNode mapping
 Create `server/src/tools/car-rentals.tool.test.ts`:
 
 ```typescript
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { searchCarRentals } from './car-rentals.tool.js';
 
 vi.mock('app/lib/redis', () => ({
@@ -1170,7 +1189,9 @@ export async function searchCarRentals(
   const rentals: CarRentalResult[] = carsResults.slice(0, 5).map((car) => {
     const vehicleInfo = car.vehicle_info as Record<string, string> | undefined;
     const price = car.price as Record<string, number> | undefined;
-    const rentalCompany = car.rental_company as Record<string, string> | undefined;
+    const rentalCompany = car.rental_company as
+      | Record<string, string>
+      | undefined;
     const features = (car.features as string[]) ?? [];
 
     return {
@@ -1180,9 +1201,13 @@ export async function searchCarRentals(
       car_type: (vehicleInfo?.class ?? 'standard').toLowerCase(),
       price_per_day: price?.per_day ?? 0,
       total_price: price?.total ?? 0,
-      currency: (price as Record<string, unknown>)?.currency as string ?? 'USD',
+      currency:
+        ((price as Record<string, unknown>)?.currency as string) ?? 'USD',
       pickup_location: (car.pickup_location as string) ?? input.pickup_location,
-      dropoff_location: (car.dropoff_location as string) ?? input.dropoff_location ?? input.pickup_location,
+      dropoff_location:
+        (car.dropoff_location as string) ??
+        input.dropoff_location ??
+        input.pickup_location,
       pickup_date: input.pickup_date,
       dropoff_date: input.dropoff_date,
       features,
@@ -1294,11 +1319,13 @@ In `server/src/tools/definitions.ts`, add to the `toolDefinitions` array:
 In `server/src/tools/executor.ts`, add imports and cases:
 
 Add import:
+
 ```typescript
 import { searchCarRentals } from './car-rentals.tool.js';
 ```
 
 Add cases in the switch:
+
 ```typescript
 case 'search_car_rentals':
   return await searchCarRentals(input as Parameters<typeof searchCarRentals>[0]);
@@ -1326,6 +1353,7 @@ git commit -m "feat: add search_car_rentals and format_response tools"
 ## Task 7: Auto-Enrichment Service
 
 **Files:**
+
 - Create: `server/src/services/enrichment.ts`
 - Create: `server/src/services/enrichment.test.ts`
 - Create: `server/src/services/enrichment-sources/fcdo.ts`
@@ -1343,7 +1371,12 @@ Create `server/src/data/driving-requirements.json`:
 {
   "US": { "driving_side": "right", "idp_required": false, "min_age": 16 },
   "GB": { "driving_side": "left", "idp_required": false, "min_age": 17 },
-  "JP": { "driving_side": "left", "idp_required": true, "min_age": 18, "note": "Japan only accepts IDPs issued under the 1949 Geneva Convention. US and UK IDPs are valid." },
+  "JP": {
+    "driving_side": "left",
+    "idp_required": true,
+    "min_age": 18,
+    "note": "Japan only accepts IDPs issued under the 1949 Geneva Convention. US and UK IDPs are valid."
+  },
   "AU": { "driving_side": "left", "idp_required": true, "min_age": 18 },
   "TH": { "driving_side": "left", "idp_required": true, "min_age": 18 },
   "IN": { "driving_side": "left", "idp_required": true, "min_age": 18 },
@@ -1365,7 +1398,12 @@ Create `server/src/data/driving-requirements.json`:
   "CR": { "driving_side": "right", "idp_required": false, "min_age": 18 },
   "PE": { "driving_side": "right", "idp_required": true, "min_age": 18 },
   "CO": { "driving_side": "right", "idp_required": true, "min_age": 18 },
-  "PG": { "driving_side": "left", "idp_required": true, "min_age": 18, "note": "Driving outside major cities is extremely dangerous. Road conditions are poor and carjacking is common." }
+  "PG": {
+    "driving_side": "left",
+    "idp_required": true,
+    "min_age": 18,
+    "note": "Driving outside major cities is extremely dangerous. Road conditions are poor and carjacking is common."
+  }
 }
 ```
 
@@ -1374,8 +1412,8 @@ Create `server/src/data/driving-requirements.json`:
 Create `server/src/services/enrichment-sources/state-dept.ts`:
 
 ```typescript
-import { getCache, setCache } from 'app/lib/redis.js';
 import type { ChatNode } from '@agentic-travel-agent/shared-types';
+import { getCache, setCache } from 'app/lib/redis.js';
 
 const CACHE_TTL = 86400; // 24 hours
 const STATE_DEPT_URL =
@@ -1412,8 +1450,7 @@ export async function fetchStateDeptAdvisory(
     if (!match) return null;
 
     const level = (match.advisory_level ?? match.level) as number;
-    const severity =
-      level >= 4 ? 'critical' : level >= 3 ? 'warning' : 'info';
+    const severity = level >= 4 ? 'critical' : level >= 3 ? 'warning' : 'info';
     const levelLabels: Record<number, string> = {
       1: 'Exercise Normal Precautions',
       2: 'Exercise Increased Caution',
@@ -1425,7 +1462,9 @@ export async function fetchStateDeptAdvisory(
       type: 'advisory',
       severity,
       title: `US State Dept Advisory: Level ${level} — ${levelLabels[level] ?? 'Unknown'}`,
-      body: (match.advisory_text as string) ?? `Travel advisory level ${level} for this destination.`,
+      body:
+        (match.advisory_text as string) ??
+        `Travel advisory level ${level} for this destination.`,
     };
 
     await setCache(cacheKey, node, CACHE_TTL);
@@ -1439,8 +1478,8 @@ export async function fetchStateDeptAdvisory(
 Create `server/src/services/enrichment-sources/fcdo.ts`:
 
 ```typescript
-import { getCache, setCache } from 'app/lib/redis.js';
 import type { ChatNode } from '@agentic-travel-agent/shared-types';
+import { getCache, setCache } from 'app/lib/redis.js';
 
 const CACHE_TTL = 86400; // 24 hours
 
@@ -1514,8 +1553,8 @@ export async function fetchFCDOAdvisory(
     const nodes: ChatNode[] = [];
 
     // Extract entry requirements (includes visa info)
-    const entryReqs = parts.find(
-      (p) => p.title.toLowerCase().includes('entry requirements'),
+    const entryReqs = parts.find((p) =>
+      p.title.toLowerCase().includes('entry requirements'),
     );
     if (entryReqs) {
       const body = stripHtml(entryReqs.body);
@@ -1530,9 +1569,7 @@ export async function fetchFCDOAdvisory(
     }
 
     // Extract health section (includes vaccination info)
-    const health = parts.find(
-      (p) => p.title.toLowerCase().includes('health'),
-    );
+    const health = parts.find((p) => p.title.toLowerCase().includes('health'));
     if (health) {
       const body = stripHtml(health.body);
       if (body.length > 0) {
@@ -1547,7 +1584,9 @@ export async function fetchFCDOAdvisory(
 
     // Extract safety/security warnings
     const safety = parts.find(
-      (p) => p.title.toLowerCase().includes('safety') || p.title.toLowerCase().includes('warnings'),
+      (p) =>
+        p.title.toLowerCase().includes('safety') ||
+        p.title.toLowerCase().includes('warnings'),
     );
     if (safety) {
       const body = stripHtml(safety.body);
@@ -1575,16 +1614,16 @@ export async function fetchFCDOAdvisory(
 Create `server/src/services/enrichment-sources/open-meteo.ts`:
 
 ```typescript
-import { getCache, setCache } from 'app/lib/redis.js';
 import type { ChatNode, WeatherDay } from '@agentic-travel-agent/shared-types';
+import { getCache, setCache } from 'app/lib/redis.js';
 
 const CACHE_TTL = 21600; // 6 hours
 
 const WEATHER_ICONS: Record<number, string> = {
-  0: '\u2600\uFE0F',  // Clear sky
-  1: '\uD83C\uDF24\uFE0F',  // Mainly clear
-  2: '\u26C5',  // Partly cloudy
-  3: '\u2601\uFE0F',  // Overcast
+  0: '\u2600\uFE0F', // Clear sky
+  1: '\uD83C\uDF24\uFE0F', // Mainly clear
+  2: '\u26C5', // Partly cloudy
+  3: '\u2601\uFE0F', // Overcast
   45: '\uD83C\uDF2B\uFE0F', // Fog
   48: '\uD83C\uDF2B\uFE0F', // Depositing rime fog
   51: '\uD83C\uDF26\uFE0F', // Light drizzle
@@ -1596,9 +1635,9 @@ const WEATHER_ICONS: Record<number, string> = {
   71: '\uD83C\uDF28\uFE0F', // Slight snow
   73: '\uD83C\uDF28\uFE0F', // Moderate snow
   75: '\uD83C\uDF28\uFE0F', // Heavy snow
-  95: '\u26C8\uFE0F',  // Thunderstorm
-  96: '\u26C8\uFE0F',  // Thunderstorm with hail
-  99: '\u26C8\uFE0F',  // Thunderstorm with heavy hail
+  95: '\u26C8\uFE0F', // Thunderstorm
+  96: '\u26C8\uFE0F', // Thunderstorm with hail
+  99: '\u26C8\uFE0F', // Thunderstorm with heavy hail
 };
 
 const WEATHER_LABELS: Record<number, string> = {
@@ -1635,7 +1674,8 @@ export async function fetchWeatherForecast(
     const params = new URLSearchParams({
       latitude: lat.toString(),
       longitude: lon.toString(),
-      daily: 'temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max',
+      daily:
+        'temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max',
       timezone: 'auto',
       forecast_days: '7',
     });
@@ -1664,8 +1704,8 @@ export async function fetchWeatherForecast(
         date,
         high_c: Math.round(highC),
         low_c: Math.round(lowC),
-        high_f: Math.round(highC * 9 / 5 + 32),
-        low_f: Math.round(lowC * 9 / 5 + 32),
+        high_f: Math.round((highC * 9) / 5 + 32),
+        low_f: Math.round((lowC * 9) / 5 + 32),
         condition: WEATHER_LABELS[code] ?? 'Unknown',
         icon: WEATHER_ICONS[code] ?? '\u2601\uFE0F',
         precipitation_chance: daily.precipitation_probability_max[i] ?? 0,
@@ -1734,8 +1774,42 @@ import type { ChatNode } from '@agentic-travel-agent/shared-types';
 // Simplified visa requirement lookup
 // In production, this would load from the passport-index CSV dataset
 const VISA_FREE: Record<string, string[]> = {
-  US: ['GB', 'FR', 'DE', 'IT', 'ES', 'PT', 'GR', 'JP', 'KR', 'SG', 'AU', 'NZ', 'MX', 'CR', 'AE', 'TR'],
-  GB: ['US', 'FR', 'DE', 'IT', 'ES', 'PT', 'GR', 'JP', 'KR', 'SG', 'AU', 'NZ', 'MX', 'CR', 'AE', 'TR'],
+  US: [
+    'GB',
+    'FR',
+    'DE',
+    'IT',
+    'ES',
+    'PT',
+    'GR',
+    'JP',
+    'KR',
+    'SG',
+    'AU',
+    'NZ',
+    'MX',
+    'CR',
+    'AE',
+    'TR',
+  ],
+  GB: [
+    'US',
+    'FR',
+    'DE',
+    'IT',
+    'ES',
+    'PT',
+    'GR',
+    'JP',
+    'KR',
+    'SG',
+    'AU',
+    'NZ',
+    'MX',
+    'CR',
+    'AE',
+    'TR',
+  ],
 };
 
 const VISA_ON_ARRIVAL: Record<string, string[]> = {
@@ -1788,42 +1862,48 @@ Create `server/src/services/enrichment.ts`:
 
 ```typescript
 import type { ChatNode } from '@agentic-travel-agent/shared-types';
-import { fetchStateDeptAdvisory } from './enrichment-sources/state-dept.js';
+
+import { getDrivingRequirements } from './enrichment-sources/driving.js';
 import { fetchFCDOAdvisory } from './enrichment-sources/fcdo.js';
 import { fetchWeatherForecast } from './enrichment-sources/open-meteo.js';
-import { getDrivingRequirements } from './enrichment-sources/driving.js';
+import { fetchStateDeptAdvisory } from './enrichment-sources/state-dept.js';
 import { getVisaRequirement } from './enrichment-sources/visa-matrix.js';
 
 // Coordinates for major destinations (subset — expand as needed)
-const CITY_COORDS: Record<string, { lat: number; lon: number; country: string }> = {
-  'tokyo': { lat: 35.6762, lon: 139.6503, country: 'JP' },
-  'paris': { lat: 48.8566, lon: 2.3522, country: 'FR' },
-  'london': { lat: 51.5074, lon: -0.1278, country: 'GB' },
+const CITY_COORDS: Record<
+  string,
+  { lat: number; lon: number; country: string }
+> = {
+  tokyo: { lat: 35.6762, lon: 139.6503, country: 'JP' },
+  paris: { lat: 48.8566, lon: 2.3522, country: 'FR' },
+  london: { lat: 51.5074, lon: -0.1278, country: 'GB' },
   'new york': { lat: 40.7128, lon: -74.006, country: 'US' },
-  'barcelona': { lat: 41.3874, lon: 2.1686, country: 'ES' },
-  'rome': { lat: 41.9028, lon: 12.4964, country: 'IT' },
-  'berlin': { lat: 52.52, lon: 13.405, country: 'DE' },
-  'bangkok': { lat: 13.7563, lon: 100.5018, country: 'TH' },
-  'sydney': { lat: -33.8688, lon: 151.2093, country: 'AU' },
-  'dubai': { lat: 25.2048, lon: 55.2708, country: 'AE' },
-  'singapore': { lat: 1.3521, lon: 103.8198, country: 'SG' },
-  'seoul': { lat: 37.5665, lon: 126.978, country: 'KR' },
-  'lisbon': { lat: 38.7223, lon: -9.1393, country: 'PT' },
-  'athens': { lat: 37.9838, lon: 23.7275, country: 'GR' },
-  'istanbul': { lat: 41.0082, lon: 28.9784, country: 'TR' },
-  'cairo': { lat: 30.0444, lon: 31.2357, country: 'EG' },
+  barcelona: { lat: 41.3874, lon: 2.1686, country: 'ES' },
+  rome: { lat: 41.9028, lon: 12.4964, country: 'IT' },
+  berlin: { lat: 52.52, lon: 13.405, country: 'DE' },
+  bangkok: { lat: 13.7563, lon: 100.5018, country: 'TH' },
+  sydney: { lat: -33.8688, lon: 151.2093, country: 'AU' },
+  dubai: { lat: 25.2048, lon: 55.2708, country: 'AE' },
+  singapore: { lat: 1.3521, lon: 103.8198, country: 'SG' },
+  seoul: { lat: 37.5665, lon: 126.978, country: 'KR' },
+  lisbon: { lat: 38.7223, lon: -9.1393, country: 'PT' },
+  athens: { lat: 37.9838, lon: 23.7275, country: 'GR' },
+  istanbul: { lat: 41.0082, lon: 28.9784, country: 'TR' },
+  cairo: { lat: 30.0444, lon: 31.2357, country: 'EG' },
   'mexico city': { lat: 19.4326, lon: -99.1332, country: 'MX' },
   'sao paulo': { lat: -23.5505, lon: -46.6333, country: 'BR' },
   'cape town': { lat: -33.9249, lon: 18.4241, country: 'ZA' },
-  'auckland': { lat: -36.8485, lon: 174.7633, country: 'NZ' },
+  auckland: { lat: -36.8485, lon: 174.7633, country: 'NZ' },
   'port moresby': { lat: -6.3149, lon: 147.1803, country: 'PG' },
   'san jose': { lat: 9.9281, lon: -84.0907, country: 'CR' },
-  'lima': { lat: -12.0464, lon: -77.0428, country: 'PE' },
-  'bogota': { lat: 4.711, lon: -74.0721, country: 'CO' },
-  'mumbai': { lat: 19.076, lon: 72.8777, country: 'IN' },
+  lima: { lat: -12.0464, lon: -77.0428, country: 'PE' },
+  bogota: { lat: 4.711, lon: -74.0721, country: 'CO' },
+  mumbai: { lat: 19.076, lon: 72.8777, country: 'IN' },
 };
 
-function lookupCity(destination: string): { lat: number; lon: number; country: string } | null {
+function lookupCity(
+  destination: string,
+): { lat: number; lon: number; country: string } | null {
   const key = destination.toLowerCase().trim();
   return CITY_COORDS[key] ?? null;
 }
@@ -1841,9 +1921,7 @@ export async function getEnrichmentNodes(
     fetchWeatherForecast(city.lat, city.lon),
     Promise.resolve(getDrivingRequirements(city.country)),
     Promise.resolve(
-      originCountry
-        ? getVisaRequirement(originCountry, city.country)
-        : null,
+      originCountry ? getVisaRequirement(originCountry, city.country) : null,
     ),
   ]);
 
@@ -1868,7 +1946,8 @@ export async function getEnrichmentNodes(
 Create `server/src/services/enrichment.test.ts`:
 
 ```typescript
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
 import { getDrivingRequirements } from './enrichment-sources/driving.js';
 import { getVisaRequirement } from './enrichment-sources/visa-matrix.js';
 
@@ -1948,6 +2027,7 @@ git commit -m "feat: add auto-enrichment service with FCDO, State Dept, Open-Met
 ## Task 8: Prompt Consolidation
 
 **Files:**
+
 - Modify: `server/src/prompts/system-prompt.ts`
 - Modify: `server/src/prompts/trip-context.ts`
 
@@ -1956,7 +2036,7 @@ git commit -m "feat: add auto-enrichment service with FCDO, State Dept, Open-Met
 Replace the entire contents of `server/src/prompts/system-prompt.ts`:
 
 ```typescript
-import { formatTripContext, type TripContext } from './trip-context.js';
+import { type TripContext, formatTripContext } from './trip-context.js';
 
 const BASE_PROMPT = `You are a friendly, knowledgeable travel planning assistant. You help users plan trips by searching for flights, car rentals, hotels, and experiences within their budget.
 
@@ -2004,10 +2084,14 @@ Optional fields:
 export function buildSystemPrompt(tripContext?: TripContext): string {
   const parts = [BASE_PROMPT];
 
-  parts.push(`\n\n## Current Date\n\nToday is ${new Date().toISOString().split('T')[0]}.`);
+  parts.push(
+    `\n\n## Current Date\n\nToday is ${new Date().toISOString().split('T')[0]}.`,
+  );
 
   if (tripContext) {
-    parts.push(`\n\n## Current Trip State\n\n${formatTripContext(tripContext)}`);
+    parts.push(
+      `\n\n## Current Trip State\n\n${formatTripContext(tripContext)}`,
+    );
   }
 
   return parts.join('');
@@ -2034,7 +2118,9 @@ And in `formatTripContext()`, add after hotels section:
 if (ctx.selected_car_rentals.length > 0) {
   lines.push('### Selected Car Rentals');
   for (const car of ctx.selected_car_rentals) {
-    lines.push(`- ${car.car_name} from ${car.provider}: $${car.total_price} ($${car.price_per_day}/day)`);
+    lines.push(
+      `- ${car.car_name} from ${car.provider}: $${car.total_price} ($${car.price_per_day}/day)`,
+    );
   }
 }
 ```
@@ -2053,6 +2139,7 @@ git commit -m "feat: consolidate system prompt and add car rental support to tri
 ## Task 9: Updated Agent Orchestrator — Node Assembly & Typed SSE
 
 **Files:**
+
 - Modify: `server/src/services/AgentOrchestrator.ts`
 - Modify: `server/src/services/agent.service.ts`
 - Modify: `server/src/handlers/chat/chat.ts`
@@ -2076,7 +2163,12 @@ Update the `OrchestratorResult` to include nodes:
 ```typescript
 export interface OrchestratorResult {
   response: string;
-  toolCallsUsed: Array<{ name: string; id: string; input: unknown; result: unknown }>;
+  toolCallsUsed: Array<{
+    name: string;
+    id: string;
+    input: unknown;
+    result: unknown;
+  }>;
   tokensUsed: { input: number; output: number };
   iterations: number;
   nodes: ChatNode[];
@@ -2084,7 +2176,11 @@ export interface OrchestratorResult {
     text: string;
     citations?: unknown[];
     quick_replies?: string[];
-    advisory?: { severity: 'info' | 'warning' | 'critical'; title: string; body: string };
+    advisory?: {
+      severity: 'info' | 'warning' | 'critical';
+      title: string;
+      body: string;
+    };
   } | null;
 }
 ```
@@ -2209,14 +2305,21 @@ In `server/src/handlers/chat/chat.ts`, update the `chat` function:
 1. After loading the trip, check if destination changed and fetch enrichment nodes:
 
 ```typescript
+import type {
+  ChatMessage,
+  ChatNode,
+  SSEEvent,
+} from '@agentic-travel-agent/shared-types';
 import { getEnrichmentNodes } from 'app/services/enrichment.js';
-import type { ChatNode, ChatMessage, SSEEvent } from '@agentic-travel-agent/shared-types';
 
 // In chat handler, before running agent loop:
 let enrichmentNodes: ChatNode[] = [];
 // Check if this is the first message or destination is being set
 if (trip?.destination) {
-  enrichmentNodes = await getEnrichmentNodes(trip.destination, trip.origin ?? undefined);
+  enrichmentNodes = await getEnrichmentNodes(
+    trip.destination,
+    trip.origin ?? undefined,
+  );
 }
 ```
 
@@ -2260,7 +2363,9 @@ const chatMessage: ChatMessage = {
   sequence: assistantMessage.sequence,
   created_at: assistantMessage.created_at,
 };
-res.write(`event: done\ndata: ${JSON.stringify({ type: 'done', message: chatMessage })}\n\n`);
+res.write(
+  `event: done\ndata: ${JSON.stringify({ type: 'done', message: chatMessage })}\n\n`,
+);
 ```
 
 5. Update `getMessages` handler to return `ChatMessage` format:
@@ -2296,6 +2401,7 @@ git commit -m "feat: wire up node assembly, typed SSE protocol, and dual-column 
 ## Task 10: Frontend — NodeRenderer & MarkdownText
 
 **Files:**
+
 - Create: `web-client/src/components/ChatBox/NodeRenderer.tsx`
 - Create: `web-client/src/components/ChatBox/nodes/MarkdownText.tsx`
 - Create: `web-client/src/components/ChatBox/nodes/MarkdownText.module.scss`
@@ -2320,8 +2426,12 @@ cd web-client && pnpm add react-markdown @tanstack/react-virtual
 Create `web-client/src/components/ChatBox/nodes/MarkdownText.tsx`:
 
 ```tsx
+import type {
+  ChatNodeOfType,
+  Citation,
+} from '@agentic-travel-agent/shared-types';
 import ReactMarkdown from 'react-markdown';
-import type { ChatNodeOfType, Citation } from '@agentic-travel-agent/shared-types';
+
 import styles from './MarkdownText.module.scss';
 
 type Props = ChatNodeOfType<'text'>;
@@ -2346,8 +2456,8 @@ export function MarkdownText({ content, citations }: Props) {
               return (
                 <a
                   href={citation.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target='_blank'
+                  rel='noopener noreferrer'
                   className={styles.citation}
                   title={citation.label}
                   {...props}
@@ -2359,8 +2469,8 @@ export function MarkdownText({ content, citations }: Props) {
             return (
               <a
                 href={href}
-                target="_blank"
-                rel="noopener noreferrer"
+                target='_blank'
+                rel='noopener noreferrer'
                 {...props}
               >
                 {children}
@@ -2419,6 +2529,7 @@ Create `web-client/src/components/ChatBox/nodes/AdvisoryCard.tsx`:
 
 ```tsx
 import type { ChatNodeOfType } from '@agentic-travel-agent/shared-types';
+
 import styles from './AdvisoryCard.module.scss';
 
 type Props = ChatNodeOfType<'advisory'>;
@@ -2433,11 +2544,11 @@ export function AdvisoryCard({ severity, title, body }: Props) {
   return (
     <div
       className={`${styles.advisory} ${styles[severity]}`}
-      role="alert"
+      role='alert'
       aria-live={severity === 'critical' ? 'assertive' : 'polite'}
     >
       <div className={styles.header}>
-        <span className={styles.icon} aria-hidden="true">
+        <span className={styles.icon} aria-hidden='true'>
           {SEVERITY_ICONS[severity]}
         </span>
         <h4 className={styles.title}>{title}</h4>
@@ -2503,13 +2614,18 @@ Create `web-client/src/components/ChatBox/nodes/WeatherForecast.tsx`:
 
 ```tsx
 import type { ChatNodeOfType } from '@agentic-travel-agent/shared-types';
+
 import styles from './WeatherForecast.module.scss';
 
 type Props = ChatNodeOfType<'weather_forecast'>;
 
 export function WeatherForecast({ forecast }: Props) {
   return (
-    <div className={styles.weatherForecast} role="region" aria-label="Weather forecast">
+    <div
+      className={styles.weatherForecast}
+      role='region'
+      aria-label='Weather forecast'
+    >
       <h4 className={styles.title}>Weather Forecast</h4>
       <div className={styles.days}>
         {forecast.map((day) => (
@@ -2521,7 +2637,7 @@ export function WeatherForecast({ forecast }: Props) {
                 day: 'numeric',
               })}
             </span>
-            <span className={styles.icon} aria-hidden="true">
+            <span className={styles.icon} aria-hidden='true'>
               {day.icon}
             </span>
             <span className={styles.temps}>
@@ -2604,6 +2720,7 @@ Create `web-client/src/components/ChatBox/nodes/CarRentalCard.tsx`:
 
 ```tsx
 import type { CarRental } from '@agentic-travel-agent/shared-types';
+
 import { formatCurrency } from '../widgets/FlightCard.js';
 import styles from './CarRentalCard.module.scss';
 
@@ -2613,13 +2730,17 @@ interface CarRentalCardProps {
   onClick: () => void;
 }
 
-export function CarRentalCard({ rental, selected, onClick }: CarRentalCardProps) {
+export function CarRentalCard({
+  rental,
+  selected,
+  onClick,
+}: CarRentalCardProps) {
   return (
     <button
       className={`${styles.card} ${selected ? styles.selected : ''}`}
       onClick={onClick}
       aria-pressed={selected}
-      type="button"
+      type='button'
     >
       {rental.image_url && (
         <img
@@ -2631,11 +2752,7 @@ export function CarRentalCard({ rental, selected, onClick }: CarRentalCardProps)
       <div className={styles.details}>
         <div className={styles.provider}>
           {rental.provider_logo && (
-            <img
-              src={rental.provider_logo}
-              alt=""
-              className={styles.logo}
-            />
+            <img src={rental.provider_logo} alt='' className={styles.logo} />
           )}
           <span>{rental.provider}</span>
         </div>
@@ -2765,7 +2882,9 @@ Create `web-client/src/components/ChatBox/nodes/CarRentalTiles.tsx`:
 
 ```tsx
 import { useState } from 'react';
+
 import type { ChatNodeOfType } from '@agentic-travel-agent/shared-types';
+
 import { SelectableCardGroup } from '../widgets/SelectableCardGroup.js';
 import { CarRentalCard } from './CarRentalCard.js';
 
@@ -2774,7 +2893,12 @@ type Props = ChatNodeOfType<'car_rental_tiles'> & {
   disabled?: boolean;
 };
 
-export function CarRentalTiles({ rentals, selectable, onSelect, disabled }: Props) {
+export function CarRentalTiles({
+  rentals,
+  selectable,
+  onSelect,
+  disabled,
+}: Props) {
   return (
     <SelectableCardGroup
       items={rentals.map((rental) => ({
@@ -2801,12 +2925,15 @@ Create `web-client/src/components/ChatBox/nodes/BudgetBar.tsx`:
 
 ```tsx
 import type { ChatNodeOfType } from '@agentic-travel-agent/shared-types';
+
 import { InlineBudgetBar } from '../widgets/InlineBudgetBar.js';
 
 type Props = ChatNodeOfType<'budget_bar'>;
 
 export function BudgetBar({ allocated, total, currency }: Props) {
-  return <InlineBudgetBar allocated={allocated} total={total} currency={currency} />;
+  return (
+    <InlineBudgetBar allocated={allocated} total={total} currency={currency} />
+  );
 }
 ```
 
@@ -2814,6 +2941,7 @@ Create `web-client/src/components/ChatBox/nodes/ToolProgressIndicator.tsx`:
 
 ```tsx
 import type { ChatNodeOfType } from '@agentic-travel-agent/shared-types';
+
 import styles from '../../ChatBox/ChatBox.module.scss';
 
 type Props = ChatNodeOfType<'tool_progress'>;
@@ -2847,19 +2975,20 @@ Create `web-client/src/components/ChatBox/NodeRenderer.tsx`:
 
 ```tsx
 import type { ChatNode } from '@agentic-travel-agent/shared-types';
-import { MarkdownText } from './nodes/MarkdownText.js';
-import { AdvisoryCard } from './nodes/AdvisoryCard.js';
-import { WeatherForecast } from './nodes/WeatherForecast.js';
-import { CarRentalTiles } from './nodes/CarRentalTiles.js';
-import { BudgetBar } from './nodes/BudgetBar.js';
-import { ToolProgressIndicator } from './nodes/ToolProgressIndicator.js';
-import { QuickReplyChips } from './widgets/QuickReplyChips.js';
-import { ItineraryTimeline } from './widgets/ItineraryTimeline.js';
+
 import { TripDetailsForm } from './TripDetailsForm.js';
+import { AdvisoryCard } from './nodes/AdvisoryCard.js';
+import { BudgetBar } from './nodes/BudgetBar.js';
+import { CarRentalTiles } from './nodes/CarRentalTiles.js';
+import { ExperienceTiles } from './nodes/ExperienceTiles.js';
 // FlightTiles, HotelTiles, ExperienceTiles reuse existing card+group pattern
 import { FlightTiles } from './nodes/FlightTiles.js';
 import { HotelTiles } from './nodes/HotelTiles.js';
-import { ExperienceTiles } from './nodes/ExperienceTiles.js';
+import { MarkdownText } from './nodes/MarkdownText.js';
+import { ToolProgressIndicator } from './nodes/ToolProgressIndicator.js';
+import { WeatherForecast } from './nodes/WeatherForecast.js';
+import { ItineraryTimeline } from './widgets/ItineraryTimeline.js';
+import { QuickReplyChips } from './widgets/QuickReplyChips.js';
 
 type NodeComponent = React.ComponentType<any>;
 
@@ -2921,15 +3050,21 @@ Create `web-client/src/components/ChatBox/nodes/FlightTiles.tsx`:
 
 ```tsx
 import type { ChatNodeOfType } from '@agentic-travel-agent/shared-types';
-import { SelectableCardGroup } from '../widgets/SelectableCardGroup.js';
+
 import { FlightCard } from '../widgets/FlightCard.js';
+import { SelectableCardGroup } from '../widgets/SelectableCardGroup.js';
 
 type Props = ChatNodeOfType<'flight_tiles'> & {
   onSelect?: (flightId: string) => void;
   disabled?: boolean;
 };
 
-export function FlightTiles({ flights, selectable, onSelect, disabled }: Props) {
+export function FlightTiles({
+  flights,
+  selectable,
+  onSelect,
+  disabled,
+}: Props) {
   return (
     <SelectableCardGroup
       items={flights.map((flight) => ({
@@ -2961,8 +3096,9 @@ Create `web-client/src/components/ChatBox/nodes/HotelTiles.tsx`:
 
 ```tsx
 import type { ChatNodeOfType } from '@agentic-travel-agent/shared-types';
-import { SelectableCardGroup } from '../widgets/SelectableCardGroup.js';
+
 import { HotelCard } from '../widgets/HotelCard.js';
+import { SelectableCardGroup } from '../widgets/SelectableCardGroup.js';
 
 type Props = ChatNodeOfType<'hotel_tiles'> & {
   onSelect?: (hotelId: string) => void;
@@ -3004,15 +3140,21 @@ Create `web-client/src/components/ChatBox/nodes/ExperienceTiles.tsx`:
 
 ```tsx
 import type { ChatNodeOfType } from '@agentic-travel-agent/shared-types';
-import { SelectableCardGroup } from '../widgets/SelectableCardGroup.js';
+
 import { ExperienceCard } from '../widgets/ExperienceCard.js';
+import { SelectableCardGroup } from '../widgets/SelectableCardGroup.js';
 
 type Props = ChatNodeOfType<'experience_tiles'> & {
   onSelect?: (experienceId: string) => void;
   disabled?: boolean;
 };
 
-export function ExperienceTiles({ experiences, selectable, onSelect, disabled }: Props) {
+export function ExperienceTiles({
+  experiences,
+  selectable,
+  onSelect,
+  disabled,
+}: Props) {
   return (
     <SelectableCardGroup
       items={experiences.map((exp) => ({
@@ -3051,6 +3193,7 @@ git commit -m "feat: add NodeRenderer component registry with all node type comp
 ## Task 11: Frontend — useSSEChat Hook & VirtualizedChat
 
 **Files:**
+
 - Create: `web-client/src/components/ChatBox/useSSEChat.ts`
 - Create: `web-client/src/components/ChatBox/VirtualizedChat.tsx`
 - Create: `web-client/src/components/ChatBox/VirtualizedChat.module.scss`
@@ -3060,8 +3203,13 @@ git commit -m "feat: add NodeRenderer component registry with all node type comp
 Create `web-client/src/components/ChatBox/useSSEChat.ts`:
 
 ```typescript
-import { useState, useCallback, useRef } from 'react';
-import type { ChatNode, ChatMessage, SSEEvent } from '@agentic-travel-agent/shared-types';
+import { useCallback, useRef, useState } from 'react';
+
+import type {
+  ChatMessage,
+  ChatNode,
+  SSEEvent,
+} from '@agentic-travel-agent/shared-types';
 import { useQueryClient } from '@tanstack/react-query';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
@@ -3154,9 +3302,7 @@ export function useSSEChat({ tripId }: UseSSEChatOptions): UseSSEChatReturn {
       case 'tool_progress':
         setToolProgress((prev) => {
           const existing = prev.findIndex(
-            (n) =>
-              n.type === 'tool_progress' &&
-              n.tool_id === event.tool_id,
+            (n) => n.type === 'tool_progress' && n.tool_id === event.tool_id,
           );
           const node: ChatNode = {
             type: 'tool_progress',
@@ -3200,9 +3346,11 @@ export function useSSEChat({ tripId }: UseSSEChatOptions): UseSSEChatReturn {
 Create `web-client/src/components/ChatBox/VirtualizedChat.tsx`:
 
 ```tsx
-import { useRef, useEffect, useCallback } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useCallback, useEffect, useRef } from 'react';
+
 import type { ChatMessage, ChatNode } from '@agentic-travel-agent/shared-types';
+import { useVirtualizer } from '@tanstack/react-virtual';
+
 import { NodeRenderer } from './NodeRenderer.js';
 import styles from './VirtualizedChat.module.scss';
 
@@ -3252,7 +3400,8 @@ export function VirtualizedChat({
 
   // Build the streaming message if active
   const streamingMessage: ChatMessage | null =
-    isSending && (streamingNodes.length > 0 || toolProgress.length > 0 || streamingText)
+    isSending &&
+    (streamingNodes.length > 0 || toolProgress.length > 0 || streamingText)
       ? {
           id: '__streaming__',
           role: 'assistant',
@@ -3379,6 +3528,7 @@ git commit -m "feat: add useSSEChat hook and VirtualizedChat with TanStack Virtu
 ## Task 12: Frontend — Integrate Into ChatBox & Remove Regex Parsers
 
 **Files:**
+
 - Modify: `web-client/src/components/ChatBox/ChatBox.tsx`
 - Modify: `web-client/src/components/ChatBox/TripDetailsForm.tsx` (remove parseTripFormFields, parseSubmittedValues)
 - Modify: `web-client/src/components/ChatBox/widgets/ItineraryTimeline.tsx` (remove parseItinerary)
@@ -3387,6 +3537,7 @@ git commit -m "feat: add useSSEChat hook and VirtualizedChat with TanStack Virtu
 - [ ] **Step 1: Refactor ChatBox to use VirtualizedChat and useSSEChat**
 
 Gut the existing ChatBox component. Remove:
+
 - All inline SSE parsing logic
 - All regex-based conditional rendering
 - The `renderText()` function
@@ -3394,6 +3545,7 @@ Gut the existing ChatBox component. Remove:
 - Direct `fetch` call for SSE
 
 Replace with:
+
 - `useSSEChat` hook for SSE handling
 - `VirtualizedChat` for message rendering
 - TanStack Query for persisted messages (already exists)
@@ -3402,12 +3554,14 @@ The ChatBox becomes a thin shell:
 
 ```tsx
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import type { ChatMessage } from '@agentic-travel-agent/shared-types';
+
 import { get } from '@/lib/api';
-import { useSSEChat } from './useSSEChat.js';
-import { VirtualizedChat } from './VirtualizedChat.js';
+import type { ChatMessage } from '@agentic-travel-agent/shared-types';
+import { useQuery } from '@tanstack/react-query';
+
 import styles from './ChatBox.module.scss';
+import { VirtualizedChat } from './VirtualizedChat.js';
+import { useSSEChat } from './useSSEChat.js';
 
 interface ChatBoxProps {
   tripId: string;
@@ -3419,7 +3573,10 @@ export function ChatBox({ tripId, ...props }: ChatBoxProps) {
 
   const { data: serverMessages } = useQuery({
     queryKey: ['messages', tripId],
-    queryFn: () => get<{ messages: ChatMessage[] }>(`/trips/${tripId}/messages`).then((r) => r.messages),
+    queryFn: () =>
+      get<{ messages: ChatMessage[] }>(`/trips/${tripId}/messages`).then(
+        (r) => r.messages,
+      ),
   });
 
   const {
@@ -3462,16 +3619,26 @@ export function ChatBox({ tripId, ...props }: ChatBoxProps) {
         isSending={isSending}
         onQuickReply={handleQuickReply}
       />
-      <form className={styles.inputArea} onSubmit={(e) => { e.preventDefault(); handleSend(); }}>
+      <form
+        className={styles.inputArea}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSend();
+        }}
+      >
         <input
-          type="text"
+          type='text'
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Plan your trip..."
+          placeholder='Plan your trip...'
           disabled={isSending}
           className={styles.input}
         />
-        <button type="submit" disabled={isSending || !input.trim()} className={styles.sendButton}>
+        <button
+          type='submit'
+          disabled={isSending || !input.trim()}
+          className={styles.sendButton}
+        >
           Send
         </button>
       </form>
@@ -3483,17 +3650,20 @@ export function ChatBox({ tripId, ...props }: ChatBoxProps) {
 - [ ] **Step 2: Remove regex parser exports from widget files**
 
 In `web-client/src/components/ChatBox/TripDetailsForm.tsx`:
+
 - Remove the `parseTripFormFields()` function and its export
 - Remove the `parseSubmittedValues()` function and its export
 - Keep the `TripDetailsForm` component itself — it becomes the renderer for `travel_plan_form` nodes
 - Update its props to accept `FormField[]` from the node type instead of deriving fields from regex
 
 In `web-client/src/components/ChatBox/widgets/ItineraryTimeline.tsx`:
+
 - Remove the `parseItinerary()` function and its export
 - Keep the `ItineraryTimeline` component — it renders `itinerary` nodes
 - Update props to accept `DayPlan[]` directly
 
 In `web-client/src/components/ChatBox/widgets/QuickReplyChips.tsx`:
+
 - Remove the `parseQuickReplies()` function and its export
 - Keep the `QuickReplyChips` component — it renders `quick_replies` nodes
 - Update props to accept `options: string[]` and `onSelect: (text: string) => void`

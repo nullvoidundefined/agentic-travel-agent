@@ -1,10 +1,11 @@
 import type { ChatNode } from '@agentic-travel-agent/shared-types';
-import { fetchStateDeptAdvisory } from './enrichment-sources/state-dept.js';
+
+import { lookupCity } from '../data/cities.js';
+import { getDrivingRequirements } from './enrichment-sources/driving.js';
 import { fetchFCDOAdvisory } from './enrichment-sources/fcdo.js';
 import { fetchWeatherForecast } from './enrichment-sources/open-meteo.js';
-import { getDrivingRequirements } from './enrichment-sources/driving.js';
+import { fetchStateDeptAdvisory } from './enrichment-sources/state-dept.js';
 import { getVisaRequirement } from './enrichment-sources/visa-matrix.js';
-import { lookupCity } from '../data/cities.js';
 
 export async function getEnrichmentNodes(
   destination: string,
@@ -15,7 +16,9 @@ export async function getEnrichmentNodes(
 
   // Synchronous sources — compute before the async fan-out
   const drivingNode = getDrivingRequirements(city.country_code);
-  const visaNode = originCountry ? getVisaRequirement(originCountry, city.country_code) : null;
+  const visaNode = originCountry
+    ? getVisaRequirement(originCountry, city.country_code)
+    : null;
 
   const asyncResults = await Promise.allSettled([
     fetchStateDeptAdvisory(city.country_code),

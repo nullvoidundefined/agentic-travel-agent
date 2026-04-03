@@ -44,6 +44,7 @@ server/src/tools/definitions.ts                         # Add skip_category to f
 ## Task 1: Database Migration — booking_state Column
 
 **Files:**
+
 - Create: `server/migrations/1771879388556_add-booking-state.js`
 - Modify: `server/src/repositories/conversations/conversations.ts`
 
@@ -57,7 +58,9 @@ export const up = (pgm) => {
     booking_state: {
       type: 'jsonb',
       notNull: true,
-      default: pgm.func(`'{"flights":{"status":"idle"},"hotels":{"status":"idle"},"car_rental":{"status":"idle"},"experiences":{"status":"idle"}}'::jsonb`),
+      default: pgm.func(
+        `'{"flights":{"status":"idle"},"hotels":{"status":"idle"},"car_rental":{"status":"idle"},"experiences":{"status":"idle"}}'::jsonb`,
+      ),
     },
   });
 };
@@ -72,6 +75,7 @@ export const down = (pgm) => {
 In `server/src/repositories/conversations/conversations.ts`:
 
 Add `booking_state` to the `Conversation` interface:
+
 ```typescript
 export interface Conversation {
   id: string;
@@ -83,11 +87,13 @@ export interface Conversation {
 ```
 
 Add import at top (will exist after Task 2):
+
 ```typescript
 import type { BookingState } from 'app/prompts/booking-steps.js';
 ```
 
 Add `updateBookingState` function:
+
 ```typescript
 export async function updateBookingState(
   conversationId: string,
@@ -114,6 +120,7 @@ git commit -m "feat: add booking_state JSONB column to conversations table"
 ## Task 2: Core Types and Functions — getFlowPosition + advanceBookingState
 
 **Files:**
+
 - Rewrite: `server/src/prompts/booking-steps.ts`
 - Rewrite: `server/src/prompts/booking-steps.test.ts`
 
@@ -122,15 +129,16 @@ git commit -m "feat: add booking_state JSONB column to conversations table"
 Replace the entire contents of `server/src/prompts/booking-steps.test.ts`:
 
 ```typescript
-import { describe, it, expect } from 'vitest';
-import {
-  getFlowPosition,
-  advanceBookingState,
-  DEFAULT_BOOKING_STATE,
-  type BookingState,
-  type FlowPosition,
-} from './booking-steps.js';
 import type { AgentResult } from 'app/services/agent.service.js';
+import { describe, expect, it } from 'vitest';
+
+import {
+  type BookingState,
+  DEFAULT_BOOKING_STATE,
+  type FlowPosition,
+  advanceBookingState,
+  getFlowPosition,
+} from './booking-steps.js';
 
 // Helper to build a trip state
 function trip(overrides: Record<string, unknown> = {}) {
@@ -167,7 +175,11 @@ describe('getFlowPosition', () => {
 
   it('returns flights/idle when transport_mode is null', () => {
     const pos = getFlowPosition(trip(), bs());
-    expect(pos).toEqual({ phase: 'CATEGORY', category: 'flights', status: 'idle' });
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'flights',
+      status: 'idle',
+    });
   });
 
   it('returns flights with its current status from booking_state', () => {
@@ -175,7 +187,11 @@ describe('getFlowPosition', () => {
       trip({ transport_mode: 'flying' }),
       bs({ flights: { status: 'asking' } }),
     );
-    expect(pos).toEqual({ phase: 'CATEGORY', category: 'flights', status: 'asking' });
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'flights',
+      status: 'asking',
+    });
   });
 
   it('returns flights/presented when browsing', () => {
@@ -183,12 +199,20 @@ describe('getFlowPosition', () => {
       trip({ transport_mode: 'flying' }),
       bs({ flights: { status: 'presented' } }),
     );
-    expect(pos).toEqual({ phase: 'CATEGORY', category: 'flights', status: 'presented' });
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'flights',
+      status: 'presented',
+    });
   });
 
   it('skips flights when driving, goes to hotels', () => {
     const pos = getFlowPosition(trip({ transport_mode: 'driving' }), bs());
-    expect(pos).toEqual({ phase: 'CATEGORY', category: 'hotels', status: 'idle' });
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'hotels',
+      status: 'idle',
+    });
   });
 
   it('returns hotels when flights are done', () => {
@@ -196,7 +220,11 @@ describe('getFlowPosition', () => {
       trip({ transport_mode: 'flying', flights: [{ id: '1' }] }),
       bs({ flights: { status: 'done' } }),
     );
-    expect(pos).toEqual({ phase: 'CATEGORY', category: 'hotels', status: 'idle' });
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'hotels',
+      status: 'idle',
+    });
   });
 
   it('returns car_rental when hotels are done', () => {
@@ -204,7 +232,11 @@ describe('getFlowPosition', () => {
       trip({ transport_mode: 'flying', flights: [{ id: '1' }] }),
       bs({ flights: { status: 'done' }, hotels: { status: 'done' } }),
     );
-    expect(pos).toEqual({ phase: 'CATEGORY', category: 'car_rental', status: 'idle' });
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'car_rental',
+      status: 'idle',
+    });
   });
 
   it('skips a category that is skipped', () => {
@@ -212,7 +244,11 @@ describe('getFlowPosition', () => {
       trip({ transport_mode: 'flying', flights: [{ id: '1' }] }),
       bs({ flights: { status: 'done' }, hotels: { status: 'skipped' } }),
     );
-    expect(pos).toEqual({ phase: 'CATEGORY', category: 'car_rental', status: 'idle' });
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'car_rental',
+      status: 'idle',
+    });
   });
 
   it('returns CONFIRM when all categories done/skipped', () => {
@@ -229,16 +265,16 @@ describe('getFlowPosition', () => {
   });
 
   it('returns COMPLETE when status is not planning', () => {
-    const pos = getFlowPosition(
-      trip({ status: 'saved' }),
-      bs(),
-    );
+    const pos = getFlowPosition(trip({ status: 'saved' }), bs());
     expect(pos).toEqual({ phase: 'COMPLETE' });
   });
 });
 
 describe('advanceBookingState', () => {
-  const mockResult = (toolNames: string[] = [], skipCategory = false): AgentResult => ({
+  const mockResult = (
+    toolNames: string[] = [],
+    skipCategory = false,
+  ): AgentResult => ({
     response: 'ok',
     tool_calls: toolNames.map((name, i) => ({
       tool_name: name,
@@ -335,7 +371,12 @@ import type { AgentResult } from 'app/services/agent.service.js';
 
 export type CategoryName = 'flights' | 'hotels' | 'car_rental' | 'experiences';
 
-export type CategoryStatus = 'idle' | 'asking' | 'presented' | 'done' | 'skipped';
+export type CategoryStatus =
+  | 'idle'
+  | 'asking'
+  | 'presented'
+  | 'done'
+  | 'skipped';
 
 export interface CategoryState {
   status: CategoryStatus;
@@ -378,7 +419,12 @@ export interface TripState {
   status: string;
 }
 
-const CATEGORY_ORDER: CategoryName[] = ['flights', 'hotels', 'car_rental', 'experiences'];
+const CATEGORY_ORDER: CategoryName[] = [
+  'flights',
+  'hotels',
+  'car_rental',
+  'experiences',
+];
 
 const SEARCH_TOOLS: Record<CategoryName, string> = {
   flights: 'search_flights',
@@ -387,14 +433,20 @@ const SEARCH_TOOLS: Record<CategoryName, string> = {
   experiences: 'search_experiences',
 };
 
-const SELECTION_KEYS: Record<CategoryName, 'flights' | 'hotels' | 'car_rentals' | 'experiences'> = {
+const SELECTION_KEYS: Record<
+  CategoryName,
+  'flights' | 'hotels' | 'car_rentals' | 'experiences'
+> = {
   flights: 'flights',
   hotels: 'hotels',
   car_rental: 'car_rentals',
   experiences: 'experiences',
 };
 
-export function getFlowPosition(trip: TripState, bookingState: BookingState): FlowPosition {
+export function getFlowPosition(
+  trip: TripState,
+  bookingState: BookingState,
+): FlowPosition {
   if (trip.status !== 'planning') {
     return { phase: 'COMPLETE' };
   }
@@ -410,7 +462,11 @@ export function getFlowPosition(trip: TripState, bookingState: BookingState): Fl
 
   // If transport_mode not set, flights category handles the flying/driving question
   if (trip.transport_mode === null) {
-    return { phase: 'CATEGORY', category: 'flights', status: bookingState.flights.status };
+    return {
+      phase: 'CATEGORY',
+      category: 'flights',
+      status: bookingState.flights.status,
+    };
   }
 
   for (const cat of CATEGORY_ORDER) {
@@ -441,8 +497,9 @@ export function advanceBookingState(
   const newState = structuredClone(bookingState);
 
   // Check if skip_category was set
-  const skipCategory = (agentResult as { formatResponse?: { skip_category?: boolean } })
-    .formatResponse?.skip_category === true;
+  const skipCategory =
+    (agentResult as { formatResponse?: { skip_category?: boolean } })
+      .formatResponse?.skip_category === true;
 
   if (skipCategory) {
     newState[cat] = { ...newState[cat], status: 'skipped' };
@@ -450,11 +507,14 @@ export function advanceBookingState(
   }
 
   const searchTool = SEARCH_TOOLS[cat];
-  const searchCalled = agentResult.tool_calls.some((tc) => tc.tool_name === searchTool);
+  const searchCalled = agentResult.tool_calls.some(
+    (tc) => tc.tool_name === searchTool,
+  );
   const selectionKey = SELECTION_KEYS[cat];
-  const tripSelections = selectionKey === 'car_rentals'
-    ? (updatedTrip.car_rentals ?? [])
-    : updatedTrip[selectionKey];
+  const tripSelections =
+    selectionKey === 'car_rentals'
+      ? (updatedTrip.car_rentals ?? [])
+      : updatedTrip[selectionKey];
   const hasSelection = tripSelections.length > 0;
 
   switch (currentStatus) {
@@ -505,6 +565,7 @@ git commit -m "feat: rewrite booking-steps with FlowPosition, getFlowPosition, a
 ## Task 3: Per-Category Prompts
 
 **Files:**
+
 - Create: `server/src/prompts/category-prompts.ts`
 - Create: `server/src/prompts/category-prompts.test.ts`
 
@@ -513,12 +574,18 @@ git commit -m "feat: rewrite booking-steps with FlowPosition, getFlowPosition, a
 Create `server/src/prompts/category-prompts.test.ts`:
 
 ```typescript
-import { describe, it, expect } from 'vitest';
-import { getCategoryPrompt, getPhasePrompt } from './category-prompts.js';
+import { describe, expect, it } from 'vitest';
+
 import type { CategoryName, CategoryStatus } from './booking-steps.js';
+import { getCategoryPrompt, getPhasePrompt } from './category-prompts.js';
 
 describe('category-prompts', () => {
-  const categories: CategoryName[] = ['flights', 'hotels', 'car_rental', 'experiences'];
+  const categories: CategoryName[] = [
+    'flights',
+    'hotels',
+    'car_rental',
+    'experiences',
+  ];
   const statuses: CategoryStatus[] = ['idle', 'asking', 'presented'];
 
   for (const cat of categories) {
@@ -654,14 +721,20 @@ const PHASE_PROMPTS: Record<string, string> = {
   COMPLETE: `The trip is booked. Answer follow-up questions about the trip.`,
 };
 
-export function getCategoryPrompt(category: CategoryName, status: CategoryStatus): string {
+export function getCategoryPrompt(
+  category: CategoryName,
+  status: CategoryStatus,
+): string {
   const prompts = CATEGORY_PROMPTS[category];
-  const key = status === 'idle' ? 'idle' : status === 'asking' ? 'asking' : 'presented';
+  const key =
+    status === 'idle' ? 'idle' : status === 'asking' ? 'asking' : 'presented';
   const prompt = prompts[key] ?? prompts['asking'];
   return `You are a travel planning assistant.\n\n## Your Task\n${prompt}\n${SHARED_RULES}`;
 }
 
-export function getPhasePrompt(phase: 'COLLECT_DETAILS' | 'CONFIRM' | 'COMPLETE'): string {
+export function getPhasePrompt(
+  phase: 'COLLECT_DETAILS' | 'CONFIRM' | 'COMPLETE',
+): string {
   return `You are a travel planning assistant.\n\n## Your Task\n${PHASE_PROMPTS[phase]}\n${SHARED_RULES}`;
 }
 ```
@@ -683,6 +756,7 @@ git commit -m "feat: add per-category prompts keyed by status"
 ## Task 4: Update System Prompt + Agent Service
 
 **Files:**
+
 - Modify: `server/src/prompts/system-prompt.ts`
 - Modify: `server/src/prompts/system-prompt.test.ts`
 - Modify: `server/src/services/agent.service.ts`
@@ -692,9 +766,9 @@ git commit -m "feat: add per-category prompts keyed by status"
 Replace entire contents:
 
 ```typescript
-import { formatTripContext, type TripContext } from './trip-context.js';
 import type { FlowPosition } from './booking-steps.js';
 import { getCategoryPrompt, getPhasePrompt } from './category-prompts.js';
+import { type TripContext, formatTripContext } from './trip-context.js';
 
 export function buildSystemPrompt(
   tripContext?: TripContext,
@@ -713,10 +787,14 @@ export function buildSystemPrompt(
   }
 
   const parts = [stepPrompt];
-  parts.push(`\n\n## Current Date\n\nToday is ${new Date().toISOString().split('T')[0]}.`);
+  parts.push(
+    `\n\n## Current Date\n\nToday is ${new Date().toISOString().split('T')[0]}.`,
+  );
 
   if (tripContext) {
-    parts.push(`\n\n## Current Trip State\n\n${formatTripContext(tripContext)}`);
+    parts.push(
+      `\n\n## Current Trip State\n\n${formatTripContext(tripContext)}`,
+    );
   }
 
   return parts.join('');
@@ -728,9 +806,9 @@ export function buildSystemPrompt(
 Replace entire contents:
 
 ```typescript
+import type { FlowPosition } from 'app/prompts/booking-steps.js';
 import { buildSystemPrompt } from 'app/prompts/system-prompt.js';
 import type { TripContext } from 'app/prompts/trip-context.js';
-import type { FlowPosition } from 'app/prompts/booking-steps.js';
 import { describe, expect, it } from 'vitest';
 
 const fullCtx: TripContext = {
@@ -743,7 +821,15 @@ const fullCtx: TripContext = {
   travelers: 2,
   transport_mode: 'flying',
   preferences: {},
-  selected_flights: [{ airline: 'United', flight_number: 'UA123', price: 450, departure_time: '2026-07-01T08:00:00Z', arrival_time: '2026-07-01T20:00:00Z' }],
+  selected_flights: [
+    {
+      airline: 'United',
+      flight_number: 'UA123',
+      price: 450,
+      departure_time: '2026-07-01T08:00:00Z',
+      arrival_time: '2026-07-01T20:00:00Z',
+    },
+  ],
   selected_car_rentals: [],
   selected_hotels: [],
   selected_experiences: [],
@@ -757,7 +843,11 @@ describe('buildSystemPrompt', () => {
   });
 
   it('uses category prompt for CATEGORY phase', () => {
-    const pos: FlowPosition = { phase: 'CATEGORY', category: 'flights', status: 'idle' };
+    const pos: FlowPosition = {
+      phase: 'CATEGORY',
+      category: 'flights',
+      status: 'idle',
+    };
     const prompt = buildSystemPrompt(undefined, pos);
     expect(prompt).toContain('flying');
     expect(prompt).toContain('driving');
@@ -775,7 +865,11 @@ describe('buildSystemPrompt', () => {
   });
 
   it('includes trip context', () => {
-    const prompt = buildSystemPrompt(fullCtx, { phase: 'CATEGORY', category: 'hotels', status: 'asking' });
+    const prompt = buildSystemPrompt(fullCtx, {
+      phase: 'CATEGORY',
+      category: 'hotels',
+      status: 'asking',
+    });
     expect(prompt).toContain('Barcelona');
     expect(prompt).toContain('UA123');
   });
@@ -801,14 +895,21 @@ import { type FlowPosition } from 'app/prompts/booking-steps.js';
 Change `bookingStep?: BookingStep` to `flowPosition?: FlowPosition` in `runAgentLoop` signature.
 
 Update `systemPromptBuilder`:
+
 ```typescript
 systemPromptBuilder: (ctx: unknown, pos: unknown) =>
   buildSystemPrompt(ctx as TripContext | undefined, pos as FlowPosition | undefined),
 ```
 
 Update `orchestrator.run()` call:
+
 ```typescript
-const result = await orchestrator.run(messages, [tripContext, flowPosition], onEvent, meta);
+const result = await orchestrator.run(
+  messages,
+  [tripContext, flowPosition],
+  onEvent,
+  meta,
+);
 ```
 
 - [ ] **Step 4: Verify**
@@ -828,6 +929,7 @@ git commit -m "feat: system prompt accepts FlowPosition, delegates to category p
 ## Task 5: Add skip_category to format_response + FormatResponseData
 
 **Files:**
+
 - Modify: `server/src/tools/definitions.ts`
 - Modify: `server/src/services/AgentOrchestrator.ts`
 
@@ -878,6 +980,7 @@ git commit -m "feat: add skip_category to format_response tool and FormatRespons
 ## Task 6: Update Chat Handler — Read/Write booking_state + Advance
 
 **Files:**
+
 - Modify: `server/src/handlers/chat/chat.ts`
 - Modify: `server/src/handlers/chat/chat.test.ts`
 
@@ -927,7 +1030,12 @@ it('advances booking_state after agent loop', async () => {
   vi.mocked(convRepo.getOrCreateConversation).mockResolvedValueOnce({
     id: convId,
     trip_id: tripId,
-    booking_state: { flights: { status: 'asking' }, hotels: { status: 'idle' }, car_rental: { status: 'idle' }, experiences: { status: 'idle' } },
+    booking_state: {
+      flights: { status: 'asking' },
+      hotels: { status: 'idle' },
+      car_rental: { status: 'idle' },
+      experiences: { status: 'idle' },
+    },
   } as never);
 
   vi.mocked(convRepo.getMessagesByConversation).mockResolvedValueOnce([
@@ -946,7 +1054,9 @@ it('advances booking_state after agent loop', async () => {
   // Agent searched flights
   vi.mocked(agentService.runAgentLoop).mockResolvedValueOnce({
     response: 'Here are flights',
-    tool_calls: [{ tool_name: 'search_flights', tool_id: 't1', input: {}, result: [] }],
+    tool_calls: [
+      { tool_name: 'search_flights', tool_id: 't1', input: {}, result: [] },
+    ],
     total_tokens: { input: 100, output: 50 },
     nodes: [{ type: 'text' as const, content: 'Here are flights' }],
   });
@@ -957,7 +1067,9 @@ it('advances booking_state after agent loop', async () => {
     .buffer(true)
     .parse((res, callback) => {
       let data = '';
-      res.on('data', (chunk: Buffer) => { data += chunk.toString(); });
+      res.on('data', (chunk: Buffer) => {
+        data += chunk.toString();
+      });
       res.on('end', () => callback(null, data));
     });
 
@@ -983,8 +1095,14 @@ Expected: FAIL — updateBookingState not called
 In `server/src/handlers/chat/chat.ts`:
 
 Update imports:
+
 ```typescript
-import { getFlowPosition, advanceBookingState, DEFAULT_BOOKING_STATE, type BookingState } from 'app/prompts/booking-steps.js';
+import {
+  type BookingState,
+  DEFAULT_BOOKING_STATE,
+  advanceBookingState,
+  getFlowPosition,
+} from 'app/prompts/booking-steps.js';
 import {
   getMessagesByConversation,
   getOrCreateConversation,
@@ -998,10 +1116,12 @@ Remove the old `getBookingStep` import.
 In the `chat` function, after loading the conversation, read `booking_state`:
 
 ```typescript
-const bookingState: BookingState = conversation.booking_state ?? DEFAULT_BOOKING_STATE;
+const bookingState: BookingState =
+  conversation.booking_state ?? DEFAULT_BOOKING_STATE;
 ```
 
 Replace `getBookingStep(...)` with:
+
 ```typescript
 let flowPosition = getFlowPosition(
   { ...trip, transport_mode: trip.transport_mode ?? null, car_rentals: [] },
@@ -1010,6 +1130,7 @@ let flowPosition = getFlowPosition(
 ```
 
 If the flow position is a CATEGORY with status `idle`, promote to `asking`:
+
 ```typescript
 let currentBookingState = structuredClone(bookingState);
 if (flowPosition.phase === 'CATEGORY' && flowPosition.status === 'idle') {
@@ -1024,6 +1145,7 @@ if (flowPosition.phase === 'CATEGORY' && flowPosition.status === 'idle') {
 Pass `flowPosition` to `runAgentLoop` instead of `bookingStep`.
 
 After the agent loop and trip reload, call `advanceBookingState`:
+
 ```typescript
 if (updatedTrip && flowPosition.phase === 'CATEGORY') {
   const newBookingState = advanceBookingState(
@@ -1031,7 +1153,11 @@ if (updatedTrip && flowPosition.phase === 'CATEGORY') {
     flowPosition.category,
     flowPosition.status,
     result,
-    { ...updatedTrip, transport_mode: updatedTrip.transport_mode ?? null, car_rentals: [] },
+    {
+      ...updatedTrip,
+      transport_mode: updatedTrip.transport_mode ?? null,
+      car_rentals: [],
+    },
   );
   await updateBookingState(conversation.id, newBookingState);
 }
@@ -1080,6 +1206,7 @@ Check `https://server-production-f028.up.railway.app/health` returns `{"status":
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ BookingState type with 4 categories, CategoryStatus type (Task 2)
 - ✅ booking_state JSONB on conversations (Task 1)
 - ✅ getFlowPosition() replaces getBookingStep() (Task 2)

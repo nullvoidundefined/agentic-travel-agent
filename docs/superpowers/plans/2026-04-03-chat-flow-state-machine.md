@@ -45,6 +45,7 @@ server/src/services/agent.service.ts          # Pass booking step to system prom
 ## Task 1: Database Migration — transport_mode Column
 
 **Files:**
+
 - Create: `server/migrations/1771879388555_add-transport-mode.js`
 - Modify: `server/src/schemas/trips.ts`
 
@@ -141,6 +142,7 @@ git commit -m "feat: add transport_mode column to trips for flying/driving selec
 ## Task 2: Booking Steps — Step Detection + Per-Step Prompts
 
 **Files:**
+
 - Create: `server/src/prompts/booking-steps.ts`
 - Create: `server/src/prompts/booking-steps.test.ts`
 
@@ -149,8 +151,13 @@ git commit -m "feat: add transport_mode column to trips for flying/driving selec
 Create `server/src/prompts/booking-steps.test.ts`:
 
 ```typescript
-import { describe, it, expect } from 'vitest';
-import { getBookingStep, getStepPrompt, type BookingStep } from './booking-steps.js';
+import { describe, expect, it } from 'vitest';
+
+import {
+  type BookingStep,
+  getBookingStep,
+  getStepPrompt,
+} from './booking-steps.js';
 
 describe('booking-steps', () => {
   describe('getBookingStep', () => {
@@ -328,8 +335,13 @@ describe('booking-steps', () => {
   describe('getStepPrompt', () => {
     it('returns a prompt containing format_response for every step', () => {
       const steps: BookingStep[] = [
-        'COLLECT_DETAILS', 'TRANSPORT', 'LODGING',
-        'CAR_RENTAL', 'EXPERIENCES', 'CONFIRM', 'COMPLETE',
+        'COLLECT_DETAILS',
+        'TRANSPORT',
+        'LODGING',
+        'CAR_RENTAL',
+        'EXPERIENCES',
+        'CONFIRM',
+        'COMPLETE',
       ];
       for (const step of steps) {
         const prompt = getStepPrompt(step);
@@ -365,8 +377,13 @@ describe('booking-steps', () => {
 
     it('keeps text brief instruction in every step', () => {
       const steps: BookingStep[] = [
-        'COLLECT_DETAILS', 'TRANSPORT', 'LODGING',
-        'CAR_RENTAL', 'EXPERIENCES', 'CONFIRM', 'COMPLETE',
+        'COLLECT_DETAILS',
+        'TRANSPORT',
+        'LODGING',
+        'CAR_RENTAL',
+        'EXPERIENCES',
+        'CONFIRM',
+        'COMPLETE',
       ];
       for (const step of steps) {
         const prompt = getStepPrompt(step);
@@ -561,6 +578,7 @@ git commit -m "feat: add booking step detection and per-step prompt templates"
 ## Task 3: Rewrite System Prompt to Use Step-Driven Prompts
 
 **Files:**
+
 - Modify: `server/src/prompts/system-prompt.ts`
 - Modify: `server/src/prompts/system-prompt.test.ts`
 
@@ -569,8 +587,8 @@ git commit -m "feat: add booking step detection and per-step prompt templates"
 Replace the entire contents of `server/src/prompts/system-prompt.ts`:
 
 ```typescript
-import { formatTripContext, type TripContext } from './trip-context.js';
 import { type BookingStep, getStepPrompt } from './booking-steps.js';
+import { type TripContext, formatTripContext } from './trip-context.js';
 
 export function buildSystemPrompt(
   tripContext?: TripContext,
@@ -580,10 +598,14 @@ export function buildSystemPrompt(
 
   const parts = [stepPrompt];
 
-  parts.push(`\n\n## Current Date\n\nToday is ${new Date().toISOString().split('T')[0]}.`);
+  parts.push(
+    `\n\n## Current Date\n\nToday is ${new Date().toISOString().split('T')[0]}.`,
+  );
 
   if (tripContext) {
-    parts.push(`\n\n## Current Trip State\n\n${formatTripContext(tripContext)}`);
+    parts.push(
+      `\n\n## Current Trip State\n\n${formatTripContext(tripContext)}`,
+    );
   }
 
   return parts.join('');
@@ -692,7 +714,12 @@ systemPromptBuilder: (ctx: unknown, step: unknown) =>
 And update line 71 to pass the step:
 
 ```typescript
-const result = await orchestrator.run(messages, [tripContext, bookingStep], onEvent, meta);
+const result = await orchestrator.run(
+  messages,
+  [tripContext, bookingStep],
+  onEvent,
+  meta,
+);
 ```
 
 Add the `bookingStep` parameter to `runAgentLoop`:
@@ -728,7 +755,11 @@ Before the `runAgentLoop` call (after building tripContext), compute the step:
 ```typescript
 const bookingStep = getBookingStep({
   ...trip,
-  transport_mode: (trip as Record<string, unknown>).transport_mode as 'flying' | 'driving' | null ?? null,
+  transport_mode:
+    ((trip as Record<string, unknown>).transport_mode as
+      | 'flying'
+      | 'driving'
+      | null) ?? null,
   car_rentals: [],
 });
 ```
@@ -764,6 +795,7 @@ git commit -m "feat: wire step-driven system prompt through agent service and ch
 ## Task 4: Server-Side Welcome Message
 
 **Files:**
+
 - Modify: `server/src/handlers/chat/chat.ts`
 - Modify: `server/src/handlers/chat/chat.test.ts`
 
@@ -801,7 +833,10 @@ export async function getMessages(req: Request, res: Response) {
   // Generate welcome message if no messages exist yet
   if (messages.length === 0 && trip.destination) {
     const welcomeNodes: ChatNode[] = [
-      { type: 'text', content: `Let's plan your trip to **${trip.destination}**!` },
+      {
+        type: 'text',
+        content: `Let's plan your trip to **${trip.destination}**!`,
+      },
     ];
 
     // Add form for missing fields
@@ -811,11 +846,41 @@ export async function getMessages(req: Request, res: Response) {
       field_type: 'text' | 'date' | 'number' | 'select';
       required: boolean;
     }> = [];
-    if (!trip.origin) missingFields.push({ name: 'origin', label: 'Where are you traveling from?', field_type: 'text', required: true });
-    if (!trip.departure_date) missingFields.push({ name: 'departure_date', label: 'Departure date', field_type: 'date', required: true });
-    if (!trip.return_date) missingFields.push({ name: 'return_date', label: 'Return date', field_type: 'date', required: true });
-    if (!trip.budget_total) missingFields.push({ name: 'budget', label: 'Total budget (USD)', field_type: 'number', required: true });
-    if (!trip.travelers || trip.travelers <= 1) missingFields.push({ name: 'travelers', label: 'Number of travelers', field_type: 'number', required: true });
+    if (!trip.origin)
+      missingFields.push({
+        name: 'origin',
+        label: 'Where are you traveling from?',
+        field_type: 'text',
+        required: true,
+      });
+    if (!trip.departure_date)
+      missingFields.push({
+        name: 'departure_date',
+        label: 'Departure date',
+        field_type: 'date',
+        required: true,
+      });
+    if (!trip.return_date)
+      missingFields.push({
+        name: 'return_date',
+        label: 'Return date',
+        field_type: 'date',
+        required: true,
+      });
+    if (!trip.budget_total)
+      missingFields.push({
+        name: 'budget',
+        label: 'Total budget (USD)',
+        field_type: 'number',
+        required: true,
+      });
+    if (!trip.travelers || trip.travelers <= 1)
+      missingFields.push({
+        name: 'travelers',
+        label: 'Number of travelers',
+        field_type: 'number',
+        required: true,
+      });
 
     if (missingFields.length > 0) {
       welcomeNodes.push({ type: 'travel_plan_form', fields: missingFields });
@@ -889,7 +954,9 @@ it('returns welcome message with form for new trip', async () => {
   expect(res.body.messages[0].role).toBe('assistant');
   expect(res.body.messages[0].id).toBe('welcome');
 
-  const nodeTypes = res.body.messages[0].nodes.map((n: { type: string }) => n.type);
+  const nodeTypes = res.body.messages[0].nodes.map(
+    (n: { type: string }) => n.type,
+  );
   expect(nodeTypes).toContain('text');
   expect(nodeTypes).toContain('travel_plan_form');
 });
@@ -947,6 +1014,7 @@ git commit -m "feat: server-side welcome message with trip details form on first
 ## Task 5: True Token Streaming
 
 **Files:**
+
 - Modify: `server/src/services/AgentOrchestrator.ts`
 - Modify: `server/src/services/AgentOrchestrator.test.ts`
 
@@ -1014,6 +1082,7 @@ async run(
 ```
 
 The key changes:
+
 1. `this.client.messages.create(...)` → `this.client.messages.stream(...)`
 2. Add `stream.on('text', ...)` listener to emit `text_delta` events per token
 3. `const response = await stream.finalMessage()` to get the complete response
@@ -1025,6 +1094,7 @@ Everything after the response is obtained stays the same — tool execution, nod
 - [ ] **Step 2: Update AgentOrchestrator.test.ts**
 
 The tests mock `client.messages.create()`. Update them to mock `client.messages.stream()` instead. The stream mock needs to:
+
 1. Return an object with an `on(event, callback)` method
 2. Have a `finalMessage()` method that resolves to the response
 
@@ -1040,7 +1110,9 @@ function createMockStream(response: unknown) {
     finalMessage: () => Promise.resolve(response),
     // Simulate text emission for text blocks
     _emitText: () => {
-      const resp = response as { content: Array<{ type: string; text?: string }> };
+      const resp = response as {
+        content: Array<{ type: string; text?: string }>;
+      };
       const textBlock = resp.content?.find((b) => b.type === 'text');
       if (textBlock?.text && listeners['text']) {
         for (const cb of listeners['text']) cb(textBlock.text);
@@ -1055,11 +1127,13 @@ Update each test that mocks `mockCreate` to instead mock `client.messages.stream
 ```typescript
 const mockStream = vi.fn();
 // In setup:
-mockStream.mockReturnValueOnce(createMockStream({
-  stop_reason: 'end_turn',
-  content: [{ type: 'text', text: 'Hello!' }],
-  usage: { input_tokens: 100, output_tokens: 20 },
-}));
+mockStream.mockReturnValueOnce(
+  createMockStream({
+    stop_reason: 'end_turn',
+    content: [{ type: 'text', text: 'Hello!' }],
+    usage: { input_tokens: 100, output_tokens: 20 },
+  }),
+);
 ```
 
 - [ ] **Step 3: Verify**
@@ -1079,6 +1153,7 @@ git commit -m "feat: switch to messages.stream() for real-time token streaming"
 ## Task 6: Update Remaining Tests
 
 **Files:**
+
 - Modify: `server/src/services/agent.service.test.ts`
 
 - [ ] **Step 1: Update agent.service.test.ts**
@@ -1128,6 +1203,7 @@ Check Railway build logs for successful build. Check `https://server-production-
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ State-driven prompting (Task 2 + 3)
 - ✅ Server-side welcome with form (Task 4)
 - ✅ transport_mode column (Task 1)

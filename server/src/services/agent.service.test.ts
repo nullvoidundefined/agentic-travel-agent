@@ -179,7 +179,9 @@ describe('agent.service', () => {
         (event) => events.push(event as { type: string }),
       );
 
-      const toolProgressEvents = events.filter((e) => e.type === 'tool_progress');
+      const toolProgressEvents = events.filter(
+        (e) => e.type === 'tool_progress',
+      );
       // Two tool_progress events per tool call: running + done
       expect(toolProgressEvents).toHaveLength(2);
     });

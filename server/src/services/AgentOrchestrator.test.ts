@@ -1,6 +1,6 @@
+import type { SSEEvent } from '@agentic-travel-agent/shared-types';
 import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { SSEEvent } from '@agentic-travel-agent/shared-types';
 import {
   AgentOrchestrator,
   type AgentOrchestratorConfig,
@@ -129,7 +129,9 @@ describe('AgentOrchestrator', () => {
   // stop_reason: end_turn — returns text immediately
   // -----------------------------------------------------------------------
   it('returns the assistant response on end_turn', async () => {
-    streamMock.mockReturnValueOnce(createMockStream(makeTextResponse('Hello traveler!')));
+    streamMock.mockReturnValueOnce(
+      createMockStream(makeTextResponse('Hello traveler!')),
+    );
 
     const orchestrator = new AgentOrchestrator(config);
     const result = await orchestrator.run(
@@ -307,9 +309,7 @@ describe('AgentOrchestrator', () => {
     await orchestrator.run([{ role: 'user', content: 'Search' }], [], onEvent);
 
     // tool_progress running + tool_progress done + text_delta per character
-    const toolProgressEvents = events.filter(
-      (e) => e.type === 'tool_progress',
-    );
+    const toolProgressEvents = events.filter((e) => e.type === 'tool_progress');
     const textDeltaEvents = events.filter((e) => e.type === 'text_delta');
 
     expect(toolProgressEvents).toHaveLength(2);
@@ -377,9 +377,7 @@ describe('AgentOrchestrator', () => {
           ),
         ),
       )
-      .mockReturnValueOnce(
-        createMockStream(makeTextResponse('Done', 200, 80)),
-      );
+      .mockReturnValueOnce(createMockStream(makeTextResponse('Done', 200, 80)));
 
     const orchestrator = new AgentOrchestrator(config);
     const result = await orchestrator.run(

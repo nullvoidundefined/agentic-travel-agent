@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { buildNodeFromToolResult } from './node-builder.js';
 import type { ChatNode } from '@agentic-travel-agent/shared-types';
+import { describe, expect, it } from 'vitest';
+
+import { buildNodeFromToolResult } from './node-builder.js';
 
 describe('buildNodeFromToolResult', () => {
   it('maps search_flights result to flight_tiles node', () => {

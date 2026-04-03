@@ -1,9 +1,9 @@
-import type Anthropic from '@anthropic-ai/sdk';
 import type {
   ChatNode,
   Citation,
   SSEEvent,
 } from '@agentic-travel-agent/shared-types';
+import type Anthropic from '@anthropic-ai/sdk';
 import { type FlowPosition } from 'app/prompts/booking-steps.js';
 import { buildSystemPrompt } from 'app/prompts/system-prompt.js';
 import type { TripContext } from 'app/prompts/trip-context.js';
@@ -45,7 +45,10 @@ export async function runAgentLoop(
   const orchestrator = new AgentOrchestrator({
     tools: TOOL_DEFINITIONS as Anthropic.Tool[],
     systemPromptBuilder: (ctx: unknown, pos: unknown) =>
-      buildSystemPrompt(ctx as TripContext | undefined, pos as FlowPosition | undefined),
+      buildSystemPrompt(
+        ctx as TripContext | undefined,
+        pos as FlowPosition | undefined,
+      ),
     toolExecutor: (toolName, input, meta) =>
       executeTool(toolName, input, meta as ToolContext | undefined),
     onToolExecuted: (record) => {
@@ -70,7 +73,12 @@ export async function runAgentLoop(
       >)
     : undefined;
 
-  const result = await orchestrator.run(messages, [tripContext, flowPosition], onEvent, meta);
+  const result = await orchestrator.run(
+    messages,
+    [tripContext, flowPosition],
+    onEvent,
+    meta,
+  );
 
   // Assemble final node array per spec order
   const finalNodes: ChatNode[] = [];

@@ -12,7 +12,12 @@ interface FlightTilesProps {
   confirmedId?: string | null;
 }
 
-export function FlightTiles({ node, onConfirm, disabled, confirmedId }: FlightTilesProps) {
+export function FlightTiles({
+  node,
+  onConfirm,
+  disabled,
+  confirmedId,
+}: FlightTilesProps) {
   const items = node.flights.map((flight) => ({
     id: flight.id,
     label: `${flight.airline} ${flight.flight_number} — ${flight.origin} to ${flight.destination}`,

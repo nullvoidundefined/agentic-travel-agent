@@ -12,7 +12,12 @@ interface HotelTilesProps {
   confirmedId?: string | null;
 }
 
-export function HotelTiles({ node, onConfirm, disabled, confirmedId }: HotelTilesProps) {
+export function HotelTiles({
+  node,
+  onConfirm,
+  disabled,
+  confirmedId,
+}: HotelTilesProps) {
   const items = node.hotels.map((hotel) => ({
     id: hotel.id,
     label: `${hotel.name}, ${hotel.city}`,
@@ -37,7 +42,9 @@ export function HotelTiles({ node, onConfirm, disabled, confirmedId }: HotelTile
 
   if (!node.selectable) {
     return (
-      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 }}>
+      <div
+        style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 }}
+      >
         {node.hotels.map((hotel) => (
           <HotelCard
             key={hotel.id}

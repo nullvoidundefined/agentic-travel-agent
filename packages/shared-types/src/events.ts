@@ -1,5 +1,5 @@
-import type { ChatNode } from './nodes.js';
 import type { ChatMessage } from './messages.js';
+import type { ChatNode } from './nodes.js';
 
 export type SSEEvent =
   | { type: 'node'; node: ChatNode }

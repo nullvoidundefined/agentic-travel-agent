@@ -115,19 +115,19 @@ The `cache.service.ts` creates a Redis client lazily on first use (`getRedis()`)
 
 ## Architecture Strengths Summary
 
-| Area                  | Strength                                                                                  |
-| --------------------- | ----------------------------------------------------------------------------------------- |
-| Agent design          | Configurable, testable orchestrator with clean separation of concerns                     |
-| Tool system           | Each tool is independently testable with consistent cache/normalize/return pattern        |
-| Typed chat protocol   | Server-driven UI via shared `ChatNode` union; exhaustiveness-checked in `NodeRenderer`    |
+| Area                  | Strength                                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------ |
+| Agent design          | Configurable, testable orchestrator with clean separation of concerns                      |
+| Tool system           | Each tool is independently testable with consistent cache/normalize/return pattern         |
+| Typed chat protocol   | Server-driven UI via shared `ChatNode` union; exhaustiveness-checked in `NodeRenderer`     |
 | Shared types package  | Single source of truth for protocol types; TypeScript enforces consistency across packages |
-| Auto-enrichment       | Server-driven context (advisories, weather, visa) without burning agent tool calls        |
-| SSE streaming         | Typed `SSEEvent` protocol gives real-time, structured updates for every turn              |
-| Node builder          | Clean separation between raw tool output and typed UI nodes                               |
+| Auto-enrichment       | Server-driven context (advisories, weather, visa) without burning agent tool calls         |
+| SSE streaming         | Typed `SSEEvent` protocol gives real-time, structured updates for every turn               |
+| Node builder          | Clean separation between raw tool output and typed UI nodes                                |
 | Frontend architecture | `useSSEChat` + `VirtualizedChat` + `NodeRenderer` -- each layer has a clear responsibility |
-| Security              | Hashed sessions, transactions, rate limiting, CSRF, Helmet -- all present                 |
-| Testing               | Comprehensive unit tests for orchestrator, tools, handlers, and middleware                |
-| Deployment            | Multi-stage Docker build, monorepo workspace isolation, clear Railway/Vercel split        |
+| Security              | Hashed sessions, transactions, rate limiting, CSRF, Helmet -- all present                  |
+| Testing               | Comprehensive unit tests for orchestrator, tools, handlers, and middleware                 |
+| Deployment            | Multi-stage Docker build, monorepo workspace isolation, clear Railway/Vercel split         |
 
 ## Final Thoughts
 
