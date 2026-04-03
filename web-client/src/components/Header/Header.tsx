@@ -10,9 +10,13 @@ import { usePathname } from 'next/navigation';
 
 import styles from './Header.module.scss';
 
-const publicLinks = [{ href: '/faq', label: 'FAQ' }];
+const publicLinks = [
+  { href: '/explore', label: 'Explore' },
+  { href: '/faq', label: 'FAQ' },
+];
 
 const authedLinks = [
+  { href: '/explore', label: 'Explore' },
   { href: '/trips', label: 'My Trips' },
   { href: '/account', label: 'Account' },
   { href: '/faq', label: 'FAQ' },

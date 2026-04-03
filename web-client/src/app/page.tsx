@@ -216,6 +216,18 @@ export default function Home() {
         </div>
       </section>
 
+      {/* — Explore Destinations — */}
+      <section className={styles.exploreSection}>
+        <h2 className={styles.sectionTitle}>Explore Destinations</h2>
+        <p className={styles.sectionSubtitle}>
+          Browse 30 curated travel guides with local tips, dining
+          recommendations, and insider knowledge.
+        </p>
+        <Link href='/explore' className={styles.exploreCta}>
+          Discover destinations
+        </Link>
+      </section>
+
       {/* — Final CTA — */}
       <section className={styles.finalCta}>
         <h2>Ready to go?</h2>
