@@ -223,6 +223,21 @@ describe('chat handlers', () => {
     it('returns messages for a trip conversation', async () => {
       const app = createApp();
 
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce({
+        id: tripId,
+        user_id: userId,
+        destination: 'Barcelona',
+        origin: 'JFK',
+        departure_date: '2026-07-01',
+        return_date: '2026-07-06',
+        budget_total: 3000,
+        budget_currency: 'USD',
+        travelers: 2,
+        flights: [],
+        hotels: [],
+        experiences: [],
+      } as never);
+
       vi.mocked(convRepo.getOrCreateConversation).mockResolvedValueOnce({
         id: convId,
         trip_id: tripId,
@@ -247,8 +262,23 @@ describe('chat handlers', () => {
       expect(res.body.messages).toHaveLength(2);
     });
 
-    it('returns empty messages for new conversation', async () => {
+    it('returns empty messages for new conversation with placeholder destination', async () => {
       const app = createApp();
+
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce({
+        id: tripId,
+        user_id: userId,
+        destination: 'Planning...',
+        origin: null,
+        departure_date: null,
+        return_date: null,
+        budget_total: null,
+        budget_currency: 'USD',
+        travelers: 1,
+        flights: [],
+        hotels: [],
+        experiences: [],
+      } as never);
 
       vi.mocked(convRepo.getOrCreateConversation).mockResolvedValueOnce({
         id: convId,
@@ -261,6 +291,59 @@ describe('chat handlers', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.messages).toEqual([]);
+    });
+
+    it('returns 404 when trip not found', async () => {
+      const app = createApp();
+
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(null);
+
+      const res = await request(app).get(`/trips/${tripId}/messages`);
+
+      expect(res.status).toBe(404);
+    });
+
+    it('returns welcome message with form for new trip', async () => {
+      const app = createApp();
+
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce({
+        id: tripId,
+        user_id: userId,
+        destination: 'Tokyo',
+        origin: null,
+        departure_date: null,
+        return_date: null,
+        budget_total: null,
+        budget_currency: 'USD',
+        travelers: 1,
+        flights: [],
+        hotels: [],
+        experiences: [],
+      } as never);
+
+      vi.mocked(convRepo.getOrCreateConversation).mockResolvedValueOnce({
+        id: convId,
+        trip_id: tripId,
+      } as never);
+
+      vi.mocked(convRepo.getMessagesByConversation).mockResolvedValueOnce([]);
+
+      const res = await request(app).get(`/trips/${tripId}/messages`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.messages).toHaveLength(1);
+
+      const welcome = res.body.messages[0];
+      expect(welcome.id).toBe('welcome');
+      expect(welcome.role).toBe('assistant');
+      expect(welcome.sequence).toBe(0);
+
+      const nodeTypes = welcome.nodes.map((n: { type: string }) => n.type);
+      expect(nodeTypes).toContain('text');
+      expect(nodeTypes).toContain('travel_plan_form');
+
+      const textNode = welcome.nodes.find((n: { type: string }) => n.type === 'text');
+      expect(textNode.content).toContain('Tokyo');
     });
   });
 });

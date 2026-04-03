@@ -127,21 +127,6 @@ export async function chat(req: Request, res: Response) {
     }
   }
 
-  // Inject a trip details form when key fields are missing
-  const missingFields: Array<{ name: string; label: string; field_type: 'text' | 'date' | 'number' | 'select'; required: boolean }> = [];
-  if (!trip.origin) missingFields.push({ name: 'origin', label: 'Where are you traveling from?', field_type: 'text', required: true });
-  if (!trip.departure_date) missingFields.push({ name: 'departure_date', label: 'Departure date', field_type: 'date', required: true });
-  if (!trip.return_date) missingFields.push({ name: 'return_date', label: 'Return date', field_type: 'date', required: true });
-  if (!trip.budget_total) missingFields.push({ name: 'budget', label: 'Total budget (USD)', field_type: 'number', required: true });
-  if (!trip.travelers || trip.travelers <= 1) missingFields.push({ name: 'travelers', label: 'Number of travelers', field_type: 'number', required: true });
-
-  if (missingFields.length > 0 && isFirstMessage) {
-    enrichmentNodes.push({
-      type: 'travel_plan_form',
-      fields: missingFields,
-    });
-  }
-
   // Typed SSE event emitter
   const onEvent = (event: SSEEvent) => {
     res.write(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
@@ -198,6 +183,14 @@ export async function chat(req: Request, res: Response) {
 
 export async function getMessages(req: Request, res: Response) {
   const tripId = req.params.id as string;
+  const userId = req.user!.id;
+
+  const trip = await getTripWithDetails(tripId, userId);
+  if (!trip) {
+    res.status(404).json({ error: 'NOT_FOUND', message: 'Trip not found' });
+    return;
+  }
+
   const conversation = await getOrCreateConversation(tripId);
   const dbMessages = await getMessagesByConversation(conversation.id);
 
@@ -213,6 +206,37 @@ export async function getMessages(req: Request, res: Response) {
       sequence: m.sequence,
       created_at: m.created_at,
     }));
+
+  // Generate a welcome message on-the-fly for new trips that have a destination
+  if (messages.length === 0 && trip.destination && trip.destination !== 'Planning...') {
+    const missingFields: Array<{
+      name: string;
+      label: string;
+      field_type: 'text' | 'date' | 'number' | 'select';
+      required: boolean;
+    }> = [];
+    if (!trip.origin) missingFields.push({ name: 'origin', label: 'Where are you traveling from?', field_type: 'text', required: true });
+    if (!trip.departure_date) missingFields.push({ name: 'departure_date', label: 'Departure date', field_type: 'date', required: true });
+    if (!trip.return_date) missingFields.push({ name: 'return_date', label: 'Return date', field_type: 'date', required: true });
+    if (!trip.budget_total) missingFields.push({ name: 'budget', label: 'Total budget (USD)', field_type: 'number', required: true });
+    if (!trip.travelers || trip.travelers <= 1) missingFields.push({ name: 'travelers', label: 'Number of travelers', field_type: 'number', required: true });
+
+    const welcomeNodes: ChatNode[] = [
+      { type: 'text', content: `Let's plan your trip to **${trip.destination}**!` },
+    ];
+    if (missingFields.length > 0) {
+      welcomeNodes.push({ type: 'travel_plan_form', fields: missingFields });
+    }
+
+    const welcomeMessage: ChatMessage = {
+      id: 'welcome',
+      role: 'assistant',
+      nodes: welcomeNodes,
+      sequence: 0,
+      created_at: new Date().toISOString(),
+    };
+    messages.unshift(welcomeMessage);
+  }
 
   res.json({ messages });
 }
