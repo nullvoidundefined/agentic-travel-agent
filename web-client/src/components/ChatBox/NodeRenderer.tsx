@@ -115,7 +115,7 @@ export function NodeRenderer({ node, callbacks = {} }: NodeRendererProps) {
     case 'travel_plan_form': {
       // Map FormField to TripField for the TripDetailsForm component
       const tripFields = node.fields.map((f) => ({
-        type: f.name as 'origin' | 'departure_date' | 'return_date' | 'budget' | 'travelers',
+        type: f.name as 'destination' | 'origin' | 'departure_date' | 'return_date' | 'budget' | 'travelers',
         label: f.label,
       }));
       return (

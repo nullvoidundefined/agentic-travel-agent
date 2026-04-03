@@ -5,7 +5,7 @@ import { type FormEvent, useState } from 'react';
 import styles from './TripDetailsForm.module.scss';
 
 export interface TripField {
-  type: 'origin' | 'departure_date' | 'return_date' | 'budget' | 'travelers';
+  type: 'destination' | 'origin' | 'departure_date' | 'return_date' | 'budget' | 'travelers';
   label: string;
 }
 
@@ -43,6 +43,9 @@ export function TripDetailsForm({
 
     const parts: string[] = [];
 
+    if (values.destination) {
+      parts.push(`I want to go to ${values.destination}`);
+    }
     if (values.origin) {
       parts.push(`I'm traveling from ${values.origin}`);
     }
@@ -91,6 +94,18 @@ export function TripDetailsForm({
           <label htmlFor={field.type} className={styles.label}>
             {field.label}
           </label>
+          {field.type === 'destination' && (
+            <input
+              id='destination'
+              type='text'
+              className={styles.input}
+              placeholder='e.g. Paris, Tokyo, Monterey'
+              value={values.destination ?? ''}
+              onChange={(e) => set('destination', e.target.value)}
+              disabled={disabled || isLocked}
+              readOnly={isLocked}
+            />
+          )}
           {field.type === 'origin' && (
             <input
               id='origin'

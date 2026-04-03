@@ -262,7 +262,7 @@ describe('chat handlers', () => {
       expect(res.body.messages).toHaveLength(2);
     });
 
-    it('returns empty messages for new conversation with placeholder destination', async () => {
+    it('returns welcome message with destination field for placeholder trip', async () => {
       const app = createApp();
 
       vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce({
@@ -290,7 +290,14 @@ describe('chat handlers', () => {
       const res = await request(app).get(`/trips/${tripId}/messages`);
 
       expect(res.status).toBe(200);
-      expect(res.body.messages).toEqual([]);
+      expect(res.body.messages).toHaveLength(1);
+      expect(res.body.messages[0].id).toBe('welcome');
+      const formNode = res.body.messages[0].nodes.find(
+        (n: { type: string }) => n.type === 'travel_plan_form',
+      );
+      expect(formNode).toBeDefined();
+      const fieldNames = formNode.fields.map((f: { name: string }) => f.name);
+      expect(fieldNames).toContain('destination');
     });
 
     it('returns 404 when trip not found', async () => {
