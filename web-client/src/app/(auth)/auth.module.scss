@@ -9,7 +9,7 @@
 .card {
   width: 100%;
   max-width: 420px;
-  background: var(--surface);
+  background: #ffffff;
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 44px 36px;
@@ -124,7 +124,7 @@
     padding: 12px 16px;
     border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
-    background: var(--background);
+    background: #ffffff;
     color: var(--foreground);
     font-size: 14px;
     font-family: var(--font-body);
@@ -140,7 +140,7 @@
 
     &:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+      box-shadow: 0 0 0 3px rgba(30, 86, 160, 0.1);
     }
   }
 }
@@ -156,8 +156,8 @@
   padding: 13px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: #0a0e17;
+  background: var(--cta);
+  color: #ffffff;
   font-size: 15px;
   font-weight: 600;
   font-family: var(--font-body);
@@ -167,7 +167,7 @@
     box-shadow var(--transition-fast);
 
   &:hover:not(:disabled) {
-    background: var(--accent-hover);
+    background: var(--cta-hover);
     box-shadow: var(--shadow-glow);
   }
 
@@ -261,7 +261,7 @@
 
 .stepActive {
   background: var(--accent);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+  box-shadow: 0 0 0 3px rgba(30, 86, 160, 0.15);
 }
 
 .stepLine {
@@ -318,12 +318,12 @@
 .chipSelected {
   background: var(--accent);
   border-color: var(--accent);
-  color: #0a0e17;
-  box-shadow: var(--shadow-glow);
+  color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(30, 86, 160, 0.1);
 
   &:hover {
     border-color: var(--accent-hover);
-    color: #0a0e17;
+    color: #ffffff;
   }
 }
 
@@ -357,7 +357,7 @@
 .optionSelected {
   border-color: var(--accent);
   background: var(--accent-light);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.08);
+  box-shadow: 0 0 0 3px rgba(30, 86, 160, 0.08);
 }
 
 .optionLabel {
@@ -395,7 +395,7 @@
   padding: 13px 22px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  background: var(--surface-alt);
+  background: #ffffff;
   color: var(--foreground);
   font-size: 15px;
   font-weight: 600;

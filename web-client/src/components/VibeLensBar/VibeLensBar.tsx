@@ -6,6 +6,6 @@ import VibeLens from 'vibelens';
 
 export function VibeLensBar() {
   return (
-    <VibeLens appName='Voyager' position='top' theme='dark' fixed={false} />
+    <VibeLens appName='Voyager' position='top' theme='light' fixed={false} />
   );
 }

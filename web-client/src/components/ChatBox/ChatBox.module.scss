@@ -4,7 +4,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   overflow: hidden;
-  background: var(--surface);
+  background: #ffffff;
   height: 620px;
   box-shadow: var(--shadow-sm);
 }
@@ -63,16 +63,15 @@
 }
 
 .user .bubble {
-  background: var(--accent);
-  color: #0a0e17;
+  background: #e8f0fa;
+  color: var(--foreground);
   border-bottom-right-radius: 4px;
 }
 
 .assistant .bubble {
-  background: var(--surface-alt);
+  background: transparent;
   color: var(--foreground);
   border-bottom-left-radius: 4px;
-  border: 1px solid var(--border-light);
 }
 
 /* — Tool progress — */
@@ -167,8 +166,8 @@
   padding: 14px 24px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: #0a0e17;
+  background: var(--cta);
+  color: #ffffff;
   font-size: 15px;
   font-weight: 600;
   font-family: var(--font-body);
@@ -179,7 +178,7 @@
     transform var(--transition-fast);
 
   &:hover {
-    background: var(--accent-hover);
+    background: var(--cta-hover);
     box-shadow: var(--shadow-glow);
     transform: translateY(-1px);
   }
@@ -201,7 +200,7 @@
     border-color var(--transition-fast);
 
   &:hover {
-    background: var(--surface);
+    background: var(--surface-hover);
     border-color: var(--accent);
   }
 }
@@ -213,7 +212,7 @@
   gap: 10px;
   padding: 18px 24px;
   border-top: 1px solid var(--border-light);
-  background: var(--surface);
+  background: #ffffff;
 }
 
 .input {
@@ -221,7 +220,7 @@
   padding: 12px 18px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  background: var(--background);
+  background: #ffffff;
   color: var(--foreground);
   font-size: 14px;
   font-family: var(--font-body);
@@ -237,7 +236,7 @@
 
   &:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+    box-shadow: 0 0 0 3px rgba(30, 86, 160, 0.1);
   }
 
   &:disabled {
@@ -250,8 +249,8 @@
   padding: 12px 24px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: #0a0e17;
+  background: var(--cta);
+  color: #ffffff;
   font-size: 14px;
   font-weight: 600;
   font-family: var(--font-body);
@@ -262,7 +261,7 @@
     transform var(--transition-fast);
 
   &:hover:not(:disabled) {
-    background: var(--accent-hover);
+    background: var(--cta-hover);
     box-shadow: var(--shadow-glow);
     transform: translateY(-1px);
   }
