@@ -11,7 +11,11 @@ export function buildSystemPrompt(
   if (!flowPosition || flowPosition.phase === 'COLLECT_DETAILS') {
     stepPrompt = getPhasePrompt('COLLECT_DETAILS');
   } else if (flowPosition.phase === 'CATEGORY') {
-    stepPrompt = getCategoryPrompt(flowPosition.category, flowPosition.status);
+    stepPrompt = getCategoryPrompt(
+      flowPosition.category,
+      flowPosition.status,
+      tripContext?.user_preferences,
+    );
   } else if (flowPosition.phase === 'CONFIRM') {
     stepPrompt = getPhasePrompt('CONFIRM');
   } else {

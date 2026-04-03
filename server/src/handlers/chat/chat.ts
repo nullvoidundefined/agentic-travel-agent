@@ -75,9 +75,13 @@ export async function chat(req: Request, res: Response) {
     preferences: {},
     user_preferences: userPrefs
       ? {
+          accommodation: userPrefs.accommodation,
+          travel_pace: userPrefs.travel_pace,
           dietary: userPrefs.dietary,
-          intensity: userPrefs.travel_pace ?? 'moderate',
-          social: userPrefs.travel_party ?? 'solo',
+          dining_style: userPrefs.dining_style,
+          activities: userPrefs.activities,
+          travel_party: userPrefs.travel_party,
+          budget_comfort: userPrefs.budget_comfort,
         }
       : undefined,
     selected_flights: (trip.flights ?? []).map((f) => ({

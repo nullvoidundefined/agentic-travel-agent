@@ -63,11 +63,40 @@ const PHASE_PROMPTS: Record<string, string> = {
 export function getCategoryPrompt(
   category: CategoryName,
   status: CategoryStatus,
+  preferences?: {
+    accommodation?: string | null;
+    travel_pace?: string | null;
+    dietary?: string[];
+    dining_style?: string | null;
+    activities?: string[] | null;
+    travel_party?: string | null;
+    budget_comfort?: string | null;
+  },
 ): string {
   const prompts = CATEGORY_PROMPTS[category];
   const key =
     status === 'idle' ? 'idle' : status === 'asking' ? 'asking' : 'presented';
-  const prompt = prompts[key] ?? prompts['asking'];
+  let prompt = prompts[key] ?? prompts['asking'];
+
+  if (status !== 'presented') {
+    if (category === 'hotels' && preferences?.accommodation) {
+      prompt += `\nUser prefers ${preferences.accommodation} accommodation.`;
+    }
+
+    if (category === 'experiences') {
+      if (preferences?.activities?.length) {
+        prompt += `\nUser interests: ${preferences.activities.join(', ')}.`;
+      }
+      if (preferences?.dining_style) {
+        prompt += `\nDining preference: ${preferences.dining_style}.`;
+      }
+    }
+
+    if (preferences?.travel_party) {
+      prompt += `\nTraveling as: ${preferences.travel_party}.`;
+    }
+  }
+
   return `You are a travel planning assistant.\n\n## Your Task\n${prompt}\n${SHARED_RULES}`;
 }
 

@@ -13,9 +13,13 @@ export interface TripContext {
     interests?: string[];
   };
   user_preferences?: {
+    accommodation: string | null;
+    travel_pace: string | null;
     dietary: string[];
-    intensity: string;
-    social: string;
+    dining_style: string | null;
+    activities: string[];
+    travel_party: string | null;
+    budget_comfort: string | null;
   };
   selected_flights: Array<{
     airline: string;
@@ -73,14 +77,19 @@ export function formatTripContext(ctx: TripContext): string {
   if (ctx.user_preferences) {
     const up = ctx.user_preferences;
     lines.push('\n### User Preferences');
+    if (up.accommodation) lines.push(`- Accommodation: ${up.accommodation}`);
+    if (up.travel_pace) lines.push(`- Travel pace: ${up.travel_pace}`);
     if (
       up.dietary.length > 0 &&
       !(up.dietary.length === 1 && up.dietary[0] === 'none')
     ) {
       lines.push(`- Dietary: ${up.dietary.join(', ')}`);
     }
-    lines.push(`- Travel intensity: ${up.intensity}`);
-    lines.push(`- Traveling: ${up.social}`);
+    if (up.dining_style) lines.push(`- Dining style: ${up.dining_style}`);
+    if (up.activities.length > 0)
+      lines.push(`- Activities: ${up.activities.join(', ')}`);
+    if (up.travel_party) lines.push(`- Travel party: ${up.travel_party}`);
+    if (up.budget_comfort) lines.push(`- Budget comfort: ${up.budget_comfort}`);
   }
 
   if (ctx.selected_flights.length > 0) {
