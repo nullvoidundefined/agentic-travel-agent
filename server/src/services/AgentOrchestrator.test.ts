@@ -52,13 +52,40 @@ function makeToolUseResponse(
 }
 
 // ---------------------------------------------------------------------------
+// Helper to create a mock stream from a response object
+// ---------------------------------------------------------------------------
+function createMockStream(response: Record<string, unknown>) {
+  const listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
+  return {
+    on(event: string, cb: (...args: unknown[]) => void) {
+      if (!listeners[event]) listeners[event] = [];
+      listeners[event].push(cb);
+      return this; // chainable
+    },
+    async finalMessage() {
+      // Emit text for text blocks
+      const content = response.content as
+        | Array<{ type: string; text?: string }>
+        | undefined;
+      const textBlock = content?.find((b) => b.type === 'text');
+      if (textBlock?.text && listeners['text']) {
+        for (const char of textBlock.text) {
+          for (const cb of listeners['text']) cb(char);
+        }
+      }
+      return response;
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Default orchestrator config factory
 // ---------------------------------------------------------------------------
 function createConfig(
   overrides?: Partial<AgentOrchestratorConfig>,
 ): AgentOrchestratorConfig {
-  const mockCreate = vi.fn();
-  const mockClient = { messages: { create: mockCreate } } as never;
+  const mockStream = vi.fn();
+  const mockClient = { messages: { stream: mockStream } } as never;
 
   return {
     tools: [
@@ -80,9 +107,9 @@ function createConfig(
   };
 }
 
-function getCreateMock(config: AgentOrchestratorConfig): Mock {
-  return (config.client as unknown as { messages: { create: Mock } }).messages
-    .create;
+function getStreamMock(config: AgentOrchestratorConfig): Mock {
+  return (config.client as unknown as { messages: { stream: Mock } }).messages
+    .stream;
 }
 
 // ---------------------------------------------------------------------------
@@ -90,19 +117,19 @@ function getCreateMock(config: AgentOrchestratorConfig): Mock {
 // ---------------------------------------------------------------------------
 describe('AgentOrchestrator', () => {
   let config: AgentOrchestratorConfig;
-  let createMock: Mock;
+  let streamMock: Mock;
 
   beforeEach(() => {
     vi.restoreAllMocks();
     config = createConfig();
-    createMock = getCreateMock(config);
+    streamMock = getStreamMock(config);
   });
 
   // -----------------------------------------------------------------------
   // stop_reason: end_turn — returns text immediately
   // -----------------------------------------------------------------------
   it('returns the assistant response on end_turn', async () => {
-    createMock.mockResolvedValueOnce(makeTextResponse('Hello traveler!'));
+    streamMock.mockReturnValueOnce(createMockStream(makeTextResponse('Hello traveler!')));
 
     const orchestrator = new AgentOrchestrator(config);
     const result = await orchestrator.run(
@@ -121,13 +148,17 @@ describe('AgentOrchestrator', () => {
   // -----------------------------------------------------------------------
   it('executes tool calls and returns final response', async () => {
     const toolInput = { query: 'flights to paris' };
-    createMock
-      .mockResolvedValueOnce(
-        makeToolUseResponse([
-          { id: 'tool_1', name: 'test_tool', input: toolInput },
-        ]),
+    streamMock
+      .mockReturnValueOnce(
+        createMockStream(
+          makeToolUseResponse([
+            { id: 'tool_1', name: 'test_tool', input: toolInput },
+          ]),
+        ),
       )
-      .mockResolvedValueOnce(makeTextResponse('Found flights for you!'));
+      .mockReturnValueOnce(
+        createMockStream(makeTextResponse('Found flights for you!')),
+      );
 
     const orchestrator = new AgentOrchestrator(config);
     const result = await orchestrator.run(
@@ -151,13 +182,15 @@ describe('AgentOrchestrator', () => {
   // Meta is passed to tool executor
   // -----------------------------------------------------------------------
   it('passes meta to the tool executor', async () => {
-    createMock
-      .mockResolvedValueOnce(
-        makeToolUseResponse([
-          { id: 'tool_1', name: 'test_tool', input: { query: 'x' } },
-        ]),
+    streamMock
+      .mockReturnValueOnce(
+        createMockStream(
+          makeToolUseResponse([
+            { id: 'tool_1', name: 'test_tool', input: { query: 'x' } },
+          ]),
+        ),
       )
-      .mockResolvedValueOnce(makeTextResponse('Done'));
+      .mockReturnValueOnce(createMockStream(makeTextResponse('Done')));
 
     const orchestrator = new AgentOrchestrator(config);
     await orchestrator.run([{ role: 'user', content: 'Go' }], [], undefined, {
@@ -177,20 +210,24 @@ describe('AgentOrchestrator', () => {
   // -----------------------------------------------------------------------
   it('stops after reaching the max tool call limit', async () => {
     const orchestratorConfig = createConfig({ maxIterations: 2 });
-    const mockCreate = getCreateMock(orchestratorConfig);
+    const mockStream = getStreamMock(orchestratorConfig);
 
     // First call: 1 tool use
-    mockCreate.mockResolvedValueOnce(
-      makeToolUseResponse([
-        { id: 'tool_1', name: 'test_tool', input: { query: 'a' } },
-      ]),
+    mockStream.mockReturnValueOnce(
+      createMockStream(
+        makeToolUseResponse([
+          { id: 'tool_1', name: 'test_tool', input: { query: 'a' } },
+        ]),
+      ),
     );
     // Second call: 2 more tool uses — would push total to 3 > limit of 2
-    mockCreate.mockResolvedValueOnce(
-      makeToolUseResponse([
-        { id: 'tool_2', name: 'test_tool', input: { query: 'b' } },
-        { id: 'tool_3', name: 'test_tool', input: { query: 'c' } },
-      ]),
+    mockStream.mockReturnValueOnce(
+      createMockStream(
+        makeToolUseResponse([
+          { id: 'tool_2', name: 'test_tool', input: { query: 'b' } },
+          { id: 'tool_3', name: 'test_tool', input: { query: 'c' } },
+        ]),
+      ),
     );
 
     const orchestrator = new AgentOrchestrator(orchestratorConfig);
@@ -213,15 +250,19 @@ describe('AgentOrchestrator', () => {
       .mockRejectedValueOnce(new Error('API timeout'));
 
     const errorConfig = createConfig({ toolExecutor: failingExecutor });
-    const mockCreate = getCreateMock(errorConfig);
+    const mockStream = getStreamMock(errorConfig);
 
-    mockCreate
-      .mockResolvedValueOnce(
-        makeToolUseResponse([
-          { id: 'tool_1', name: 'test_tool', input: { query: 'x' } },
-        ]),
+    mockStream
+      .mockReturnValueOnce(
+        createMockStream(
+          makeToolUseResponse([
+            { id: 'tool_1', name: 'test_tool', input: { query: 'x' } },
+          ]),
+        ),
       )
-      .mockResolvedValueOnce(makeTextResponse('Sorry, the search failed.'));
+      .mockReturnValueOnce(
+        createMockStream(makeTextResponse('Sorry, the search failed.')),
+      );
 
     const orchestrator = new AgentOrchestrator(errorConfig);
     const result = await orchestrator.run(
@@ -234,7 +275,7 @@ describe('AgentOrchestrator', () => {
     expect(result.response).toBe('Sorry, the search failed.');
 
     // Verify the second call to Anthropic included is_error in tool result
-    const secondCallMessages = mockCreate.mock.calls[1]![0].messages;
+    const secondCallMessages = mockStream.mock.calls[1]![0].messages;
     const lastUserMsg = secondCallMessages[secondCallMessages.length - 1];
     expect(lastUserMsg.content[0].is_error).toBe(true);
   });
@@ -246,39 +287,50 @@ describe('AgentOrchestrator', () => {
     const events: SSEEvent[] = [];
     const onEvent = (e: SSEEvent) => events.push(e);
 
-    createMock
-      .mockResolvedValueOnce(
-        makeToolUseResponse([
-          {
-            id: 'tool_1',
-            name: 'test_tool',
-            input: { query: 'paris' },
-          },
-        ]),
+    streamMock
+      .mockReturnValueOnce(
+        createMockStream(
+          makeToolUseResponse([
+            {
+              id: 'tool_1',
+              name: 'test_tool',
+              input: { query: 'paris' },
+            },
+          ]),
+        ),
       )
-      .mockResolvedValueOnce(makeTextResponse('Here are your results.'));
+      .mockReturnValueOnce(
+        createMockStream(makeTextResponse('Here are your results.')),
+      );
 
     const orchestrator = new AgentOrchestrator(config);
     await orchestrator.run([{ role: 'user', content: 'Search' }], [], onEvent);
 
-    // tool_progress running + tool_progress done + text_delta
-    expect(events).toHaveLength(3);
-    expect(events[0]).toEqual({
+    // tool_progress running + tool_progress done + text_delta per character
+    const toolProgressEvents = events.filter(
+      (e) => e.type === 'tool_progress',
+    );
+    const textDeltaEvents = events.filter((e) => e.type === 'text_delta');
+
+    expect(toolProgressEvents).toHaveLength(2);
+    expect(toolProgressEvents[0]).toEqual({
       type: 'tool_progress',
       tool_name: 'test_tool',
       tool_id: 'tool_1',
       status: 'running',
     });
-    expect(events[1]).toEqual({
+    expect(toolProgressEvents[1]).toEqual({
       type: 'tool_progress',
       tool_name: 'test_tool',
       tool_id: 'tool_1',
       status: 'done',
     });
-    expect(events[2]).toEqual({
-      type: 'text_delta',
-      content: 'Here are your results.',
-    });
+
+    // Streaming emits text token by token — reconstruct the full text
+    const streamedText = textDeltaEvents
+      .map((e) => (e as { type: 'text_delta'; content: string }).content)
+      .join('');
+    expect(streamedText).toBe('Here are your results.');
   });
 
   // -----------------------------------------------------------------------
@@ -287,15 +339,17 @@ describe('AgentOrchestrator', () => {
   it('calls onToolExecuted with tool execution details', async () => {
     const onToolExecuted = vi.fn();
     const toolConfig = createConfig({ onToolExecuted });
-    const mockCreate = getCreateMock(toolConfig);
+    const mockStream = getStreamMock(toolConfig);
 
-    mockCreate
-      .mockResolvedValueOnce(
-        makeToolUseResponse([
-          { id: 'tool_1', name: 'test_tool', input: { query: 'x' } },
-        ]),
+    mockStream
+      .mockReturnValueOnce(
+        createMockStream(
+          makeToolUseResponse([
+            { id: 'tool_1', name: 'test_tool', input: { query: 'x' } },
+          ]),
+        ),
       )
-      .mockResolvedValueOnce(makeTextResponse('Done'));
+      .mockReturnValueOnce(createMockStream(makeTextResponse('Done')));
 
     const orchestrator = new AgentOrchestrator(toolConfig);
     await orchestrator.run([{ role: 'user', content: 'Go' }], []);
@@ -313,15 +367,19 @@ describe('AgentOrchestrator', () => {
   // Token accumulation across iterations
   // -----------------------------------------------------------------------
   it('accumulates tokens across multiple iterations', async () => {
-    createMock
-      .mockResolvedValueOnce(
-        makeToolUseResponse(
-          [{ id: 'tool_1', name: 'test_tool', input: { query: 'a' } }],
-          100,
-          50,
+    streamMock
+      .mockReturnValueOnce(
+        createMockStream(
+          makeToolUseResponse(
+            [{ id: 'tool_1', name: 'test_tool', input: { query: 'a' } }],
+            100,
+            50,
+          ),
         ),
       )
-      .mockResolvedValueOnce(makeTextResponse('Done', 200, 80));
+      .mockReturnValueOnce(
+        createMockStream(makeTextResponse('Done', 200, 80)),
+      );
 
     const orchestrator = new AgentOrchestrator(config);
     const result = await orchestrator.run(
@@ -338,8 +396,8 @@ describe('AgentOrchestrator', () => {
   it('passes systemPromptArgs to the systemPromptBuilder', async () => {
     const builder = vi.fn().mockReturnValue('Built prompt');
     const builderConfig = createConfig({ systemPromptBuilder: builder });
-    const mockCreate = getCreateMock(builderConfig);
-    mockCreate.mockResolvedValueOnce(makeTextResponse('Hi'));
+    const mockStream = getStreamMock(builderConfig);
+    mockStream.mockReturnValueOnce(createMockStream(makeTextResponse('Hi')));
 
     const orchestrator = new AgentOrchestrator(builderConfig);
     await orchestrator.run(
@@ -348,6 +406,6 @@ describe('AgentOrchestrator', () => {
     );
 
     expect(builder).toHaveBeenCalledWith({ destination: 'Paris' }, 'extra');
-    expect(mockCreate.mock.calls[0]![0].system).toBe('Built prompt');
+    expect(mockStream.mock.calls[0]![0].system).toBe('Built prompt');
   });
 });

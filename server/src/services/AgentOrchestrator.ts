@@ -102,13 +102,23 @@ export class AgentOrchestrator {
     while (true) {
       iterations++;
 
-      const response = await this.client.messages.create({
+      const stream = this.client.messages.stream({
         model: this.model,
         max_tokens: this.maxTokens,
         system: systemPrompt,
         tools: this.tools,
         messages: conversationMessages,
       });
+
+      // Emit text tokens as they arrive (real-time typing animation)
+      stream.on('text', (text) => {
+        if (!formatResponseData) {
+          onEvent?.({ type: 'text_delta', content: text });
+        }
+      });
+
+      // Wait for the complete response
+      const response = await stream.finalMessage();
 
       tokensUsed.input += response.usage.input_tokens;
       tokensUsed.output += response.usage.output_tokens;
@@ -118,11 +128,7 @@ export class AgentOrchestrator {
           (block): block is Anthropic.TextBlock => block.type === 'text',
         );
         const text = textBlock?.text ?? '';
-        // Only emit text_delta if format_response wasn't already captured
-        // (Claude may respond with minimal text like "true" after format_response)
-        if (!formatResponseData && text) {
-          onEvent?.({ type: 'text_delta', content: text });
-        }
+        // Text was already emitted token-by-token via stream.on('text', ...)
         return {
           response: text,
           toolCallsUsed: toolCalls,

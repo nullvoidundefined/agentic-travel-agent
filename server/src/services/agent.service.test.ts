@@ -25,32 +25,57 @@ vi.mock('app/repositories/tool-call-log/tool-call-log.js', () => ({
   insertToolCallLog: vi.fn().mockResolvedValue({}),
 }));
 
+function createMockStream(response: Record<string, unknown>) {
+  const listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
+  return {
+    on(event: string, cb: (...args: unknown[]) => void) {
+      if (!listeners[event]) listeners[event] = [];
+      listeners[event].push(cb);
+      return this;
+    },
+    async finalMessage() {
+      const content = response.content as
+        | Array<{ type: string; text?: string }>
+        | undefined;
+      const textBlock = content?.find((b) => b.type === 'text');
+      if (textBlock?.text && listeners['text']) {
+        for (const char of textBlock.text) {
+          for (const cb of listeners['text']) cb(char);
+        }
+      }
+      return response;
+    },
+  };
+}
+
 describe('agent.service', () => {
-  let mockCreate: ReturnType<typeof vi.fn>;
+  let mockStream: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(insertToolCallLog).mockResolvedValue({} as never);
     process.env.ANTHROPIC_API_KEY = 'test-key';
 
-    mockCreate = vi.fn();
+    mockStream = vi.fn();
     vi.mocked(Anthropic).mockImplementation(
       () =>
         ({
-          messages: { create: mockCreate },
+          messages: { stream: mockStream },
         }) as unknown as Anthropic,
     );
   });
 
   describe('runAgentLoop', () => {
     it('returns text response when Claude responds with end_turn', async () => {
-      mockCreate.mockResolvedValueOnce({
-        stop_reason: 'end_turn',
-        content: [
-          { type: 'text', text: 'Here is your itinerary for Barcelona!' },
-        ],
-        usage: { input_tokens: 100, output_tokens: 50 },
-      });
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'end_turn',
+          content: [
+            { type: 'text', text: 'Here is your itinerary for Barcelona!' },
+          ],
+          usage: { input_tokens: 100, output_tokens: 50 },
+        }),
+      );
 
       const events: unknown[] = [];
       const result = await runAgentLoop(
@@ -61,28 +86,30 @@ describe('agent.service', () => {
 
       expect(result.response).toBe('Here is your itinerary for Barcelona!');
       expect(result.tool_calls).toHaveLength(0);
-      expect(mockCreate).toHaveBeenCalledTimes(1);
+      expect(mockStream).toHaveBeenCalledTimes(1);
     });
 
     it('executes tool calls and loops back to Claude', async () => {
       // First call: Claude wants to use a tool
-      mockCreate.mockResolvedValueOnce({
-        stop_reason: 'tool_use',
-        content: [
-          {
-            type: 'tool_use',
-            id: 'toolu_123',
-            name: 'search_flights',
-            input: {
-              origin: 'SFO',
-              destination: 'BCN',
-              departure_date: '2026-07-01',
-              passengers: 1,
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'tool_use',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_123',
+              name: 'search_flights',
+              input: {
+                origin: 'SFO',
+                destination: 'BCN',
+                departure_date: '2026-07-01',
+                passengers: 1,
+              },
             },
-          },
-        ],
-        usage: { input_tokens: 100, output_tokens: 50 },
-      });
+          ],
+          usage: { input_tokens: 100, output_tokens: 50 },
+        }),
+      );
 
       // Tool execution result
       vi.mocked(executeTool).mockResolvedValueOnce([
@@ -90,11 +117,15 @@ describe('agent.service', () => {
       ]);
 
       // Second call: Claude responds with text
-      mockCreate.mockResolvedValueOnce({
-        stop_reason: 'end_turn',
-        content: [{ type: 'text', text: 'I found flights starting at $450.' }],
-        usage: { input_tokens: 200, output_tokens: 80 },
-      });
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'end_turn',
+          content: [
+            { type: 'text', text: 'I found flights starting at $450.' },
+          ],
+          usage: { input_tokens: 200, output_tokens: 80 },
+        }),
+      );
 
       const events: unknown[] = [];
       const result = await runAgentLoop(
@@ -106,36 +137,40 @@ describe('agent.service', () => {
       expect(result.response).toBe('I found flights starting at $450.');
       expect(result.tool_calls).toHaveLength(1);
       expect(result.tool_calls[0]!.tool_name).toBe('search_flights');
-      expect(mockCreate).toHaveBeenCalledTimes(2);
+      expect(mockStream).toHaveBeenCalledTimes(2);
       expect(executeTool).toHaveBeenCalledTimes(1);
     });
 
     it('emits progress events for tool calls', async () => {
-      mockCreate.mockResolvedValueOnce({
-        stop_reason: 'tool_use',
-        content: [
-          {
-            type: 'tool_use',
-            id: 'toolu_1',
-            name: 'search_flights',
-            input: {
-              origin: 'SFO',
-              destination: 'BCN',
-              departure_date: '2026-07-01',
-              passengers: 1,
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'tool_use',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_1',
+              name: 'search_flights',
+              input: {
+                origin: 'SFO',
+                destination: 'BCN',
+                departure_date: '2026-07-01',
+                passengers: 1,
+              },
             },
-          },
-        ],
-        usage: { input_tokens: 100, output_tokens: 50 },
-      });
+          ],
+          usage: { input_tokens: 100, output_tokens: 50 },
+        }),
+      );
 
       vi.mocked(executeTool).mockResolvedValueOnce([]);
 
-      mockCreate.mockResolvedValueOnce({
-        stop_reason: 'end_turn',
-        content: [{ type: 'text', text: 'Done.' }],
-        usage: { input_tokens: 200, output_tokens: 30 },
-      });
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'end_turn',
+          content: [{ type: 'text', text: 'Done.' }],
+          usage: { input_tokens: 200, output_tokens: 30 },
+        }),
+      );
 
       const events: Array<{ type: string }> = [];
       await runAgentLoop(
@@ -152,23 +187,25 @@ describe('agent.service', () => {
     it('enforces max 15 tool calls per turn', async () => {
       // Make Claude always want to call a tool
       for (let i = 0; i < 16; i++) {
-        mockCreate.mockResolvedValueOnce({
-          stop_reason: 'tool_use',
-          content: [
-            {
-              type: 'tool_use',
-              id: `toolu_${i}`,
-              name: 'search_flights',
-              input: {
-                origin: 'SFO',
-                destination: 'BCN',
-                departure_date: '2026-07-01',
-                passengers: 1,
+        mockStream.mockReturnValueOnce(
+          createMockStream({
+            stop_reason: 'tool_use',
+            content: [
+              {
+                type: 'tool_use',
+                id: `toolu_${i}`,
+                name: 'search_flights',
+                input: {
+                  origin: 'SFO',
+                  destination: 'BCN',
+                  departure_date: '2026-07-01',
+                  passengers: 1,
+                },
               },
-            },
-          ],
-          usage: { input_tokens: 100, output_tokens: 50 },
-        });
+            ],
+            usage: { input_tokens: 100, output_tokens: 50 },
+          }),
+        );
         vi.mocked(executeTool).mockResolvedValueOnce([]);
       }
 
@@ -184,39 +221,43 @@ describe('agent.service', () => {
     });
 
     it('handles multiple tool calls in a single response', async () => {
-      mockCreate.mockResolvedValueOnce({
-        stop_reason: 'tool_use',
-        content: [
-          {
-            type: 'tool_use',
-            id: 'toolu_1',
-            name: 'search_flights',
-            input: {
-              origin: 'SFO',
-              destination: 'BCN',
-              departure_date: '2026-07-01',
-              passengers: 1,
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'tool_use',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_1',
+              name: 'search_flights',
+              input: {
+                origin: 'SFO',
+                destination: 'BCN',
+                departure_date: '2026-07-01',
+                passengers: 1,
+              },
             },
-          },
-          {
-            type: 'tool_use',
-            id: 'toolu_2',
-            name: 'get_destination_info',
-            input: { city_name: 'Barcelona' },
-          },
-        ],
-        usage: { input_tokens: 100, output_tokens: 80 },
-      });
+            {
+              type: 'tool_use',
+              id: 'toolu_2',
+              name: 'get_destination_info',
+              input: { city_name: 'Barcelona' },
+            },
+          ],
+          usage: { input_tokens: 100, output_tokens: 80 },
+        }),
+      );
 
       vi.mocked(executeTool)
         .mockResolvedValueOnce([{ price: 450 }])
         .mockResolvedValueOnce({ iata_code: 'BCN' });
 
-      mockCreate.mockResolvedValueOnce({
-        stop_reason: 'end_turn',
-        content: [{ type: 'text', text: 'Got both results.' }],
-        usage: { input_tokens: 300, output_tokens: 40 },
-      });
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'end_turn',
+          content: [{ type: 'text', text: 'Got both results.' }],
+          usage: { input_tokens: 300, output_tokens: 40 },
+        }),
+      );
 
       const result = await runAgentLoop(
         [{ role: 'user', content: 'test' }],
@@ -229,36 +270,43 @@ describe('agent.service', () => {
     });
 
     it('handles tool execution errors gracefully', async () => {
-      mockCreate.mockResolvedValueOnce({
-        stop_reason: 'tool_use',
-        content: [
-          {
-            type: 'tool_use',
-            id: 'toolu_1',
-            name: 'search_flights',
-            input: {
-              origin: 'SFO',
-              destination: 'BCN',
-              departure_date: '2026-07-01',
-              passengers: 1,
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'tool_use',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_1',
+              name: 'search_flights',
+              input: {
+                origin: 'SFO',
+                destination: 'BCN',
+                departure_date: '2026-07-01',
+                passengers: 1,
+              },
             },
-          },
-        ],
-        usage: { input_tokens: 100, output_tokens: 50 },
-      });
+          ],
+          usage: { input_tokens: 100, output_tokens: 50 },
+        }),
+      );
 
       vi.mocked(executeTool).mockRejectedValueOnce(
         new Error('Amadeus API timeout'),
       );
 
       // Claude should get the error and respond
-      mockCreate.mockResolvedValueOnce({
-        stop_reason: 'end_turn',
-        content: [
-          { type: 'text', text: 'I encountered an error searching flights.' },
-        ],
-        usage: { input_tokens: 200, output_tokens: 40 },
-      });
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'end_turn',
+          content: [
+            {
+              type: 'text',
+              text: 'I encountered an error searching flights.',
+            },
+          ],
+          usage: { input_tokens: 200, output_tokens: 40 },
+        }),
+      );
 
       const result = await runAgentLoop(
         [{ role: 'user', content: 'test' }],
@@ -268,7 +316,7 @@ describe('agent.service', () => {
 
       expect(result.response).toContain('error');
       // The tool result sent back to Claude should contain the error
-      const secondCallMessages = mockCreate.mock.calls[1]![0].messages;
+      const secondCallMessages = mockStream.mock.calls[1]![0].messages;
       const toolResultMsg = secondCallMessages.find(
         (m: { role: string }) => m.role === 'user',
       );
@@ -276,26 +324,30 @@ describe('agent.service', () => {
     });
 
     it('logs tool calls for observability', async () => {
-      mockCreate.mockResolvedValueOnce({
-        stop_reason: 'tool_use',
-        content: [
-          {
-            type: 'tool_use',
-            id: 'toolu_log',
-            name: 'search_flights',
-            input: { origin: 'SFO', destination: 'BCN' },
-          },
-        ],
-        usage: { input_tokens: 100, output_tokens: 50 },
-      });
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'tool_use',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_log',
+              name: 'search_flights',
+              input: { origin: 'SFO', destination: 'BCN' },
+            },
+          ],
+          usage: { input_tokens: 100, output_tokens: 50 },
+        }),
+      );
 
       vi.mocked(executeTool).mockResolvedValueOnce([{ price: 450 }]);
 
-      mockCreate.mockResolvedValueOnce({
-        stop_reason: 'end_turn',
-        content: [{ type: 'text', text: 'Done.' }],
-        usage: { input_tokens: 200, output_tokens: 30 },
-      });
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'end_turn',
+          content: [{ type: 'text', text: 'Done.' }],
+          usage: { input_tokens: 200, output_tokens: 30 },
+        }),
+      );
 
       await runAgentLoop(
         [{ role: 'user', content: 'test' }],
@@ -318,11 +370,13 @@ describe('agent.service', () => {
     });
 
     it('tracks total token usage', async () => {
-      mockCreate.mockResolvedValueOnce({
-        stop_reason: 'end_turn',
-        content: [{ type: 'text', text: 'Hello!' }],
-        usage: { input_tokens: 150, output_tokens: 25 },
-      });
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'end_turn',
+          content: [{ type: 'text', text: 'Hello!' }],
+          usage: { input_tokens: 150, output_tokens: 25 },
+        }),
+      );
 
       const result = await runAgentLoop(
         [{ role: 'user', content: 'Hi' }],
