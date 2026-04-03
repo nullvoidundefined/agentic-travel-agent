@@ -49,6 +49,7 @@ const mockTrip = {
   travelers: 2,
   preferences: { style: 'mid-range', pace: 'moderate', interests: ['food'] },
   status: 'planning' as const,
+  transport_mode: null,
   created_at: new Date('2025-01-01'),
   updated_at: new Date('2025-01-01'),
 };

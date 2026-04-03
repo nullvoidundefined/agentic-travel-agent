@@ -64,6 +64,7 @@ export async function chat(req: Request, res: Response) {
     budget_total: trip.budget_total ?? 0,
     budget_currency: trip.budget_currency ?? 'USD',
     travelers: trip.travelers ?? 1,
+    transport_mode: trip.transport_mode ?? null,
     preferences: {},
     user_preferences: userPrefs
       ? {

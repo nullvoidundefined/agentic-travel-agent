@@ -31,6 +31,7 @@ export interface Trip {
   travelers: number;
   preferences: Record<string, unknown>;
   status: 'planning' | 'saved' | 'archived';
+  transport_mode: 'flying' | 'driving' | null;
   created_at: Date;
   updated_at: Date;
 }

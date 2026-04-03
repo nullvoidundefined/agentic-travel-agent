@@ -6,6 +6,7 @@ export interface TripContext {
   budget_total: number;
   budget_currency: string;
   travelers: number;
+  transport_mode: 'flying' | 'driving' | null;
   preferences: {
     style?: string;
     pace?: string;
@@ -54,6 +55,7 @@ export function formatTripContext(ctx: TripContext): string {
   if (ctx.return_date) lines.push(`- **Return:** ${ctx.return_date}`);
   lines.push(`- **Budget:** ${ctx.budget_currency} ${ctx.budget_total}`);
   lines.push(`- **Travelers:** ${ctx.travelers}`);
+  if (ctx.transport_mode) lines.push(`- **Transport:** ${ctx.transport_mode}`);
 
   if (
     ctx.preferences.style ||

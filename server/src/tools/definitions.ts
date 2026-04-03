@@ -176,6 +176,12 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
           type: 'number',
           description: 'Total trip budget in USD (optional)',
         },
+        transport_mode: {
+          type: 'string',
+          enum: ['flying', 'driving'],
+          description:
+            'How the user is getting to their destination. Set when the user says they will fly or drive.',
+        },
       },
       required: [],
     },

@@ -126,6 +126,7 @@ describe('executor', () => {
         travelers: 1,
         preferences: {},
         status: 'planning',
+        transport_mode: null,
         created_at: new Date(),
         updated_at: new Date(),
       });

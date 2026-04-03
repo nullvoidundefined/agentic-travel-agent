@@ -46,6 +46,7 @@ describe('system-prompt', () => {
         budget_total: 3000,
         budget_currency: 'USD',
         travelers: 2,
+        transport_mode: 'flying',
         preferences: {
           style: 'mid-range',
           pace: 'moderate',
