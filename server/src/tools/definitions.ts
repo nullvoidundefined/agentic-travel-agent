@@ -47,6 +47,11 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
             'Cabin class: ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST (optional)',
           enum: ['ECONOMY', 'PREMIUM_ECONOMY', 'BUSINESS', 'FIRST'],
         },
+        one_way: {
+          type: 'boolean',
+          description:
+            'Set to true for one-way flights (omits return date). Default: false.',
+        },
       },
       required: ['origin', 'destination', 'departure_date', 'passengers'],
     },

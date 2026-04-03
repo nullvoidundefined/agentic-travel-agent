@@ -16,6 +16,7 @@ export interface FlightSearchInput {
   passengers: number;
   max_price?: number;
   cabin_class?: string;
+  one_way?: boolean;
 }
 
 export interface FlightResult {
@@ -104,6 +105,7 @@ export async function searchFlights(
     adults: input.passengers,
     maxPrice: input.max_price,
     cabinClass: input.cabin_class,
+    oneWay: input.one_way,
   });
 
   const cached = await cacheGet<FlightResult[]>(cacheKey);
@@ -116,11 +118,12 @@ export async function searchFlights(
     departure_id: input.origin,
     arrival_id: input.destination,
     outbound_date: input.departure_date,
-    return_date: input.return_date,
+    return_date: input.one_way ? undefined : input.return_date,
     adults: input.passengers,
     travel_class: input.cabin_class ? CABIN_MAP[input.cabin_class] : undefined,
     currency: 'USD',
     hl: 'en',
+    type: input.one_way ? '2' : undefined,
   };
 
   const response = (await serpApiGet(
