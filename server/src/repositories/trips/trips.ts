@@ -91,6 +91,7 @@ export interface UpdateTripInput {
   budget_total?: number;
   travelers?: number;
   transport_mode?: 'flying' | 'driving';
+  trip_type?: 'round_trip' | 'one_way';
   status?: 'planning' | 'saved' | 'archived';
 }
 
@@ -197,6 +198,13 @@ export async function insertTripExperience(
       input.rating ?? null,
     ],
   );
+}
+
+export async function clearSelectionsForTrip(tripId: string): Promise<void> {
+  await query('DELETE FROM trip_flights WHERE trip_id = $1', [tripId]);
+  await query('DELETE FROM trip_hotels WHERE trip_id = $1', [tripId]);
+  await query('DELETE FROM trip_car_rentals WHERE trip_id = $1', [tripId]);
+  await query('DELETE FROM trip_experiences WHERE trip_id = $1', [tripId]);
 }
 
 export async function deleteTrip(
