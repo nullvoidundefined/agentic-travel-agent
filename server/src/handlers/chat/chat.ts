@@ -3,7 +3,11 @@ import type {
   ChatMessage,
   SSEEvent,
 } from '@agentic-travel-agent/shared-types';
-import { getBookingStep } from 'app/prompts/booking-steps.js';
+import {
+  getFlowPosition,
+  normalizeBookingState,
+  DEFAULT_BOOKING_STATE,
+} from 'app/prompts/booking-steps.js';
 import type { TripContext } from 'app/prompts/trip-context.js';
 import {
   getMessagesByConversation,
@@ -132,11 +136,26 @@ export async function chat(req: Request, res: Response) {
     res.write(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
   };
 
-  const bookingStep = getBookingStep({
-    ...trip,
-    transport_mode: trip.transport_mode ?? null,
-    car_rentals: [],
-  });
+  // TODO(Task 6): read booking_state from conversation and pass to getFlowPosition
+  const bookingState = normalizeBookingState(
+    (conversation as unknown as Record<string, unknown>).booking_state ?? DEFAULT_BOOKING_STATE,
+  );
+  const flowPosition = getFlowPosition(
+    {
+      ...trip,
+      origin: trip.origin ?? null,
+      departure_date: trip.departure_date ?? null,
+      return_date: trip.return_date ?? null,
+      budget_total: trip.budget_total ?? null,
+      transport_mode: trip.transport_mode ?? null,
+      flights: (trip.flights ?? []).map((f) => ({ id: f.id })),
+      hotels: (trip.hotels ?? []).map((h) => ({ id: h.id })),
+      car_rentals: [],
+      experiences: (trip.experiences ?? []).map((e) => ({ id: e.id })),
+      status: trip.status ?? 'planning',
+    },
+    bookingState,
+  );
 
   try {
     const result = await runAgentLoop(
@@ -146,19 +165,30 @@ export async function chat(req: Request, res: Response) {
       conversation.id,
       { tripId, userId },
       enrichmentNodes,
-      bookingStep,
+      flowPosition,
     );
 
     // After the agent loop (which may have called update_trip), reload the trip
     // to check if details are still missing. Append form for missing fields only.
     const updatedTrip = await getTripWithDetails(tripId, userId);
     if (updatedTrip) {
-      const updatedStep = getBookingStep({
-        ...updatedTrip,
-        transport_mode: updatedTrip.transport_mode ?? null,
-        car_rentals: [],
-      });
-      if (updatedStep === 'COLLECT_DETAILS') {
+      const updatedPosition = getFlowPosition(
+        {
+          ...updatedTrip,
+          origin: updatedTrip.origin ?? null,
+          departure_date: updatedTrip.departure_date ?? null,
+          return_date: updatedTrip.return_date ?? null,
+          budget_total: updatedTrip.budget_total ?? null,
+          transport_mode: updatedTrip.transport_mode ?? null,
+          flights: (updatedTrip.flights ?? []).map((f) => ({ id: f.id })),
+          hotels: (updatedTrip.hotels ?? []).map((h) => ({ id: h.id })),
+          car_rentals: [],
+          experiences: (updatedTrip.experiences ?? []).map((e) => ({ id: e.id })),
+          status: updatedTrip.status ?? 'planning',
+        },
+        bookingState,
+      );
+      if (updatedPosition.phase === 'COLLECT_DETAILS') {
         const isPlaceholder = !updatedTrip.destination || updatedTrip.destination === 'Planning...';
         const missingFields: Array<{
           name: string;
