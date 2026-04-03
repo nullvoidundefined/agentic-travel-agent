@@ -15,7 +15,7 @@
 .modal {
   width: 100%;
   max-width: 520px;
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 36px;
@@ -124,7 +124,7 @@
   border: none;
   border-radius: var(--radius-sm);
   background: var(--cta);
-  color: #ffffff;
+  color: var(--cta-text);
   font-size: 15px;
   font-weight: 600;
   font-family: var(--font-body);
@@ -195,7 +195,7 @@
   height: 48px;
   border-radius: 50%;
   background: var(--success);
-  color: #fff;
+  color: var(--cta-text);
   display: flex;
   align-items: center;
   justify-content: center;

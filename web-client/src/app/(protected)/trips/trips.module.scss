@@ -22,7 +22,7 @@
   border: none;
   border-radius: var(--radius-sm);
   background: var(--cta);
-  color: #ffffff;
+  color: var(--cta-text);
   font-size: 14px;
   font-weight: 600;
   font-family: var(--font-body);
@@ -52,7 +52,7 @@
   align-items: center;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: #ffffff;
+  background: var(--surface);
   box-shadow: var(--shadow-sm);
   transition:
     border-color var(--transition-fast),

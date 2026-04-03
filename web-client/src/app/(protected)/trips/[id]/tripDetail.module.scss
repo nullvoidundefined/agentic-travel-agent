@@ -64,7 +64,7 @@
   padding: 20px 24px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: #ffffff;
+  background: var(--surface);
   box-shadow: var(--shadow-sm);
   min-width: 180px;
 }
@@ -118,7 +118,7 @@
   padding: 14px 24px;
   font-size: 15px;
   border-bottom: 1px solid var(--border-light);
-  background: #ffffff;
+  background: var(--surface);
 
   &:last-child {
     border-bottom: none;
@@ -154,7 +154,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  background: #ffffff;
+  background: var(--surface);
   box-shadow: var(--shadow-sm);
   transition:
     border-color var(--transition-fast),
@@ -225,7 +225,7 @@
   font-size: 16px;
   border: 1px dashed var(--border);
   border-radius: var(--radius-lg);
-  background: #ffffff;
+  background: var(--surface);
 }
 
 /* — Chat section — */

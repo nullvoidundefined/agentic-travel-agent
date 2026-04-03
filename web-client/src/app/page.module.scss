@@ -91,7 +91,7 @@
   font-weight: 600;
   font-family: var(--font-body);
   background: var(--cta);
-  color: #ffffff;
+  color: var(--cta-text);
   transition:
     background var(--transition-fast),
     box-shadow var(--transition-fast),

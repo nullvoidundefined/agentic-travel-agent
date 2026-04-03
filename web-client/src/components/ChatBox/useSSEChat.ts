@@ -156,7 +156,6 @@ export function useSSEChat({ tripId, onComplete }: UseSSEChatOptions): UseSSECha
         onComplete?.();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [tripId, queryClient, isSending],
   );
 

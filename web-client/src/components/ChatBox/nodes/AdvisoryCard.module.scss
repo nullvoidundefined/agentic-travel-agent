@@ -19,11 +19,11 @@
 }
 
 .warning {
-  background: color-mix(in srgb, #f59e0b 8%, transparent);
-  border-color: #f59e0b;
+  background: color-mix(in srgb, var(--warning) 8%, transparent);
+  border-color: var(--warning);
 
   .severityLabel {
-    color: #d97706;
+    color: var(--warning-dark);
   }
 }
 

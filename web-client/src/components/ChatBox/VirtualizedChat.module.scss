@@ -40,7 +40,7 @@
   line-height: 1.7;
 
   .user & {
-    background: #e8f0fa;
+    background: var(--user-bubble);
     color: var(--foreground);
     border-bottom-right-radius: 4px;
   }
