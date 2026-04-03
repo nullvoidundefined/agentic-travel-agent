@@ -26,6 +26,10 @@ Travel status, budget, and dates can appear invalid or stale after trip modifica
 
 When a user says "I want the InterContinental Plaza Hotel," Claude should book that exact option and confirm — not present alternatives. This applies across all bookable categories: hotels, cars, experiences, dining. The category prompts need to instruct Claude to honor explicit selections.
 
+### B14: Tile selections don't persist to trip record
+
+When a user selects a flight/hotel/car/experience from the tile cards, the selection sends a chat message ("I've selected...") but nothing persists to `trip_flights`, `trip_hotels`, `trip_car_rentals`, or `trip_experiences`. The trip detail page shows "No itinerary items" and "$0 allocated" because the selection tables are empty. Need selection persistence tools or a mechanism for Claude to call `update_trip` with the selected item data after the user confirms.
+
 ---
 
 ## Resolved

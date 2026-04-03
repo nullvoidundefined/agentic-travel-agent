@@ -1,5 +1,9 @@
 import {
   type UpdateTripInput,
+  insertTripCarRental,
+  insertTripExperience,
+  insertTripFlight,
+  insertTripHotel,
   updateTrip,
 } from 'app/repositories/trips/trips.js';
 import { calculateRemainingBudget } from 'app/tools/budget.tool.js';
@@ -64,6 +68,30 @@ export async function executeTool(
       return searchCarRentals(
         input as unknown as Parameters<typeof searchCarRentals>[0],
       );
+
+    case 'select_flight': {
+      if (!context) throw new Error('select_flight requires trip context');
+      await insertTripFlight(context.tripId, input);
+      return { success: true, message: 'Flight selection saved' };
+    }
+
+    case 'select_hotel': {
+      if (!context) throw new Error('select_hotel requires trip context');
+      await insertTripHotel(context.tripId, input);
+      return { success: true, message: 'Hotel selection saved' };
+    }
+
+    case 'select_car_rental': {
+      if (!context) throw new Error('select_car_rental requires trip context');
+      await insertTripCarRental(context.tripId, input);
+      return { success: true, message: 'Car rental selection saved' };
+    }
+
+    case 'select_experience': {
+      if (!context) throw new Error('select_experience requires trip context');
+      await insertTripExperience(context.tripId, input);
+      return { success: true, message: 'Experience selection saved' };
+    }
 
     case 'format_response':
       // format_response is handled by the orchestrator, not executed as a tool.

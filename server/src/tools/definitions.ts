@@ -235,6 +235,81 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    name: 'select_flight',
+    description:
+      "Persist the user's selected flight to the trip. Call this when the user confirms a flight choice.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        airline: { type: 'string' },
+        flight_number: { type: 'string' },
+        origin: { type: 'string' },
+        destination: { type: 'string' },
+        departure_time: { type: 'string' },
+        arrival_time: { type: 'string' },
+        price: { type: 'number' },
+        currency: { type: 'string' },
+      },
+      required: [
+        'airline',
+        'flight_number',
+        'origin',
+        'destination',
+        'price',
+        'currency',
+      ],
+    },
+  },
+  {
+    name: 'select_hotel',
+    description:
+      "Persist the user's selected hotel to the trip. Call this when the user confirms a hotel choice.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        city: { type: 'string' },
+        star_rating: { type: 'number' },
+        price_per_night: { type: 'number' },
+        total_price: { type: 'number' },
+        currency: { type: 'string' },
+        check_in: { type: 'string' },
+        check_out: { type: 'string' },
+      },
+      required: ['name', 'price_per_night', 'total_price', 'currency'],
+    },
+  },
+  {
+    name: 'select_car_rental',
+    description: "Persist the user's selected car rental to the trip.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        provider: { type: 'string' },
+        car_name: { type: 'string' },
+        car_type: { type: 'string' },
+        price_per_day: { type: 'number' },
+        total_price: { type: 'number' },
+        currency: { type: 'string' },
+      },
+      required: ['provider', 'car_name', 'total_price', 'currency'],
+    },
+  },
+  {
+    name: 'select_experience',
+    description: "Persist the user's selected experience to the trip.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        category: { type: 'string' },
+        estimated_cost: { type: 'number' },
+        rating: { type: 'number' },
+      },
+      required: ['name', 'estimated_cost'],
+    },
+  },
+  {
     name: 'format_response',
     description:
       'REQUIRED: Call this as your LAST tool call every turn. Provides your text response, citations, suggested quick replies, and optional advisory escalation. Do NOT write text outside of this tool — all your text goes in the text field.',

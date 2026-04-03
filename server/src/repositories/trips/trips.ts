@@ -120,6 +120,84 @@ export async function updateTrip(
   return result.rows[0] ?? null;
 }
 
+export async function insertTripFlight(
+  tripId: string,
+  input: Record<string, unknown>,
+): Promise<void> {
+  await query(
+    `INSERT INTO trip_flights (trip_id, airline, flight_number, origin, destination, departure_time, arrival_time, price, currency, selected)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)`,
+    [
+      tripId,
+      input.airline,
+      input.flight_number,
+      input.origin,
+      input.destination,
+      input.departure_time ?? null,
+      input.arrival_time ?? null,
+      input.price,
+      input.currency ?? 'USD',
+    ],
+  );
+}
+
+export async function insertTripHotel(
+  tripId: string,
+  input: Record<string, unknown>,
+): Promise<void> {
+  await query(
+    `INSERT INTO trip_hotels (trip_id, name, city, star_rating, price_per_night, total_price, currency, check_in, check_out, selected)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)`,
+    [
+      tripId,
+      input.name,
+      input.city ?? null,
+      input.star_rating ?? null,
+      input.price_per_night,
+      input.total_price,
+      input.currency ?? 'USD',
+      input.check_in ?? null,
+      input.check_out ?? null,
+    ],
+  );
+}
+
+export async function insertTripCarRental(
+  tripId: string,
+  input: Record<string, unknown>,
+): Promise<void> {
+  await query(
+    `INSERT INTO trip_car_rentals (trip_id, provider, car_name, car_type, price_per_day, total_price, currency, selected)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, true)`,
+    [
+      tripId,
+      input.provider,
+      input.car_name,
+      input.car_type ?? null,
+      input.price_per_day ?? null,
+      input.total_price,
+      input.currency ?? 'USD',
+    ],
+  );
+}
+
+export async function insertTripExperience(
+  tripId: string,
+  input: Record<string, unknown>,
+): Promise<void> {
+  await query(
+    `INSERT INTO trip_experiences (trip_id, name, category, estimated_cost, rating, selected)
+     VALUES ($1, $2, $3, $4, $5, true)`,
+    [
+      tripId,
+      input.name,
+      input.category ?? null,
+      input.estimated_cost,
+      input.rating ?? null,
+    ],
+  );
+}
+
 export async function deleteTrip(
   tripId: string,
   userId: string,
