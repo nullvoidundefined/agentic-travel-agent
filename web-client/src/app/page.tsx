@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { MockChatBox } from '@/components/MockChatBox/MockChatBox';
 import { useAuth } from '@/context/AuthContext';
+import { HERO_IMAGES, getDestinationImageUrl } from '@/lib/destinationImage';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -120,10 +122,31 @@ export default function Home() {
     }
   }, [user, router]);
 
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className={styles.landing}>
       {/* — Hero — */}
       <section className={styles.hero}>
+        {HERO_IMAGES.map((img, i) => (
+          <Image
+            key={img.city}
+            src={getDestinationImageUrl(img.id, 1600, 800)}
+            alt={`${img.city} destination`}
+            fill
+            className={`${styles.heroImage} ${i === heroIndex ? styles.heroImageActive : ''}`}
+            priority={i === 0}
+            sizes='100vw'
+          />
+        ))}
+        <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
           <p className={styles.eyebrow}>AI Travel Concierge</p>
           <h1 className={styles.title}>
@@ -144,9 +167,6 @@ export default function Home() {
               How it Works
             </Link>
           </div>
-        </div>
-        <div className={styles.heroVisual}>
-          <div className={styles.heroGlow} aria-hidden='true' />
         </div>
       </section>
 

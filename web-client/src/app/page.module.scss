@@ -8,36 +8,38 @@
 
 .hero {
   position: relative;
-  padding: 100px 0 80px;
+  overflow: hidden;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+}
+
+.heroImage {
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+.heroImageActive {
+  opacity: 1;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.55));
 }
 
 .heroContent {
   position: relative;
-  z-index: 1;
-}
-
-.heroVisual {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.heroGlow {
-  position: absolute;
-  top: -120px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 800px;
-  height: 500px;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(30, 86, 160, 0.04) 0%,
-    rgba(30, 86, 160, 0.01) 40%,
-    transparent 70%
-  );
-  filter: blur(40px);
+  z-index: 2;
+  color: var(--cta-text);
 }
 
 .eyebrow {
@@ -46,12 +48,12 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--cta-text);
   margin-bottom: 20px;
   padding: 6px 16px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 100px;
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .title {
@@ -59,7 +61,7 @@
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: -0.025em;
-  color: var(--foreground);
+  color: var(--cta-text);
   margin-bottom: 24px;
 }
 
@@ -71,7 +73,7 @@
 .subtitle {
   font-size: 19px;
   line-height: 1.7;
-  color: var(--foreground-muted);
+  color: rgba(255, 255, 255, 0.85);
   max-width: 540px;
   margin: 0 auto 40px;
 }
@@ -113,16 +115,17 @@
   font-size: 15px;
   font-weight: 600;
   font-family: var(--font-body);
-  border: 1.5px solid var(--border);
-  color: var(--foreground);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  color: var(--cta-text);
+  background: transparent;
   transition:
     background var(--transition-fast),
     border-color var(--transition-fast);
   text-decoration: none;
 
   &:hover {
-    background: var(--surface-hover);
-    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--cta-text);
   }
 }
 
@@ -302,7 +305,11 @@
   }
 
   .hero {
-    padding: 60px 0 48px;
+    min-height: 480px;
+  }
+
+  .heroContent {
+    padding: 60px 20px 48px;
   }
 
   .title {
