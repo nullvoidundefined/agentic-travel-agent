@@ -3,6 +3,7 @@ import type {
   ChatMessage,
   SSEEvent,
 } from '@agentic-travel-agent/shared-types';
+import { getBookingStep } from 'app/prompts/booking-steps.js';
 import type { TripContext } from 'app/prompts/trip-context.js';
 import {
   getMessagesByConversation,
@@ -146,6 +147,12 @@ export async function chat(req: Request, res: Response) {
     res.write(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
   };
 
+  const bookingStep = getBookingStep({
+    ...trip,
+    transport_mode: trip.transport_mode ?? null,
+    car_rentals: [],
+  });
+
   try {
     const result = await runAgentLoop(
       claudeMessages,
@@ -154,6 +161,7 @@ export async function chat(req: Request, res: Response) {
       conversation.id,
       { tripId, userId },
       enrichmentNodes,
+      bookingStep,
     );
 
     // Persist assistant message with dual columns (content + tool_calls_json + nodes)

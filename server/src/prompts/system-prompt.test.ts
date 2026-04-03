@@ -4,37 +4,46 @@ import { describe, expect, it } from 'vitest';
 
 describe('system-prompt', () => {
   describe('buildSystemPrompt', () => {
-    it('includes the agent persona', () => {
+    it('defaults to COLLECT_DETAILS step when no step provided', () => {
       const prompt = buildSystemPrompt();
-      expect(prompt).toContain('travel');
-      expect(prompt).toContain('planning assistant');
+      // COLLECT_DETAILS prompt mentions a form being shown
+      expect(prompt).toContain('form');
     });
 
-    it('includes tool usage guidelines', () => {
+    it('uses TRANSPORT step-specific prompt when step is TRANSPORT', () => {
+      const prompt = buildSystemPrompt(undefined, 'TRANSPORT');
+      expect(prompt.toLowerCase()).toMatch(/flying|driving/);
+    });
+
+    it('uses LODGING step-specific prompt when step is LODGING', () => {
+      const prompt = buildSystemPrompt(undefined, 'LODGING');
+      expect(prompt.toLowerCase()).toContain('hotel');
+    });
+
+    it('uses COLLECT_DETAILS step-specific prompt when step is COLLECT_DETAILS', () => {
+      const prompt = buildSystemPrompt(undefined, 'COLLECT_DETAILS');
+      expect(prompt).toContain('form');
+    });
+
+    it('includes format_response requirement', () => {
       const prompt = buildSystemPrompt();
-      expect(prompt).toContain('update_trip');
       expect(prompt).toContain('format_response');
     });
 
-    it('instructs to search flights before hotels', () => {
+    it('includes brevity instruction', () => {
       const prompt = buildSystemPrompt();
-      expect(prompt).toContain('flights');
-      expect(prompt).toContain('hotels');
-    });
-
-    it('includes budget awareness instructions', () => {
-      const prompt = buildSystemPrompt();
-      expect(prompt).toContain('budget');
-    });
-
-    it('includes guidance to keep responses brief', () => {
-      const prompt = buildSystemPrompt();
-      expect(prompt).toMatch(/short|brief|1-2 sentences/i);
+      expect(prompt).toMatch(/1-2 sentences/i);
     });
 
     it('includes the 15-call safety limit note', () => {
       const prompt = buildSystemPrompt();
       expect(prompt).toContain('15');
+    });
+
+    it("includes today's date", () => {
+      const prompt = buildSystemPrompt();
+      const today = new Date().toISOString().split('T')[0];
+      expect(prompt).toContain(today!);
     });
 
     it('injects trip context when provided', () => {
@@ -79,23 +88,6 @@ describe('system-prompt', () => {
       const prompt = buildSystemPrompt();
       expect(typeof prompt).toBe('string');
       expect(prompt.length).toBeGreaterThan(100);
-    });
-
-    it("includes today's date", () => {
-      const prompt = buildSystemPrompt();
-      const today = new Date().toISOString().split('T')[0];
-      expect(prompt).toContain(today!);
-    });
-
-    it('includes format_response requirement', () => {
-      const prompt = buildSystemPrompt();
-      expect(prompt).toContain('format_response');
-      expect(prompt).toContain('REQUIRED');
-    });
-
-    it('includes car rental in the planning workflow', () => {
-      const prompt = buildSystemPrompt();
-      expect(prompt).toMatch(/car rental/i);
     });
   });
 });
