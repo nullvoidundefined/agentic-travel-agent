@@ -204,7 +204,6 @@ export function formatChecklist(
 
   // Hotels
   if (tracker.hotels === 'selected' && ctx.selected_hotels.length > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const h = ctx.selected_hotels[0]!;
     lines.push(`- ✅ Hotels: ${h.name} — $${h.total_price} total`);
   } else {
@@ -218,7 +217,6 @@ export function formatChecklist(
     tracker.car_rental === 'selected' &&
     ctx.selected_car_rentals.length > 0
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const c = ctx.selected_car_rentals[0]!;
     lines.push(
       `- ✅ Car Rental: ${c.car_name} from ${c.provider} — $${c.total_price}`,
