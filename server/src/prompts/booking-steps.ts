@@ -148,7 +148,6 @@ export interface TripState {
   status: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getFlowPosition(
   trip: TripState,
   _legacyBookingState?: unknown,
