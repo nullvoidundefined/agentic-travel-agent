@@ -3,11 +3,11 @@ import { Redis } from 'ioredis';
 
 let redis: Redis | null = null;
 
-export function getRedis(): Redis {
+export function getRedis(): Redis | null {
   if (!redis) {
     const url = process.env.REDIS_URL;
     if (!url) {
-      throw new Error('REDIS_URL is not set');
+      return null;
     }
     redis = new Redis(url, {
       maxRetriesPerRequest: 3,
@@ -22,6 +22,10 @@ export function getRedis(): Redis {
 
 export async function connectRedis(): Promise<void> {
   const client = getRedis();
+  if (!client) {
+    logger.warn('REDIS_URL is not set — cache disabled');
+    return;
+  }
   await client.connect();
   logger.info('Redis connected');
 }
@@ -35,9 +39,15 @@ export async function disconnectRedis(): Promise<void> {
 
 export async function cacheGet<T>(key: string): Promise<T | null> {
   const client = getRedis();
-  const raw = await client.get(key);
-  if (!raw) return null;
-  return JSON.parse(raw) as T;
+  if (!client) return null;
+  try {
+    const raw = await client.get(key);
+    if (!raw) return null;
+    return JSON.parse(raw) as T;
+  } catch (err) {
+    logger.warn({ err, key }, 'Cache get failed — treating as miss');
+    return null;
+  }
 }
 
 export async function cacheSet(
@@ -46,12 +56,22 @@ export async function cacheSet(
   ttlSeconds: number,
 ): Promise<void> {
   const client = getRedis();
-  await client.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+  if (!client) return;
+  try {
+    await client.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+  } catch (err) {
+    logger.warn({ err, key }, 'Cache set failed — data not cached');
+  }
 }
 
 export async function cacheDel(key: string): Promise<void> {
   const client = getRedis();
-  await client.del(key);
+  if (!client) return;
+  try {
+    await client.del(key);
+  } catch (err) {
+    logger.warn({ err, key }, 'Cache del failed');
+  }
 }
 
 export function normalizeCacheKey(

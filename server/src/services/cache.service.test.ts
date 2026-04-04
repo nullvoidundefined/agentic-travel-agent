@@ -50,16 +50,16 @@ describe('cache.service', () => {
   });
 
   describe('getRedis', () => {
-    it('throws when REDIS_URL is not set', () => {
+    it('returns null when REDIS_URL is not set', () => {
       delete process.env.REDIS_URL;
-      expect(() => cacheService.getRedis()).toThrow('REDIS_URL is not set');
+      expect(cacheService.getRedis()).toBeNull();
     });
 
     it('creates a Redis client when REDIS_URL is set', () => {
       process.env.REDIS_URL = 'redis://localhost:6379';
       const client = cacheService.getRedis();
-      expect(client).toBeDefined();
-      expect(client.on).toBeDefined();
+      expect(client).not.toBeNull();
+      expect(client!.on).toBeDefined();
     });
 
     it('returns the same instance on subsequent calls', () => {
@@ -159,6 +159,47 @@ describe('cache.service', () => {
       });
       expect(key).toContain('"adults":2');
       expect(key).toContain('"max":5');
+    });
+  });
+
+  describe('graceful degradation', () => {
+    it('cacheGet returns null when REDIS_URL is not set', async () => {
+      delete process.env.REDIS_URL;
+      const result = await cacheService.cacheGet('any-key');
+      expect(result).toBeNull();
+    });
+
+    it('cacheSet is a no-op when REDIS_URL is not set', async () => {
+      delete process.env.REDIS_URL;
+      await expect(
+        cacheService.cacheSet('key', { data: 1 }, 3600),
+      ).resolves.toBeUndefined();
+    });
+
+    it('cacheGet returns null when Redis throws', async () => {
+      process.env.REDIS_URL = 'redis://localhost:6379';
+      mockRedisInstance.get.mockRejectedValueOnce(new Error('Connection refused'));
+
+      const result = await cacheService.cacheGet('failing-key');
+      expect(result).toBeNull();
+    });
+
+    it('cacheSet does not throw when Redis throws', async () => {
+      process.env.REDIS_URL = 'redis://localhost:6379';
+      mockRedisInstance.set.mockRejectedValueOnce(new Error('Connection refused'));
+
+      await expect(
+        cacheService.cacheSet('failing-key', { data: 1 }, 3600),
+      ).resolves.toBeUndefined();
+    });
+
+    it('cacheDel does not throw when Redis throws', async () => {
+      process.env.REDIS_URL = 'redis://localhost:6379';
+      mockRedisInstance.del.mockRejectedValueOnce(new Error('Connection refused'));
+
+      await expect(
+        cacheService.cacheDel('failing-key'),
+      ).resolves.toBeUndefined();
     });
   });
 
