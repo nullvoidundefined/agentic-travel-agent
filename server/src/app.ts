@@ -120,6 +120,13 @@ app.get('/health/ready', async (_req, res) => {
     .json({ status, db: dbStatus, cache: cacheStatus, activeConversations });
 });
 
+// Static destinations data — public, aggressively cached
+import destinationsData from 'app/data/destinations.json' with { type: 'json' };
+app.get('/destinations', (_req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.json(destinationsData);
+});
+
 app.use('/auth', authRouter);
 app.use('/places', placesRouter);
 app.use('/trips', tripRouter);
