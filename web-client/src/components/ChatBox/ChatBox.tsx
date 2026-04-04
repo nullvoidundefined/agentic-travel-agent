@@ -1,6 +1,6 @@
 'use client';
 
-import { type FormEvent, useCallback, useState } from 'react';
+import { type FormEvent, useCallback, useRef, useState } from 'react';
 
 import { get, put } from '@/lib/api';
 import type { ChatMessage } from '@agentic-travel-agent/shared-types';
@@ -27,6 +27,7 @@ export function ChatBox({
   const [input, setInput] = useState('');
   const [pendingUserMessage, setPendingUserMessage] =
     useState<ChatMessage | null>(null);
+  const skipFormAutoSave = useRef(false);
 
   const { data: serverMessages } = useQuery({
     queryKey: ['messages', tripId],
@@ -87,29 +88,34 @@ export function ChatBox({
       // Auto-save any form data that hasn't been submitted yet.
       // If the user typed in the chat input while the trip details form has values,
       // we treat that data as canonical and persist it before sending the message.
-      const formData: Record<string, unknown> = {};
-      const formFields = [
-        { id: 'destination', key: 'destination' },
-        { id: 'origin', key: 'origin' },
-        { id: 'departure_date', key: 'departure_date' },
-        { id: 'return_date', key: 'return_date' },
-        { id: 'budget', key: 'budget_total', transform: Number },
-        { id: 'travelers', key: 'travelers', transform: Number },
-      ] as const;
+      if (!skipFormAutoSave.current) {
+        const formData: Record<string, unknown> = {};
+        const formFields = [
+          { id: 'destination', key: 'destination' },
+          { id: 'origin', key: 'origin' },
+          { id: 'departure_date', key: 'departure_date' },
+          { id: 'return_date', key: 'return_date' },
+          { id: 'budget', key: 'budget_total', transform: Number },
+          { id: 'travelers', key: 'travelers', transform: Number },
+        ] as const;
 
-      for (const field of formFields) {
-        const el = document.getElementById(field.id) as HTMLInputElement | null;
-        if (el?.value?.trim()) {
-          formData[field.key] =
-            'transform' in field ? field.transform(el.value) : el.value;
+        for (const field of formFields) {
+          const el = document.getElementById(
+            field.id,
+          ) as HTMLInputElement | null;
+          if (el?.value?.trim()) {
+            formData[field.key] =
+              'transform' in field ? field.transform(el.value) : el.value;
+          }
+        }
+
+        if (Object.keys(formData).length > 0) {
+          put(`/trips/${tripId}`, formData).catch((err) =>
+            console.error('Failed to auto-save form data:', err),
+          );
         }
       }
-
-      if (Object.keys(formData).length > 0) {
-        put(`/trips/${tripId}`, formData).catch((err) =>
-          console.error('Failed to auto-save form data:', err),
-        );
-      }
+      skipFormAutoSave.current = false;
 
       // Optimistic: show user message immediately
       setPendingUserMessage({
@@ -157,6 +163,7 @@ export function ChatBox({
         console.error('Failed to update trip:', err);
       }
 
+      skipFormAutoSave.current = true;
       handleSend(displayMessage);
     },
     [tripId, queryClient, handleSend],

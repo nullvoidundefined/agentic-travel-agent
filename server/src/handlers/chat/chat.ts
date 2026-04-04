@@ -25,6 +25,9 @@ import { getEnrichmentNodes } from 'app/services/enrichment.js';
 import { logger } from 'app/utils/logs/logger.js';
 import type { Request, Response } from 'express';
 
+// In-memory lock to prevent concurrent agent loops per conversation
+const activeConversations = new Set<string>();
+
 export async function chat(req: Request, res: Response) {
   const tripId = req.params.id as string;
   const userId = req.user!.id;
@@ -49,6 +52,16 @@ export async function chat(req: Request, res: Response) {
 
   // Get or create conversation
   const conversation = await getOrCreateConversation(tripId);
+
+  if (activeConversations.has(conversation.id)) {
+    res.status(409).json({
+      error: 'CONFLICT',
+      message:
+        'A response is already being generated for this trip. Please wait.',
+    });
+    return;
+  }
+  activeConversations.add(conversation.id);
 
   // Load conversation history
   const history = await getMessagesByConversation(conversation.id);
@@ -141,6 +154,11 @@ export async function chat(req: Request, res: Response) {
   // for any agent loop that takes longer than 30 seconds. Disable it for this
   // long-running SSE endpoint by resetting the socket timeout to 0 (unlimited).
   res.setTimeout(0);
+
+  // Clean up if client disconnects mid-stream
+  req.on('close', () => {
+    activeConversations.delete(conversation.id);
+  });
 
   // Persist user message with typed nodes
   const userNodes: ChatNode[] = [{ type: 'text', content: message }];
@@ -369,9 +387,10 @@ export async function chat(req: Request, res: Response) {
       `event: error\ndata: ${JSON.stringify({ type: 'error', error: 'Agent encountered an error' })}\n\n`,
     );
     (res as unknown as { flush?: () => void }).flush?.();
+  } finally {
+    activeConversations.delete(conversation.id);
+    res.end();
   }
-
-  res.end();
 }
 
 export async function getMessages(req: Request, res: Response) {
