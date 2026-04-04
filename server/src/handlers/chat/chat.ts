@@ -77,6 +77,14 @@ export async function chat(req: Request, res: Response) {
   // Add current message
   claudeMessages.push({ role: 'user', content: message });
 
+  // Truncate conversation history to last 20 messages to stay within token limits.
+  // Keep the first message (often contains trip context) and the most recent messages.
+  const MAX_HISTORY_MESSAGES = 20;
+  if (claudeMessages.length > MAX_HISTORY_MESSAGES + 1) {
+    // Keep the first message and the most recent 20
+    claudeMessages.splice(1, claudeMessages.length - MAX_HISTORY_MESSAGES - 1);
+  }
+
   // Build trip context for system prompt
   const tripContext: TripContext = {
     destination: trip.destination,

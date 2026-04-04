@@ -186,7 +186,7 @@ export class AgentOrchestrator {
           } catch (err) {
             isError = true;
             errorMessage = err instanceof Error ? err.message : String(err);
-            result = `Error: ${errorMessage}`;
+            result = `Tool error (do not retry): ${errorMessage}`;
             logger.error(
               { err, toolName: block.name },
               'Tool execution failed',

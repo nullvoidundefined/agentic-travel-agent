@@ -273,7 +273,9 @@ describe('AgentOrchestrator', () => {
     );
 
     expect(result.toolCallsUsed).toHaveLength(1);
-    expect(result.toolCallsUsed[0]!.result).toBe('Error: API timeout');
+    expect(result.toolCallsUsed[0]!.result).toBe(
+      'Tool error (do not retry): API timeout',
+    );
     expect(result.response).toBe('Sorry, the search failed.');
 
     // Verify the second call to Anthropic included is_error in tool result

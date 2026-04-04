@@ -54,6 +54,22 @@ export async function executeTool(
 
     case 'update_trip': {
       if (!context) throw new Error('update_trip requires trip context');
+      if (input.departure_date && typeof input.departure_date === 'string') {
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(input.departure_date)) {
+          return JSON.stringify({
+            error: 'departure_date must be in YYYY-MM-DD format',
+          });
+        }
+      }
+      if (input.return_date && typeof input.return_date === 'string') {
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(input.return_date)) {
+          return JSON.stringify({
+            error: 'return_date must be in YYYY-MM-DD format',
+          });
+        }
+      }
       const updated = await updateTrip(
         context.tripId,
         context.userId,
