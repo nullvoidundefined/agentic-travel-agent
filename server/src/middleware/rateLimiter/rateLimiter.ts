@@ -15,6 +15,24 @@ export const rateLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+/**
+ * Per-user limit for the chat/agent endpoint — the most expensive endpoint
+ * (triggers multiple Claude API calls + SerpApi calls per request).
+ * Keyed by authenticated user ID, not IP.
+ * TODO: move to Redis store when scaling horizontally.
+ */
+export const chatRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.user?.id ?? req.ip ?? 'anonymous',
+  message: {
+    error: 'RATE_LIMITED',
+    message: 'Please wait before sending another message.',
+  },
+});
+
 /** Stricter limit for auth routes to resist credential stuffing. */
 export const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
