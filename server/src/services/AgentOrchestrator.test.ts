@@ -391,6 +391,52 @@ describe('AgentOrchestrator', () => {
   });
 
   // -----------------------------------------------------------------------
+  // Wall-clock timeout
+  // -----------------------------------------------------------------------
+  it('returns a timeout response when maxDurationMs is exceeded', async () => {
+    // Simulate a slow tool that takes longer than the timeout
+    const slowExecutor = vi.fn().mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve({ result: 'slow' }), 60)),
+    );
+
+    const timeoutConfig = createConfig({
+      toolExecutor: slowExecutor,
+      maxDurationMs: 10, // Very short timeout — tool takes 60ms
+    });
+    const mockStream = getStreamMock(timeoutConfig);
+
+    // First iteration: tool use (executor takes 60ms, exceeding 10ms timeout)
+    mockStream.mockReturnValueOnce(
+      createMockStream(
+        makeToolUseResponse([
+          { id: 'tool_1', name: 'test_tool', input: { query: 'a' } },
+        ]),
+      ),
+    );
+    // Second iteration: should hit timeout check before making API call
+    mockStream.mockReturnValueOnce(
+      createMockStream(makeTextResponse('Should not reach this')),
+    );
+
+    const orchestrator = new AgentOrchestrator(timeoutConfig);
+    const result = await orchestrator.run(
+      [{ role: 'user', content: 'Go' }],
+      [],
+    );
+
+    expect(result.response).toContain('too long');
+    expect(result.toolCallsUsed).toHaveLength(1); // first tool ran, second iteration timed out
+  });
+
+  it('defaults maxDurationMs to 120000', () => {
+    const orchestrator = new AgentOrchestrator(config);
+    // Access via casting since it's private — just testing the default
+    expect(
+      (orchestrator as unknown as { maxDurationMs: number }).maxDurationMs,
+    ).toBe(120_000);
+  });
+
+  // -----------------------------------------------------------------------
   // System prompt builder is called with correct args
   // -----------------------------------------------------------------------
   it('passes systemPromptArgs to the systemPromptBuilder', async () => {

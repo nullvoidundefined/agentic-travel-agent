@@ -162,6 +162,9 @@ export async function chat(req: Request, res: Response) {
   // for any agent loop that takes longer than 30 seconds. Disable it for this
   // long-running SSE endpoint by resetting the socket timeout to 0 (unlimited).
   res.setTimeout(0);
+  // Backup safety net: close the connection if the agent loop exceeds 150s
+  // (slightly longer than the orchestrator's 120s maxDurationMs)
+  req.socket.setTimeout(150_000);
 
   // Clean up if client disconnects mid-stream
   req.on('close', () => {

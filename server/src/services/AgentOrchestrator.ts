@@ -7,6 +7,7 @@ import { buildNodeFromToolResult } from './node-builder.js';
 const DEFAULT_MAX_ITERATIONS = 15;
 const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
 const DEFAULT_MAX_TOKENS = 4096;
+const DEFAULT_MAX_DURATION_MS = 120_000;
 
 export interface ToolCallRecord {
   tool_name: string;
@@ -57,6 +58,8 @@ export interface AgentOrchestratorConfig {
   systemPromptBuilder: (...args: unknown[]) => string;
   toolExecutor: ToolExecutor;
   maxIterations?: number;
+  /** Maximum wall-clock duration for the entire agent loop in milliseconds (default: 120s) */
+  maxDurationMs?: number;
   model?: string;
   maxTokens?: number;
   /** Called after each tool execution for logging/observability */
@@ -70,6 +73,7 @@ export class AgentOrchestrator {
   private readonly systemPromptBuilder: (...args: unknown[]) => string;
   private readonly toolExecutor: ToolExecutor;
   private readonly maxIterations: number;
+  private readonly maxDurationMs: number;
   private readonly model: string;
   private readonly maxTokens: number;
   private readonly onToolExecuted?: OnToolExecuted;
@@ -80,6 +84,7 @@ export class AgentOrchestrator {
     this.systemPromptBuilder = config.systemPromptBuilder;
     this.toolExecutor = config.toolExecutor;
     this.maxIterations = config.maxIterations ?? DEFAULT_MAX_ITERATIONS;
+    this.maxDurationMs = config.maxDurationMs ?? DEFAULT_MAX_DURATION_MS;
     this.model = config.model ?? DEFAULT_MODEL;
     this.maxTokens = config.maxTokens ?? DEFAULT_MAX_TOKENS;
     this.onToolExecuted = config.onToolExecuted;
@@ -100,8 +105,27 @@ export class AgentOrchestrator {
     let formatResponseData: FormatResponseData | null = null;
 
     const conversationMessages = [...messages];
+    const loopStartTime = Date.now();
 
     while (true) {
+      // Wall-clock timeout: abort if the loop has been running too long
+      const elapsed = Date.now() - loopStartTime;
+      if (elapsed > this.maxDurationMs) {
+        logger.warn(
+          { iterations, tokensUsed, elapsed },
+          'Agent loop timed out',
+        );
+        return {
+          response:
+            "I'm taking too long on this request. Please send another message to continue where I left off.",
+          toolCallsUsed: toolCalls,
+          tokensUsed,
+          iterations,
+          nodes: collectedNodes,
+          formatResponse: formatResponseData,
+        };
+      }
+
       iterations++;
 
       const stream = this.client.messages.stream({
