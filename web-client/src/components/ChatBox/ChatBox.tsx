@@ -84,6 +84,33 @@ export function ChatBox({
         return;
       }
 
+      // Auto-save any form data that hasn't been submitted yet.
+      // If the user typed in the chat input while the trip details form has values,
+      // we treat that data as canonical and persist it before sending the message.
+      const formData: Record<string, unknown> = {};
+      const formFields = [
+        { id: 'destination', key: 'destination' },
+        { id: 'origin', key: 'origin' },
+        { id: 'departure_date', key: 'departure_date' },
+        { id: 'return_date', key: 'return_date' },
+        { id: 'budget', key: 'budget_total', transform: Number },
+        { id: 'travelers', key: 'travelers', transform: Number },
+      ] as const;
+
+      for (const field of formFields) {
+        const el = document.getElementById(field.id) as HTMLInputElement | null;
+        if (el?.value?.trim()) {
+          formData[field.key] =
+            'transform' in field ? field.transform(el.value) : el.value;
+        }
+      }
+
+      if (Object.keys(formData).length > 0) {
+        put(`/trips/${tripId}`, formData).catch((err) =>
+          console.error('Failed to auto-save form data:', err),
+        );
+      }
+
       // Optimistic: show user message immediately
       setPendingUserMessage({
         id: `pending-${Date.now()}`,
@@ -94,7 +121,7 @@ export function ChatBox({
       });
       sendMessage(msg);
     },
-    [sendMessage, serverMessages?.length, onBookTrip],
+    [sendMessage, serverMessages?.length, onBookTrip, tripId],
   );
 
   const handleSubmit = useCallback(
