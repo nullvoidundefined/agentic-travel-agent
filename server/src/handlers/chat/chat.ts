@@ -16,6 +16,7 @@ import { getTripWithDetails } from "app/repositories/trips/trips.js";
 import { findByUserId as findUserPreferences } from "app/repositories/userPreferences/userPreferences.js";
 import { runAgentLoop } from "app/services/agent.service.js";
 import { getEnrichmentNodes } from "app/services/enrichment.js";
+import { ApiError } from "app/utils/ApiError.js";
 import { logger } from "app/utils/logs/logger.js";
 import type { Request, Response } from "express";
 
@@ -43,28 +44,23 @@ export async function chat(req: Request, res: Response) {
   const { message } = req.body;
 
   if (!message || typeof message !== "string") {
-    res
-      .status(400)
-      .json({ error: "VALIDATION_ERROR", message: "message is required" });
-    return;
+    throw ApiError.badRequest("message is required");
   }
 
   const trip = await getTripWithDetails(tripId, userId);
   if (!trip) {
-    res.status(404).json({ error: "NOT_FOUND", message: "Trip not found" });
-    return;
+    throw ApiError.notFound("Trip not found");
   }
 
   const userPrefs = await findUserPreferences(userId);
   const conversation = await getOrCreateConversation(tripId);
 
   if (activeConversations.has(conversation.id)) {
-    res.status(409).json({
-      error: "CONFLICT",
-      message:
-        "A response is already being generated for this trip. Please wait.",
-    });
-    return;
+    throw new ApiError(
+      409,
+      "CONFLICT",
+      "A response is already being generated for this trip. Please wait.",
+    );
   }
   activeConversations.add(conversation.id);
 
@@ -215,8 +211,7 @@ export async function getMessages(req: Request, res: Response) {
 
   const trip = await getTripWithDetails(tripId, userId);
   if (!trip) {
-    res.status(404).json({ error: "NOT_FOUND", message: "Trip not found" });
-    return;
+    throw ApiError.notFound("Trip not found");
   }
 
   const conversation = await getOrCreateConversation(tripId);
