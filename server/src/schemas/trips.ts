@@ -1,17 +1,17 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const createTripSchema = z.object({
-  destination: z.string().min(1, 'Destination is required'),
+  destination: z.string().min(1, "Destination is required"),
   origin: z.string().optional(),
   departure_date: z.string().optional(),
   return_date: z.string().optional(),
   budget_total: z.number().positive().optional(),
-  budget_currency: z.string().default('USD'),
+  budget_currency: z.string().default("USD"),
   travelers: z.number().int().positive().default(1),
   preferences: z
     .object({
-      style: z.enum(['luxury', 'budget', 'mid-range']).optional(),
-      pace: z.enum(['relaxed', 'moderate', 'packed']).optional(),
+      style: z.enum(["luxury", "budget", "mid-range"]).optional(),
+      pace: z.enum(["relaxed", "moderate", "packed"]).optional(),
       interests: z.array(z.string()).optional(),
     })
     .default({}),
@@ -30,8 +30,9 @@ export interface Trip {
   budget_currency: string;
   travelers: number;
   preferences: Record<string, unknown>;
-  status: 'planning' | 'saved' | 'archived';
-  transport_mode: 'flying' | 'driving' | null;
+  status: "planning" | "saved" | "archived";
+  transport_mode: "flying" | "driving" | null;
+  trip_type: "round_trip" | "one_way" | null;
   created_at: Date;
   updated_at: Date;
 }

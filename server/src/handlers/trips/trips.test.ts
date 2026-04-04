@@ -1,13 +1,13 @@
-import * as tripHandlers from 'app/handlers/trips/trips.js';
-import { errorHandler } from 'app/middleware/errorHandler/errorHandler.js';
-import * as tripRepo from 'app/repositories/trips/trips.js';
-import { uuid } from 'app/utils/tests/uuids.js';
-import express from 'express';
-import request from 'supertest';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as tripHandlers from "app/handlers/trips/trips.js";
+import { errorHandler } from "app/middleware/errorHandler/errorHandler.js";
+import * as tripRepo from "app/repositories/trips/trips.js";
+import { uuid } from "app/utils/tests/uuids.js";
+import express from "express";
+import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock('app/repositories/trips/trips.js');
-vi.mock('app/utils/logs/logger.js', () => ({
+vi.mock("app/repositories/trips/trips.js");
+vi.mock("app/utils/logs/logger.js", () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
@@ -21,19 +21,19 @@ function createApp() {
   app.use((req, _res, next) => {
     req.user = {
       id: userId,
-      email: 'user@example.com',
-      first_name: 'Test',
-      last_name: 'User',
-      created_at: new Date('2025-01-01'),
+      email: "user@example.com",
+      first_name: "Test",
+      last_name: "User",
+      created_at: new Date("2025-01-01"),
       updated_at: null,
     };
     next();
   });
-  app.post('/trips', tripHandlers.createTrip);
-  app.get('/trips', tripHandlers.listTrips);
-  app.get('/trips/:id', tripHandlers.getTrip);
-  app.put('/trips/:id', tripHandlers.updateTrip);
-  app.delete('/trips/:id', tripHandlers.deleteTrip);
+  app.post("/trips", tripHandlers.createTrip);
+  app.get("/trips", tripHandlers.listTrips);
+  app.get("/trips/:id", tripHandlers.getTrip);
+  app.put("/trips/:id", tripHandlers.updateTrip);
+  app.delete("/trips/:id", tripHandlers.deleteTrip);
   app.use(errorHandler);
   return app;
 }
@@ -41,21 +41,22 @@ function createApp() {
 const mockTrip = {
   id: tripId,
   user_id: userId,
-  destination: 'Barcelona',
-  origin: 'SFO',
-  departure_date: '2026-07-01',
-  return_date: '2026-07-06',
+  destination: "Barcelona",
+  origin: "SFO",
+  departure_date: "2026-07-01",
+  return_date: "2026-07-06",
   budget_total: 3000,
-  budget_currency: 'USD',
+  budget_currency: "USD",
   travelers: 2,
-  preferences: { style: 'mid-range', pace: 'moderate', interests: ['food'] },
-  status: 'planning' as const,
+  preferences: { style: "mid-range", pace: "moderate", interests: ["food"] },
+  status: "planning" as const,
   transport_mode: null,
-  created_at: new Date('2025-01-01'),
-  updated_at: new Date('2025-01-01'),
+  trip_type: null,
+  created_at: new Date("2025-01-01"),
+  updated_at: new Date("2025-01-01"),
 };
 
-describe('trip handlers', () => {
+describe("trip handlers", () => {
   let app: ReturnType<typeof createApp>;
 
   beforeEach(() => {
@@ -63,42 +64,42 @@ describe('trip handlers', () => {
     app = createApp();
   });
 
-  describe('POST /trips (createTrip)', () => {
-    it('returns 400 when destination is missing', async () => {
-      const res = await request(app).post('/trips').send({});
+  describe("POST /trips (createTrip)", () => {
+    it("returns 400 when destination is missing", async () => {
+      const res = await request(app).post("/trips").send({});
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('VALIDATION_ERROR');
+      expect(res.body.error).toBe("VALIDATION_ERROR");
       expect(tripRepo.createTrip).not.toHaveBeenCalled();
     });
 
-    it('returns 201 with created trip', async () => {
+    it("returns 201 with created trip", async () => {
       vi.mocked(tripRepo.createTrip).mockResolvedValueOnce(mockTrip);
 
       const res = await request(app)
-        .post('/trips')
+        .post("/trips")
         .send({
-          destination: 'Barcelona',
-          origin: 'SFO',
-          departure_date: '2026-07-01',
-          return_date: '2026-07-06',
+          destination: "Barcelona",
+          origin: "SFO",
+          departure_date: "2026-07-01",
+          return_date: "2026-07-06",
           budget_total: 3000,
           travelers: 2,
-          preferences: { style: 'mid-range' },
+          preferences: { style: "mid-range" },
         });
 
       expect(res.status).toBe(201);
       expect(res.body.trip.id).toBe(tripId);
-      expect(res.body.trip.destination).toBe('Barcelona');
+      expect(res.body.trip.destination).toBe("Barcelona");
       expect(tripRepo.createTrip).toHaveBeenCalledWith(
         userId,
         expect.objectContaining({
-          destination: 'Barcelona',
+          destination: "Barcelona",
           budget_total: 3000,
         }),
       );
     });
 
-    it('creates trip with minimal fields (destination only)', async () => {
+    it("creates trip with minimal fields (destination only)", async () => {
       vi.mocked(tripRepo.createTrip).mockResolvedValueOnce({
         ...mockTrip,
         origin: null,
@@ -108,61 +109,61 @@ describe('trip handlers', () => {
       });
 
       const res = await request(app)
-        .post('/trips')
-        .send({ destination: 'Paris' });
+        .post("/trips")
+        .send({ destination: "Paris" });
 
       expect(res.status).toBe(201);
       expect(tripRepo.createTrip).toHaveBeenCalled();
     });
 
-    it('returns 500 on repo error', async () => {
+    it("returns 500 on repo error", async () => {
       vi.mocked(tripRepo.createTrip).mockRejectedValueOnce(
-        new Error('DB error'),
+        new Error("DB error"),
       );
 
       const res = await request(app)
-        .post('/trips')
-        .send({ destination: 'Barcelona' });
+        .post("/trips")
+        .send({ destination: "Barcelona" });
 
       expect(res.status).toBe(500);
-      expect(res.body.error).toBe('INTERNAL_ERROR');
+      expect(res.body.error).toBe("INTERNAL_ERROR");
     });
   });
 
-  describe('GET /trips (listTrips)', () => {
-    it('returns empty array when no trips', async () => {
+  describe("GET /trips (listTrips)", () => {
+    it("returns empty array when no trips", async () => {
       vi.mocked(tripRepo.listTrips).mockResolvedValueOnce([]);
 
-      const res = await request(app).get('/trips');
+      const res = await request(app).get("/trips");
 
       expect(res.status).toBe(200);
       expect(res.body.trips).toEqual([]);
       expect(tripRepo.listTrips).toHaveBeenCalledWith(userId);
     });
 
-    it('returns user trips', async () => {
+    it("returns user trips", async () => {
       vi.mocked(tripRepo.listTrips).mockResolvedValueOnce([mockTrip]);
 
-      const res = await request(app).get('/trips');
+      const res = await request(app).get("/trips");
 
       expect(res.status).toBe(200);
       expect(res.body.trips).toHaveLength(1);
-      expect(res.body.trips[0].destination).toBe('Barcelona');
+      expect(res.body.trips[0].destination).toBe("Barcelona");
     });
   });
 
-  describe('GET /trips/:id (getTrip)', () => {
-    it('returns 404 when trip not found', async () => {
+  describe("GET /trips/:id (getTrip)", () => {
+    it("returns 404 when trip not found", async () => {
       vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(null);
 
       const res = await request(app).get(`/trips/${tripId}`);
 
       expect(res.status).toBe(404);
-      expect(res.body.error).toBe('NOT_FOUND');
-      expect(res.body.message).toBe('Trip not found');
+      expect(res.body.error).toBe("NOT_FOUND");
+      expect(res.body.message).toBe("Trip not found");
     });
 
-    it('returns trip with details', async () => {
+    it("returns trip with details", async () => {
       vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce({
         ...mockTrip,
         flights: [],
@@ -174,83 +175,83 @@ describe('trip handlers', () => {
       const res = await request(app).get(`/trips/${tripId}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.trip.destination).toBe('Barcelona');
+      expect(res.body.trip.destination).toBe("Barcelona");
       expect(res.body.trip.flights).toEqual([]);
       expect(tripRepo.getTripWithDetails).toHaveBeenCalledWith(tripId, userId);
     });
   });
 
-  describe('PUT /trips/:id (updateTrip)', () => {
-    it('returns 400 when no fields provided', async () => {
+  describe("PUT /trips/:id (updateTrip)", () => {
+    it("returns 400 when no fields provided", async () => {
       const res = await request(app).put(`/trips/${tripId}`).send({});
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('VALIDATION_ERROR');
+      expect(res.body.error).toBe("VALIDATION_ERROR");
     });
 
-    it('returns 404 when trip not found', async () => {
+    it("returns 404 when trip not found", async () => {
       vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce(null);
 
       const res = await request(app)
         .put(`/trips/${tripId}`)
-        .send({ status: 'saved' });
+        .send({ status: "saved" });
 
       expect(res.status).toBe(404);
-      expect(res.body.error).toBe('NOT_FOUND');
+      expect(res.body.error).toBe("NOT_FOUND");
     });
 
-    it('updates trip status to saved', async () => {
+    it("updates trip status to saved", async () => {
       vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce({
         ...mockTrip,
-        status: 'saved',
+        status: "saved",
       });
 
       const res = await request(app)
         .put(`/trips/${tripId}`)
-        .send({ status: 'saved' });
+        .send({ status: "saved" });
 
       expect(res.status).toBe(200);
-      expect(res.body.trip.status).toBe('saved');
+      expect(res.body.trip.status).toBe("saved");
       expect(tripRepo.updateTrip).toHaveBeenCalledWith(
         tripId,
         userId,
-        expect.objectContaining({ status: 'saved' }),
+        expect.objectContaining({ status: "saved" }),
       );
     });
 
-    it('updates trip dates', async () => {
+    it("updates trip dates", async () => {
       vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce({
         ...mockTrip,
-        departure_date: '2026-08-01',
-        return_date: '2026-08-10',
+        departure_date: "2026-08-01",
+        return_date: "2026-08-10",
       });
 
       const res = await request(app)
         .put(`/trips/${tripId}`)
-        .send({ departure_date: '2026-08-01', return_date: '2026-08-10' });
+        .send({ departure_date: "2026-08-01", return_date: "2026-08-10" });
 
       expect(res.status).toBe(200);
       expect(tripRepo.updateTrip).toHaveBeenCalledWith(
         tripId,
         userId,
         expect.objectContaining({
-          departure_date: '2026-08-01',
-          return_date: '2026-08-10',
+          departure_date: "2026-08-01",
+          return_date: "2026-08-10",
         }),
       );
     });
   });
 
-  describe('DELETE /trips/:id (deleteTrip)', () => {
-    it('returns 404 when trip not found', async () => {
+  describe("DELETE /trips/:id (deleteTrip)", () => {
+    it("returns 404 when trip not found", async () => {
       vi.mocked(tripRepo.deleteTrip).mockResolvedValueOnce(false);
 
       const res = await request(app).delete(`/trips/${tripId}`);
 
       expect(res.status).toBe(404);
-      expect(res.body.error).toBe('NOT_FOUND');
+      expect(res.body.error).toBe("NOT_FOUND");
     });
 
-    it('returns 204 on successful delete', async () => {
+    it("returns 204 on successful delete", async () => {
       vi.mocked(tripRepo.deleteTrip).mockResolvedValueOnce(true);
 
       const res = await request(app).delete(`/trips/${tripId}`);

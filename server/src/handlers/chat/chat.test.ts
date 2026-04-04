@@ -1,36 +1,36 @@
-import * as chatHandlers from 'app/handlers/chat/chat.js';
-import { errorHandler } from 'app/middleware/errorHandler/errorHandler.js';
-import * as convRepo from 'app/repositories/conversations/conversations.js';
-import * as tripRepo from 'app/repositories/trips/trips.js';
-import * as agentService from 'app/services/agent.service.js';
-import { uuid } from 'app/utils/tests/uuids.js';
-import express from 'express';
-import request from 'supertest';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as chatHandlers from "app/handlers/chat/chat.js";
+import { errorHandler } from "app/middleware/errorHandler/errorHandler.js";
+import * as convRepo from "app/repositories/conversations/conversations.js";
+import * as tripRepo from "app/repositories/trips/trips.js";
+import * as agentService from "app/services/agent.service.js";
+import { uuid } from "app/utils/tests/uuids.js";
+import express from "express";
+import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock('app/repositories/conversations/conversations.js');
-vi.mock('app/repositories/trips/trips.js');
-vi.mock('app/repositories/userPreferences/userPreferences.js');
-vi.mock('app/services/agent.service.js');
-vi.mock('app/tools/mock/isMockMode.js', () => ({
+vi.mock("app/repositories/conversations/conversations.js");
+vi.mock("app/repositories/trips/trips.js");
+vi.mock("app/repositories/userPreferences/userPreferences.js");
+vi.mock("app/services/agent.service.js");
+vi.mock("app/tools/mock/isMockMode.js", () => ({
   isMockMode: vi.fn().mockReturnValue(false),
 }));
-vi.mock('app/tools/mock/flights.mock.js', () => ({
+vi.mock("app/tools/mock/flights.mock.js", () => ({
   generateMockFlights: vi.fn(),
 }));
-vi.mock('app/tools/mock/hotels.mock.js', () => ({
+vi.mock("app/tools/mock/hotels.mock.js", () => ({
   generateMockHotels: vi.fn(),
 }));
-vi.mock('app/tools/mock/car-rentals.mock.js', () => ({
+vi.mock("app/tools/mock/car-rentals.mock.js", () => ({
   generateMockCarRentals: vi.fn(),
 }));
-vi.mock('app/tools/mock/experiences.mock.js', () => ({
+vi.mock("app/tools/mock/experiences.mock.js", () => ({
   generateMockExperiences: vi.fn(),
 }));
-vi.mock('app/services/enrichment.js', () => ({
+vi.mock("app/services/enrichment.js", () => ({
   getEnrichmentNodes: vi.fn().mockResolvedValue([]),
 }));
-vi.mock('app/utils/logs/logger.js', () => ({
+vi.mock("app/utils/logs/logger.js", () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
@@ -44,27 +44,27 @@ function createApp() {
   app.use((req, _res, next) => {
     req.user = {
       id: userId,
-      email: 'user@example.com',
-      first_name: 'Test',
-      last_name: 'User',
-      created_at: new Date('2025-01-01'),
+      email: "user@example.com",
+      first_name: "Test",
+      last_name: "User",
+      created_at: new Date("2025-01-01"),
       updated_at: null,
     };
     next();
   });
-  app.post('/trips/:id/chat', chatHandlers.chat);
-  app.get('/trips/:id/messages', chatHandlers.getMessages);
+  app.post("/trips/:id/chat", chatHandlers.chat);
+  app.get("/trips/:id/messages", chatHandlers.getMessages);
   app.use(errorHandler);
   return app;
 }
 
-describe('chat handlers', () => {
+describe("chat handlers", () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });
 
-  describe('POST /trips/:id/chat', () => {
-    it('returns 400 when message is missing', async () => {
+  describe("POST /trips/:id/chat", () => {
+    it("returns 400 when message is missing", async () => {
       const app = createApp();
 
       const res = await request(app).post(`/trips/${tripId}/chat`).send({});
@@ -72,29 +72,29 @@ describe('chat handlers', () => {
       expect(res.status).toBe(400);
     });
 
-    it('returns 404 when trip not found', async () => {
+    it("returns 404 when trip not found", async () => {
       const app = createApp();
       vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(null);
 
       const res = await request(app)
         .post(`/trips/${tripId}/chat`)
-        .send({ message: 'Plan my trip' });
+        .send({ message: "Plan my trip" });
 
       expect(res.status).toBe(404);
     });
 
-    it('streams SSE events for a successful chat', async () => {
+    it("streams SSE events for a successful chat", async () => {
       const app = createApp();
 
       vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce({
         id: tripId,
         user_id: userId,
-        destination: 'Barcelona',
-        origin: 'JFK',
-        departure_date: '2026-07-01',
-        return_date: '2026-07-06',
+        destination: "Barcelona",
+        origin: "JFK",
+        departure_date: "2026-07-01",
+        return_date: "2026-07-06",
         budget_total: 3000,
-        budget_currency: 'USD',
+        budget_currency: "USD",
         travelers: 2,
         flights: [],
         hotels: [],
@@ -111,77 +111,77 @@ describe('chat handlers', () => {
       vi.mocked(convRepo.insertMessage).mockResolvedValue({
         id: uuid(3),
         conversation_id: convId,
-        role: 'user',
-        content: 'Plan my trip',
+        role: "user",
+        content: "Plan my trip",
         sequence: 1,
-        created_at: '2026-01-01T00:00:00Z',
+        created_at: "2026-01-01T00:00:00Z",
       } as never);
 
       vi.mocked(agentService.runAgentLoop).mockImplementationOnce(
         async (_messages, _ctx, onEvent) => {
           onEvent({
-            type: 'tool_progress',
-            tool_name: 'search_flights',
-            tool_id: 't1',
-            status: 'running',
+            type: "tool_progress",
+            tool_name: "search_flights",
+            tool_id: "t1",
+            status: "running",
           });
           onEvent({
-            type: 'tool_progress',
-            tool_name: 'search_flights',
-            tool_id: 't1',
-            status: 'done',
+            type: "tool_progress",
+            tool_name: "search_flights",
+            tool_id: "t1",
+            status: "done",
           });
           onEvent({
-            type: 'text_delta',
-            content: 'Here is your plan.',
+            type: "text_delta",
+            content: "Here is your plan.",
           });
           return {
-            response: 'Here is your plan.',
+            response: "Here is your plan.",
             tool_calls: [
               {
-                tool_name: 'search_flights',
-                tool_id: 't1',
+                tool_name: "search_flights",
+                tool_id: "t1",
                 input: {},
                 result: [],
               },
             ],
             total_tokens: { input: 100, output: 50 },
-            nodes: [{ type: 'text', content: 'Here is your plan.' }],
+            nodes: [{ type: "text", content: "Here is your plan." }],
           };
         },
       );
 
       const res = await request(app)
         .post(`/trips/${tripId}/chat`)
-        .send({ message: 'Plan my trip' })
+        .send({ message: "Plan my trip" })
         .buffer(true)
         .parse((res, callback) => {
-          let data = '';
-          res.on('data', (chunk: Buffer) => {
+          let data = "";
+          res.on("data", (chunk: Buffer) => {
             data += chunk.toString();
           });
-          res.on('end', () => callback(null, data));
+          res.on("end", () => callback(null, data));
         });
 
       expect(res.status).toBe(200);
-      expect(res.headers['content-type']).toContain('text/event-stream');
-      expect(res.body).toContain('event: tool_progress');
-      expect(res.body).toContain('event: text_delta');
-      expect(res.body).toContain('event: done');
+      expect(res.headers["content-type"]).toContain("text/event-stream");
+      expect(res.body).toContain("event: tool_progress");
+      expect(res.body).toContain("event: text_delta");
+      expect(res.body).toContain("event: done");
     });
 
-    it('persists user and assistant messages', async () => {
+    it("persists user and assistant messages", async () => {
       const app = createApp();
 
       vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce({
         id: tripId,
         user_id: userId,
-        destination: 'Barcelona',
-        origin: 'JFK',
-        departure_date: '2026-07-01',
-        return_date: '2026-07-06',
+        destination: "Barcelona",
+        origin: "JFK",
+        departure_date: "2026-07-01",
+        return_date: "2026-07-06",
         budget_total: 3000,
-        budget_currency: 'USD',
+        budget_currency: "USD",
         travelers: 2,
         flights: [],
         hotels: [],
@@ -198,42 +198,42 @@ describe('chat handlers', () => {
       vi.mocked(convRepo.insertMessage).mockResolvedValue({
         id: uuid(3),
         conversation_id: convId,
-        role: 'user',
-        content: 'Hello',
+        role: "user",
+        content: "Hello",
         sequence: 1,
-        created_at: '2026-01-01T00:00:00Z',
+        created_at: "2026-01-01T00:00:00Z",
       } as never);
 
       vi.mocked(agentService.runAgentLoop).mockResolvedValueOnce({
-        response: 'Hi!',
+        response: "Hi!",
         tool_calls: [],
         total_tokens: { input: 50, output: 20 },
-        nodes: [{ type: 'text', content: 'Hi!' }],
+        nodes: [{ type: "text", content: "Hi!" }],
       });
 
       await request(app)
         .post(`/trips/${tripId}/chat`)
-        .send({ message: 'Hello' })
+        .send({ message: "Hello" })
         .buffer(true)
         .parse((res, callback) => {
-          let data = '';
-          res.on('data', (chunk: Buffer) => {
+          let data = "";
+          res.on("data", (chunk: Buffer) => {
             data += chunk.toString();
           });
-          res.on('end', () => callback(null, data));
+          res.on("end", () => callback(null, data));
         });
 
       // Should persist both user and assistant messages
       expect(convRepo.insertMessage).toHaveBeenCalledTimes(2);
       expect(convRepo.insertMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ role: 'user', content: 'Hello' }),
+        expect.objectContaining({ role: "user", content: "Hello" }),
       );
       expect(convRepo.insertMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ role: 'assistant', content: 'Hi!' }),
+        expect.objectContaining({ role: "assistant", content: "Hi!" }),
       );
     });
 
-    it('appends form with only MISSING fields after agent updates trip', async () => {
+    it("appends form with only MISSING fields after agent updates trip", async () => {
       const app = createApp();
 
       // Initial trip state: only destination set, everything else missing
@@ -241,35 +241,37 @@ describe('chat handlers', () => {
         .mockResolvedValueOnce({
           id: tripId,
           user_id: userId,
-          destination: 'Planning...',
+          destination: "Planning...",
           origin: null,
           departure_date: null,
           return_date: null,
           budget_total: null,
-          budget_currency: 'USD',
+          budget_currency: "USD",
           travelers: 1,
           transport_mode: null,
+          trip_type: null,
           flights: [],
           hotels: [],
           experiences: [],
-          status: 'planning',
+          status: "planning",
         } as never)
         // Second call: after agent ran update_trip, trip now has destination + dates + travelers
         .mockResolvedValueOnce({
           id: tripId,
           user_id: userId,
-          destination: 'Tokyo',
+          destination: "Tokyo",
           origin: null,
-          departure_date: '2026-04-15',
-          return_date: '2026-04-29',
+          departure_date: "2026-04-15",
+          return_date: "2026-04-29",
           budget_total: null,
-          budget_currency: 'USD',
+          budget_currency: "USD",
           travelers: 2,
           transport_mode: null,
+          trip_type: null,
           flights: [],
           hotels: [],
           experiences: [],
-          status: 'planning',
+          status: "planning",
         } as never);
 
       vi.mocked(convRepo.getOrCreateConversation).mockResolvedValueOnce({
@@ -282,29 +284,29 @@ describe('chat handlers', () => {
       vi.mocked(convRepo.insertMessage).mockResolvedValue({
         id: uuid(3),
         conversation_id: convId,
-        role: 'user',
-        content: 'Tokyo, 2 people, April 15, two weeks',
+        role: "user",
+        content: "Tokyo, 2 people, April 15, two weeks",
         sequence: 1,
-        created_at: '2026-01-01T00:00:00Z',
+        created_at: "2026-01-01T00:00:00Z",
       } as never);
 
       vi.mocked(agentService.runAgentLoop).mockResolvedValueOnce({
-        response: 'Tokyo sounds great!',
+        response: "Tokyo sounds great!",
         tool_calls: [],
         total_tokens: { input: 50, output: 20 },
-        nodes: [{ type: 'text' as const, content: 'Tokyo sounds great!' }],
+        nodes: [{ type: "text" as const, content: "Tokyo sounds great!" }],
       });
 
       const res = await request(app)
         .post(`/trips/${tripId}/chat`)
-        .send({ message: 'Tokyo, 2 people, April 15, two weeks' })
+        .send({ message: "Tokyo, 2 people, April 15, two weeks" })
         .buffer(true)
         .parse((res, callback) => {
-          let data = '';
-          res.on('data', (chunk: Buffer) => {
+          let data = "";
+          res.on("data", (chunk: Buffer) => {
             data += chunk.toString();
           });
-          res.on('end', () => callback(null, data));
+          res.on("end", () => callback(null, data));
         });
 
       expect(res.status).toBe(200);
@@ -318,58 +320,60 @@ describe('chat handlers', () => {
       );
 
       // Should have a form node
-      expect(nodeTypes).toContain('travel_plan_form');
+      expect(nodeTypes).toContain("travel_plan_form");
 
       // Form should only contain fields still missing (origin and budget)
       // NOT destination, departure_date, return_date, or travelers
       const formNode = doneData.message.nodes.find(
-        (n: { type: string }) => n.type === 'travel_plan_form',
+        (n: { type: string }) => n.type === "travel_plan_form",
       );
       const fieldNames = formNode.fields.map((f: { name: string }) => f.name);
-      expect(fieldNames).toContain('origin');
-      expect(fieldNames).toContain('budget');
-      expect(fieldNames).not.toContain('destination');
-      expect(fieldNames).not.toContain('departure_date');
-      expect(fieldNames).not.toContain('return_date');
-      expect(fieldNames).not.toContain('travelers');
+      expect(fieldNames).toContain("origin");
+      expect(fieldNames).toContain("budget");
+      expect(fieldNames).not.toContain("destination");
+      expect(fieldNames).not.toContain("departure_date");
+      expect(fieldNames).not.toContain("return_date");
+      expect(fieldNames).not.toContain("travelers");
     });
-    it('does not show travelers field when travelers=1 (solo travel is valid)', async () => {
+    it("does not show travelers field when travelers=1 (solo travel is valid)", async () => {
       const app = createApp();
 
       vi.mocked(tripRepo.getTripWithDetails)
         .mockResolvedValueOnce({
           id: tripId,
           user_id: userId,
-          destination: 'Tokyo',
-          origin: 'SFO',
-          departure_date: '2026-04-15',
+          destination: "Tokyo",
+          origin: "SFO",
+          departure_date: "2026-04-15",
           return_date: null,
           budget_total: 2500,
-          budget_currency: 'USD',
+          budget_currency: "USD",
           travelers: 1,
           transport_mode: null,
+          trip_type: null,
           flights: [],
           hotels: [],
           car_rentals: [],
           experiences: [],
-          status: 'planning',
+          status: "planning",
         } as never)
         .mockResolvedValueOnce({
           id: tripId,
           user_id: userId,
-          destination: 'Tokyo',
-          origin: 'SFO',
-          departure_date: '2026-04-15',
+          destination: "Tokyo",
+          origin: "SFO",
+          departure_date: "2026-04-15",
           return_date: null,
           budget_total: 2500,
-          budget_currency: 'USD',
+          budget_currency: "USD",
           travelers: 1,
           transport_mode: null,
+          trip_type: null,
           flights: [],
           hotels: [],
           car_rentals: [],
           experiences: [],
-          status: 'planning',
+          status: "planning",
         } as never);
 
       vi.mocked(convRepo.getOrCreateConversation).mockResolvedValueOnce({
@@ -378,35 +382,35 @@ describe('chat handlers', () => {
       } as never);
 
       vi.mocked(convRepo.getMessagesByConversation).mockResolvedValueOnce([
-        { id: uuid(3), role: 'user', content: 'prior message', sequence: 1 },
+        { id: uuid(3), role: "user", content: "prior message", sequence: 1 },
       ] as never);
 
       vi.mocked(convRepo.insertMessage).mockResolvedValue({
         id: uuid(4),
         conversation_id: convId,
-        role: 'user',
-        content: 'solo trip',
+        role: "user",
+        content: "solo trip",
         sequence: 2,
-        created_at: '2026-01-01T00:00:00Z',
+        created_at: "2026-01-01T00:00:00Z",
       } as never);
 
       vi.mocked(agentService.runAgentLoop).mockResolvedValueOnce({
-        response: 'Got it!',
+        response: "Got it!",
         tool_calls: [],
         total_tokens: { input: 50, output: 20 },
-        nodes: [{ type: 'text' as const, content: 'Got it!' }],
+        nodes: [{ type: "text" as const, content: "Got it!" }],
       });
 
       const res = await request(app)
         .post(`/trips/${tripId}/chat`)
-        .send({ message: 'solo trip' })
+        .send({ message: "solo trip" })
         .buffer(true)
         .parse((res, callback) => {
-          let data = '';
-          res.on('data', (chunk: Buffer) => {
+          let data = "";
+          res.on("data", (chunk: Buffer) => {
             data += chunk.toString();
           });
-          res.on('end', () => callback(null, data));
+          res.on("end", () => callback(null, data));
         });
 
       expect(res.status).toBe(200);
@@ -414,37 +418,38 @@ describe('chat handlers', () => {
       expect(doneMatch).toBeTruthy();
       const doneData = JSON.parse(doneMatch[1]);
       const formNode = doneData.message.nodes.find(
-        (n: { type: string }) => n.type === 'travel_plan_form',
+        (n: { type: string }) => n.type === "travel_plan_form",
       );
 
       // Form should show return_date (missing) but NOT travelers (1 is valid for solo)
       if (formNode) {
         const fieldNames = formNode.fields.map((f: { name: string }) => f.name);
-        expect(fieldNames).not.toContain('travelers');
-        expect(fieldNames).toContain('return_date');
+        expect(fieldNames).not.toContain("travelers");
+        expect(fieldNames).toContain("return_date");
       }
     });
 
-    it('updates completion tracker after agent loop and persists it', async () => {
+    it("updates completion tracker after agent loop and persists it", async () => {
       const app = createApp();
 
       // Trip with all details filled, transport_mode: flying, no flights yet
       const tripData = {
         id: tripId,
         user_id: userId,
-        destination: 'Barcelona',
-        origin: 'JFK',
-        departure_date: '2026-07-01',
-        return_date: '2026-07-06',
+        destination: "Barcelona",
+        origin: "JFK",
+        departure_date: "2026-07-01",
+        return_date: "2026-07-06",
         budget_total: 3000,
-        budget_currency: 'USD',
+        budget_currency: "USD",
         travelers: 2,
-        transport_mode: 'flying',
+        transport_mode: "flying",
+        trip_type: null,
         flights: [],
         hotels: [],
         car_rentals: [],
         experiences: [],
-        status: 'planning',
+        status: "planning",
       } as never;
 
       vi.mocked(tripRepo.getTripWithDetails)
@@ -456,11 +461,11 @@ describe('chat handlers', () => {
         trip_id: tripId,
         booking_state: {
           version: 2,
-          transport: 'flying',
-          flights: 'pending',
-          hotels: 'pending',
-          car_rental: 'pending',
-          experiences: 'pending',
+          transport: "flying",
+          flights: "pending",
+          hotels: "pending",
+          car_rental: "pending",
+          experiences: "pending",
           turns_since_last_progress: 0,
         },
       } as never);
@@ -470,36 +475,36 @@ describe('chat handlers', () => {
       vi.mocked(convRepo.insertMessage).mockResolvedValue({
         id: uuid(3),
         conversation_id: convId,
-        role: 'user',
-        content: 'Find flights',
+        role: "user",
+        content: "Find flights",
         sequence: 1,
-        created_at: '2026-01-01T00:00:00Z',
+        created_at: "2026-01-01T00:00:00Z",
       } as never);
 
       vi.mocked(agentService.runAgentLoop).mockResolvedValueOnce({
-        response: 'Here are some flights.',
+        response: "Here are some flights.",
         tool_calls: [
           {
-            tool_name: 'search_flights',
-            tool_id: 't1',
+            tool_name: "search_flights",
+            tool_id: "t1",
             input: {},
             result: [],
           },
         ],
         total_tokens: { input: 100, output: 50 },
-        nodes: [{ type: 'text', content: 'Here are some flights.' }],
+        nodes: [{ type: "text", content: "Here are some flights." }],
       });
 
       await request(app)
         .post(`/trips/${tripId}/chat`)
-        .send({ message: 'Find flights' })
+        .send({ message: "Find flights" })
         .buffer(true)
         .parse((res, callback) => {
-          let data = '';
-          res.on('data', (chunk: Buffer) => {
+          let data = "";
+          res.on("data", (chunk: Buffer) => {
             data += chunk.toString();
           });
-          res.on('end', () => callback(null, data));
+          res.on("end", () => callback(null, data));
         });
 
       // updateCompletionTracker is now wired — updateBookingState is called whenever updatedTrip exists
@@ -507,24 +512,24 @@ describe('chat handlers', () => {
       // search_flights tool call should advance flights to 'searching'
       expect(convRepo.updateBookingState).toHaveBeenCalledWith(
         convId,
-        expect.objectContaining({ flights: 'searching' }),
+        expect.objectContaining({ flights: "searching" }),
       );
     });
   });
 
-  describe('GET /trips/:id/messages', () => {
-    it('returns messages for a trip conversation', async () => {
+  describe("GET /trips/:id/messages", () => {
+    it("returns messages for a trip conversation", async () => {
       const app = createApp();
 
       vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce({
         id: tripId,
         user_id: userId,
-        destination: 'Barcelona',
-        origin: 'JFK',
-        departure_date: '2026-07-01',
-        return_date: '2026-07-06',
+        destination: "Barcelona",
+        origin: "JFK",
+        departure_date: "2026-07-01",
+        return_date: "2026-07-06",
         budget_total: 3000,
-        budget_currency: 'USD',
+        budget_currency: "USD",
         travelers: 2,
         flights: [],
         hotels: [],
@@ -537,12 +542,12 @@ describe('chat handlers', () => {
       } as never);
 
       const messages = [
-        { id: uuid(3), role: 'user', content: 'Hi', created_at: '2026-01-01' },
+        { id: uuid(3), role: "user", content: "Hi", created_at: "2026-01-01" },
         {
           id: uuid(4),
-          role: 'assistant',
-          content: 'Hello!',
-          created_at: '2026-01-01',
+          role: "assistant",
+          content: "Hello!",
+          created_at: "2026-01-01",
         },
       ];
       vi.mocked(convRepo.getMessagesByConversation).mockResolvedValueOnce(
@@ -555,18 +560,18 @@ describe('chat handlers', () => {
       expect(res.body.messages).toHaveLength(2);
     });
 
-    it('returns welcome message as text only (no form) for new trips', async () => {
+    it("returns welcome message as text only (no form) for new trips", async () => {
       const app = createApp();
 
       vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce({
         id: tripId,
         user_id: userId,
-        destination: 'Planning...',
+        destination: "Planning...",
         origin: null,
         departure_date: null,
         return_date: null,
         budget_total: null,
-        budget_currency: 'USD',
+        budget_currency: "USD",
         travelers: 1,
         flights: [],
         hotels: [],
@@ -584,33 +589,33 @@ describe('chat handlers', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.messages).toHaveLength(1);
-      expect(res.body.messages[0].id).toBe('welcome');
-      expect(res.body.messages[0].role).toBe('assistant');
+      expect(res.body.messages[0].id).toBe("welcome");
+      expect(res.body.messages[0].role).toBe("assistant");
 
       // Welcome message should be text ONLY — no form
       const nodeTypes = res.body.messages[0].nodes.map(
         (n: { type: string }) => n.type,
       );
-      expect(nodeTypes).toEqual(['text']);
-      expect(nodeTypes).not.toContain('travel_plan_form');
+      expect(nodeTypes).toEqual(["text"]);
+      expect(nodeTypes).not.toContain("travel_plan_form");
 
       // Text should be a friendly prompt asking for trip info
       const textNode = res.body.messages[0].nodes[0];
       expect(textNode.content).toMatch(/where|destination|trip/i);
     });
 
-    it('returns welcome text for trip with destination set', async () => {
+    it("returns welcome text for trip with destination set", async () => {
       const app = createApp();
 
       vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce({
         id: tripId,
         user_id: userId,
-        destination: 'Tokyo',
+        destination: "Tokyo",
         origin: null,
         departure_date: null,
         return_date: null,
         budget_total: null,
-        budget_currency: 'USD',
+        budget_currency: "USD",
         travelers: 1,
         flights: [],
         hotels: [],
@@ -631,17 +636,17 @@ describe('chat handlers', () => {
 
       // Should mention the destination
       const textNode = res.body.messages[0].nodes[0];
-      expect(textNode.type).toBe('text');
-      expect(textNode.content).toContain('Tokyo');
+      expect(textNode.type).toBe("text");
+      expect(textNode.content).toContain("Tokyo");
 
       // Still no form — text only
       const nodeTypes = res.body.messages[0].nodes.map(
         (n: { type: string }) => n.type,
       );
-      expect(nodeTypes).not.toContain('travel_plan_form');
+      expect(nodeTypes).not.toContain("travel_plan_form");
     });
 
-    it('returns 404 when trip not found', async () => {
+    it("returns 404 when trip not found", async () => {
       const app = createApp();
 
       vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(null);
