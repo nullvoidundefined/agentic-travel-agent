@@ -12,6 +12,21 @@ vi.mock('app/repositories/conversations/conversations.js');
 vi.mock('app/repositories/trips/trips.js');
 vi.mock('app/repositories/userPreferences/userPreferences.js');
 vi.mock('app/services/agent.service.js');
+vi.mock('app/tools/mock/isMockMode.js', () => ({
+  isMockMode: vi.fn().mockReturnValue(false),
+}));
+vi.mock('app/tools/mock/flights.mock.js', () => ({
+  generateMockFlights: vi.fn(),
+}));
+vi.mock('app/tools/mock/hotels.mock.js', () => ({
+  generateMockHotels: vi.fn(),
+}));
+vi.mock('app/tools/mock/car-rentals.mock.js', () => ({
+  generateMockCarRentals: vi.fn(),
+}));
+vi.mock('app/tools/mock/experiences.mock.js', () => ({
+  generateMockExperiences: vi.fn(),
+}));
 vi.mock('app/services/enrichment.js', () => ({
   getEnrichmentNodes: vi.fn().mockResolvedValue([]),
 }));

@@ -61,6 +61,12 @@ describe('flights.tool', () => {
     vi.doMock('app/utils/logs/logger.js', () => ({
       logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
     }));
+    vi.doMock('app/tools/mock/isMockMode.js', () => ({
+      isMockMode: vi.fn().mockReturnValue(false),
+    }));
+    vi.doMock('app/tools/mock/flights.mock.js', () => ({
+      generateMockFlights: vi.fn(),
+    }));
 
     const flightsMod = await import('app/tools/flights.tool.js');
     searchFlights = flightsMod.searchFlights;

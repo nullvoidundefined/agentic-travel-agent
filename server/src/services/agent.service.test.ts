@@ -6,6 +6,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@anthropic-ai/sdk');
 vi.mock('app/tools/executor.js');
+vi.mock('app/tools/mock/isMockMode.js', () => ({
+  isMockMode: vi.fn().mockReturnValue(false),
+}));
+vi.mock('app/tools/mock/flights.mock.js', () => ({
+  generateMockFlights: vi.fn(),
+}));
+vi.mock('app/tools/mock/hotels.mock.js', () => ({
+  generateMockHotels: vi.fn(),
+}));
+vi.mock('app/tools/mock/car-rentals.mock.js', () => ({
+  generateMockCarRentals: vi.fn(),
+}));
+vi.mock('app/tools/mock/experiences.mock.js', () => ({
+  generateMockExperiences: vi.fn(),
+}));
 vi.mock('app/tools/definitions.js', () => ({
   TOOL_DEFINITIONS: [
     {

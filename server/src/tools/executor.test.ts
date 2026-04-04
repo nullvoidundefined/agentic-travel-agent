@@ -13,6 +13,21 @@ vi.mock('app/tools/experiences.tool.js');
 vi.mock('app/tools/budget.tool.js');
 vi.mock('app/tools/destination.tool.js');
 vi.mock('app/repositories/trips/trips.js');
+vi.mock('app/tools/mock/isMockMode.js', () => ({
+  isMockMode: vi.fn().mockReturnValue(false),
+}));
+vi.mock('app/tools/mock/flights.mock.js', () => ({
+  generateMockFlights: vi.fn(),
+}));
+vi.mock('app/tools/mock/hotels.mock.js', () => ({
+  generateMockHotels: vi.fn(),
+}));
+vi.mock('app/tools/mock/car-rentals.mock.js', () => ({
+  generateMockCarRentals: vi.fn(),
+}));
+vi.mock('app/tools/mock/experiences.mock.js', () => ({
+  generateMockExperiences: vi.fn(),
+}));
 vi.mock('app/utils/logs/logger.js', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));

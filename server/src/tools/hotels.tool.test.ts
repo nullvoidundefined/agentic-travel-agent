@@ -45,6 +45,12 @@ describe('hotels.tool', () => {
     vi.doMock('app/utils/logs/logger.js', () => ({
       logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
     }));
+    vi.doMock('app/tools/mock/isMockMode.js', () => ({
+      isMockMode: vi.fn().mockReturnValue(false),
+    }));
+    vi.doMock('app/tools/mock/hotels.mock.js', () => ({
+      generateMockHotels: vi.fn(),
+    }));
 
     const hotelsMod = await import('app/tools/hotels.tool.js');
     searchHotels = hotelsMod.searchHotels;

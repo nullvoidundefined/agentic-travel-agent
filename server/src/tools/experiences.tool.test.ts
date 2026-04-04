@@ -45,6 +45,12 @@ describe('experiences.tool', () => {
     vi.doMock('app/utils/logs/logger.js', () => ({
       logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
     }));
+    vi.doMock('app/tools/mock/isMockMode.js', () => ({
+      isMockMode: vi.fn().mockReturnValue(false),
+    }));
+    vi.doMock('app/tools/mock/experiences.mock.js', () => ({
+      generateMockExperiences: vi.fn(),
+    }));
 
     process.env.GOOGLE_PLACES_API_KEY = 'test-api-key';
 

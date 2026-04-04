@@ -4,6 +4,8 @@ import {
   normalizeCacheKey,
 } from 'app/services/cache.service.js';
 import { serpApiGet } from 'app/services/serpapi.service.js';
+import { generateMockCarRentals } from 'app/tools/mock/car-rentals.mock.js';
+import { isMockMode } from 'app/tools/mock/isMockMode.js';
 import { logger } from 'app/utils/logs/logger.js';
 
 const CACHE_TTL = 3600; // 1 hour
@@ -72,50 +74,8 @@ export async function searchCarRentals(
   input: CarRentalInput,
 ): Promise<{ rentals: CarRentalResult[] }> {
   // Mock mode for eval runs
-  if (process.env.EVAL_MOCK_SEARCH === 'true') {
-    return {
-      rentals: [
-        {
-          provider: 'Hertz',
-          car_name: 'Toyota Corolla',
-          car_type: 'economy',
-          price_per_day: 35,
-          total_price: 175,
-          currency: 'USD',
-          pickup_location: input.pickup_location,
-          dropoff_location: input.dropoff_location ?? input.pickup_location,
-          pickup_date: input.pickup_date,
-          dropoff_date: input.dropoff_date,
-          features: [],
-        },
-        {
-          provider: 'Enterprise',
-          car_name: 'Honda CR-V',
-          car_type: 'suv',
-          price_per_day: 55,
-          total_price: 275,
-          currency: 'USD',
-          pickup_location: input.pickup_location,
-          dropoff_location: input.dropoff_location ?? input.pickup_location,
-          pickup_date: input.pickup_date,
-          dropoff_date: input.dropoff_date,
-          features: [],
-        },
-        {
-          provider: 'Avis',
-          car_name: 'Ford Mustang',
-          car_type: 'convertible',
-          price_per_day: 75,
-          total_price: 375,
-          currency: 'USD',
-          pickup_location: input.pickup_location,
-          dropoff_location: input.dropoff_location ?? input.pickup_location,
-          pickup_date: input.pickup_date,
-          dropoff_date: input.dropoff_date,
-          features: [],
-        },
-      ],
-    };
+  if (isMockMode()) {
+    return generateMockCarRentals(input);
   }
 
   const cacheKey = normalizeCacheKey('serpapi', 'google-car-rental', {

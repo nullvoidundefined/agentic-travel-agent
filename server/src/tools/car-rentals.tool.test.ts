@@ -49,6 +49,12 @@ describe('car-rentals.tool', () => {
     vi.doMock('app/utils/logs/logger.js', () => ({
       logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
     }));
+    vi.doMock('app/tools/mock/isMockMode.js', () => ({
+      isMockMode: vi.fn().mockReturnValue(false),
+    }));
+    vi.doMock('app/tools/mock/car-rentals.mock.js', () => ({
+      generateMockCarRentals: vi.fn(),
+    }));
 
     const carRentalMod = await import('app/tools/car-rentals.tool.js');
     searchCarRentals = carRentalMod.searchCarRentals;

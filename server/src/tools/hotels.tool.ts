@@ -4,6 +4,8 @@ import {
   normalizeCacheKey,
 } from 'app/services/cache.service.js';
 import { serpApiGet } from 'app/services/serpapi.service.js';
+import { generateMockHotels } from 'app/tools/mock/hotels.mock.js';
+import { isMockMode } from 'app/tools/mock/isMockMode.js';
 import { logger } from 'app/utils/logs/logger.js';
 
 const CACHE_TTL = 3600;
@@ -92,34 +94,8 @@ export async function searchHotels(
   input: HotelSearchInput,
 ): Promise<HotelResult[]> {
   // Mock mode for eval runs
-  if (process.env.EVAL_MOCK_SEARCH === 'true') {
-    const mockHotels = [
-      { name: `${input.city} Backpacker Hostel`, stars: 1, pricePerNight: 25 },
-      { name: `${input.city} Budget Inn`, stars: 2, pricePerNight: 55 },
-      { name: `${input.city} Central Hotel`, stars: 3, pricePerNight: 110 },
-      { name: `${input.city} Grand Hotel`, stars: 4, pricePerNight: 180 },
-      {
-        name: `${input.city} Luxury Resort & Spa`,
-        stars: 5,
-        pricePerNight: 350,
-      },
-    ];
-    return mockHotels.map((h, i) => ({
-      hotel_id: `mock-hotel-${i}`,
-      offer_id: `mock-hotel-offer-${i}`,
-      name: h.name,
-      address: `123 Main St, ${input.city}`,
-      city: input.city,
-      star_rating: h.stars,
-      price_per_night: h.pricePerNight,
-      total_price: h.pricePerNight * 5,
-      currency: 'USD',
-      check_in: input.check_in,
-      check_out: input.check_out,
-      image_url: null,
-      latitude: null,
-      longitude: null,
-    }));
+  if (isMockMode()) {
+    return generateMockHotels(input);
   }
 
   const cacheKey = normalizeCacheKey('serpapi', 'google-hotels', {

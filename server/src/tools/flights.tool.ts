@@ -4,6 +4,8 @@ import {
   normalizeCacheKey,
 } from 'app/services/cache.service.js';
 import { serpApiGet } from 'app/services/serpapi.service.js';
+import { generateMockFlights } from 'app/tools/mock/flights.mock.js';
+import { isMockMode } from 'app/tools/mock/isMockMode.js';
 import { logger } from 'app/utils/logs/logger.js';
 
 const CACHE_TTL = 3600; // 1 hour
@@ -98,35 +100,8 @@ export async function searchFlights(
   input: FlightSearchInput,
 ): Promise<FlightResult[]> {
   // Mock mode for eval runs
-  if (process.env.EVAL_MOCK_SEARCH === 'true') {
-    const airlines = ['Delta', 'United', 'American'];
-    return airlines.map((airline, i) => ({
-      offer_id: `mock-flight-${i}`,
-      airline,
-      airline_logo: null,
-      flight_number: `${airline.slice(0, 2).toUpperCase()}${100 + i * 50}`,
-      origin: input.origin,
-      destination: input.destination,
-      departure_time: `${input.departure_date}T${String(8 + i * 4).padStart(2, '0')}:00:00`,
-      arrival_time: `${input.departure_date}T${String(14 + i * 4).padStart(2, '0')}:00:00`,
-      price: 300 + i * 150,
-      currency: 'USD',
-      cabin_class: input.cabin_class ?? 'ECONOMY',
-      segments: [
-        {
-          departure: {
-            iataCode: input.origin,
-            at: `${input.departure_date}T${String(8 + i * 4).padStart(2, '0')}:00:00`,
-          },
-          arrival: {
-            iataCode: input.destination,
-            at: `${input.departure_date}T${String(14 + i * 4).padStart(2, '0')}:00:00`,
-          },
-          carrierCode: airline.slice(0, 2).toUpperCase(),
-          number: `${100 + i * 50}`,
-        },
-      ],
-    }));
+  if (isMockMode()) {
+    return generateMockFlights(input);
   }
 
   const cacheKey = normalizeCacheKey('serpapi', 'google-flights', {
