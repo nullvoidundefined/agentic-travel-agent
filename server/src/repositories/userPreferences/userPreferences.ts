@@ -1,8 +1,8 @@
-import { query } from 'app/db/pool/pool.js';
+import { query } from "app/db/pool/pool.js";
 import {
   type UserPreferences,
   normalizePreferences,
-} from 'app/schemas/userPreferences.js';
+} from "app/schemas/userPreferences.js";
 
 export interface UserPreferencesRow {
   id: string;
@@ -40,7 +40,7 @@ export async function upsert(
     [userId, JSON.stringify(merged)],
   );
   const row = result.rows[0];
-  if (!row) throw new Error('Failed to upsert preferences');
+  if (!row) throw new Error("Failed to upsert preferences");
   return normalizePreferences(row.preferences);
 }
 
