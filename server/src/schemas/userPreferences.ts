@@ -200,32 +200,41 @@ const LEGACY_SOCIAL_MAP: Record<string, string> = {
 
 // --- Normalize ---
 
+function detectSchemaVersion(data: Record<string, unknown>): number {
+  if (typeof data.schema_version === "number") return data.schema_version;
+  if (typeof data.version === "number") return data.version;
+  return 0;
+}
+
+function migrateV0ToV1(
+  data: Record<string, unknown>,
+): Partial<UserPreferences> {
+  return {
+    dietary: Array.isArray(data.dietary) ? (data.dietary as string[]) : [],
+    travel_pace:
+      typeof data.intensity === "string"
+        ? (data.intensity as UserPreferences["travel_pace"])
+        : null,
+    travel_party:
+      typeof data.social === "string"
+        ? ((LEGACY_SOCIAL_MAP[data.social] as UserPreferences["travel_party"]) ??
+          null)
+        : null,
+  };
+}
+
 export function normalizePreferences(raw: unknown): UserPreferences {
   if (!raw || typeof raw !== "object") {
     return { ...DEFAULT_PREFERENCES };
   }
 
   const data = raw as Record<string, unknown>;
+  const version = detectSchemaVersion(data);
 
-  // v0: legacy format with intensity/social (no version field)
-  if (!("version" in data)) {
-    return {
-      ...DEFAULT_PREFERENCES,
-      dietary: Array.isArray(data.dietary) ? (data.dietary as string[]) : [],
-      travel_pace:
-        typeof data.intensity === "string"
-          ? (data.intensity as UserPreferences["travel_pace"])
-          : null,
-      travel_party:
-        typeof data.social === "string"
-          ? ((LEGACY_SOCIAL_MAP[
-              data.social
-            ] as UserPreferences["travel_party"]) ?? null)
-          : null,
-    };
+  if (version < 1) {
+    return { ...DEFAULT_PREFERENCES, ...migrateV0ToV1(data) };
   }
 
-  // v1: current format — fill missing fields with defaults
   return {
     schema_version: CURRENT_PREFERENCES_VERSION,
     accommodation:
