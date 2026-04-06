@@ -77,11 +77,14 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 
 ### [ENG-16] Local e2e-fast fast lane needs CI parity before it can be promoted to blocking
 
-- **Source:** PR-A queue cleanup (2026-04-06). Promoted to blocking too eagerly; reverted; fixed in PR-F.
+- **Source:** PR-A queue cleanup (2026-04-06). Promoted to blocking too eagerly; reverted; partially fixed in PR-F; fully fixed in PR-I.
 - **Severity:** P2 · **Effort:** M · **Category:** testing / DX
-- **Status:** PARTIALLY RESOLVED in PR-F (2026-04-06). Bumped the register helper timeout in `e2e/helpers/auth.ts` from 10s to 30s, which is a marginal improvement against the prod Neon latency. Attempted to re-promote the lefthook hook to blocking but reverted within minutes after the local fast lane still failed: my dev API server is not always bound to :3001, Playwright's webServer spawn dies silently if anything is off, and the timeout bump alone does not fix that class of issue. The hook stays in warning mode. CI's `e2e` workflow on the required-check is the authoritative gate.
-
-  **Real fix (still open):** build a `scripts/e2e-local-db.sh` that provisions a local Postgres test database, runs migrations, and is invoked by `e2e-precheck.sh`. Set `DATABASE_URL_E2E_LOCAL` and have `playwright.config.ts` prefer it over the prod connection string when present. Also extend `e2e-precheck.sh` to verify port 3001 is bound (or that `npx tsx server/src/index.ts` can start cleanly) so the spawn failure mode produces a clear error before Playwright gets confused. Combined, those two changes give CI/local parity and the hook can be promoted for real.
+- **Status:** RESOLVED in PR-I (2026-04-07).
+  - New `scripts/e2e-local-db.sh` provisions a local Postgres test database (idempotent), runs migrations, and emits a `DATABASE_URL` export statement. Invoked opt-in via `E2E_PROVISION_LOCAL_DB=1` on the first run, then skipped on subsequent runs because the DB already exists.
+  - `scripts/e2e-precheck.sh` extended to run the DB provisioner when asked and to report the process holding port 3001 (if any) so Playwright's webServer spawn failure mode no longer silently collides with a stale dev server.
+  - `playwright.config.ts` now prefers `DATABASE_URL_E2E_LOCAL` over the inherited `DATABASE_URL` when set. Developers can point the fast lane at the local test DB without touching `server/.env`.
+  - Together: local fast lane stays fast (single-digit-ms DB latency), the spawn failure mode is visible, and the `e2e-fast` hook is suitable for blocking mode on dev machines that have run the one-time `E2E_PROVISION_LOCAL_DB=1 ./scripts/e2e-precheck.sh`.
+  - The hook is NOT re-promoted to blocking in this PR because that requires user opt-in (the one-time provisioning step). The lefthook comment now points developers at the provisioning command; once they run it, they can flip the hook to blocking in their own workflow.
 
 ### [ENG-15] Evaluate test suite for bloat, thinness, AND confidence theater
 

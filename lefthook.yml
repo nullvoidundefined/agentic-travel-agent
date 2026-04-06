@@ -67,20 +67,24 @@ pre-push:
       run: pnpm --filter voyager-server build
     e2e-precheck:
       run: ./scripts/e2e-precheck.sh
-    # e2e-fast runs in WARNING mode pending ENG-16. The
-    # @fast suite is reliably green in CI but the local
-    # environment is still flaky: my dev API server is not
-    # always bound to :3001, the prod Neon DB latency is
-    # variable, and Playwright's webServer spawn dies
-    # silently if anything is off. PR-F bumped the register
-    # helper timeout from 10s to 30s as a marginal
-    # improvement, but local-vs-CI parity still does not
-    # exist. The ENG-16 follow-up (local Postgres test DB,
-    # local server health gate) is the real fix.
+    # e2e-fast runs in WARNING mode by default. PR-I landed
+    # scripts/e2e-local-db.sh which provisions a local
+    # Postgres test database for fast local runs. To opt in
+    # to a deterministic local fast lane:
+    #
+    #   1. Run once:
+    #        E2E_PROVISION_LOCAL_DB=1 ./scripts/e2e-precheck.sh
+    #      This creates the voyager_test database and runs
+    #      migrations. Idempotent across runs.
+    #   2. Export the connection string:
+    #        eval "$(./scripts/e2e-local-db.sh)"
+    #      Or set DATABASE_URL_E2E_LOCAL directly.
+    #      playwright.config.ts prefers that env var.
+    #   3. Flip this hook to blocking by removing the
+    #      fallback shim.
     #
     # CI is the authoritative gate via the `e2e` required
     # check on main branch protection. This warning hook is
-    # a courtesy for fast local feedback, not the
-    # authoritative wall.
+    # a courtesy for fast local feedback.
     e2e-fast:
-      run: 'pnpm test:e2e:fast || (echo "" && echo "WARNING e2e-fast failed but is non-blocking. CI is the authoritative gate via the e2e required check. See ENG-16 in ISSUES.md." && exit 0)'
+      run: 'pnpm test:e2e:fast || (echo "" && echo "WARNING e2e-fast failed but is non-blocking. CI is the authoritative gate via the e2e required check. Run scripts/e2e-local-db.sh once to enable a deterministic local fast lane. See ENG-16 in ISSUES.md." && exit 0)'

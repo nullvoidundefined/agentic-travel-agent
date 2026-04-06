@@ -70,6 +70,18 @@ export default defineConfig({
         ...(process.env as Record<string, string>),
         PORT: '3001',
         NODE_ENV: 'test',
+        // ENG-16 (2026-04-07): prefer DATABASE_URL_E2E_LOCAL over
+        // the inherited DATABASE_URL when it is set. This lets
+        // a developer point local e2e runs at a dedicated test
+        // Postgres (provisioned by scripts/e2e-local-db.sh)
+        // instead of the prod Neon connection string in
+        // server/.env. CI sets DATABASE_URL directly and leaves
+        // DATABASE_URL_E2E_LOCAL unset, so the fallback is the
+        // inherited DATABASE_URL which is the CI Postgres
+        // service container.
+        ...(process.env.DATABASE_URL_E2E_LOCAL
+          ? { DATABASE_URL: process.env.DATABASE_URL_E2E_LOCAL }
+          : {}),
         // Plan B: force the server to use mock tool adapters so
         // E2E runs do not burn real SerpApi / Google Places
         // quota. The real-API smoke suite in e2e/real-apis/ runs
