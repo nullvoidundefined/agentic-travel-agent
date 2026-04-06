@@ -16,6 +16,10 @@ import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { findByUserId as findUserPreferences } from 'app/repositories/userPreferences/userPreferences.js';
 import { runAgentLoop } from 'app/services/agent.service.js';
 import { getEnrichmentNodes } from 'app/services/enrichment.js';
+import {
+  addTokenUsage,
+  isOverDailyBudget,
+} from 'app/services/tokenBudget.service.js';
 import { ApiError } from 'app/utils/ApiError.js';
 import { logger } from 'app/utils/logs/logger.js';
 import type { Request, Response } from 'express';
@@ -45,6 +49,18 @@ export async function chat(req: Request, res: Response) {
 
   if (!message || typeof message !== 'string') {
     throw ApiError.badRequest('message is required');
+  }
+
+  // FIN-01 / FIN-05: per-user daily token budget guard.
+  // Check BEFORE opening the SSE stream so we can return a clean HTTP
+  // error status. Failing open (Redis down) is intentional: a Redis
+  // outage should not block legitimate users.
+  if (await isOverDailyBudget(userId)) {
+    throw new ApiError(
+      429,
+      'DAILY_BUDGET_EXCEEDED',
+      "You have reached today's agent usage limit. This is a portfolio demo with a conservative per-user daily budget to keep LLM costs bounded. The limit resets at UTC midnight.",
+    );
   }
 
   const trip = await getTripWithDetails(tripId, userId);
@@ -132,6 +148,19 @@ export async function chat(req: Request, res: Response) {
       { hasCriticalAdvisory, nudge },
       tracker,
     );
+
+    // FIN-01 / FIN-05: increment the per-user daily token counter with
+    // the output tokens used by this turn. Input tokens are not counted
+    // against the budget because context-reprocessing is out of the
+    // user's direct control; output tokens are a more honest measure
+    // of what the user "spent".
+    const outputTokens =
+      typeof result.total_tokens?.output === 'number'
+        ? result.total_tokens.output
+        : 0;
+    if (outputTokens > 0) {
+      await addTokenUsage(userId, outputTokens);
+    }
 
     // Post-loop: check for missing fields and update completion tracker
     const updatedTrip = await getTripWithDetails(tripId, userId);

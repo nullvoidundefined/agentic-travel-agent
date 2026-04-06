@@ -4,7 +4,12 @@ import { logger } from 'app/utils/logs/logger.js';
 
 import { buildNodeFromToolResult } from './node-builder.js';
 
-const DEFAULT_MAX_ITERATIONS = 15;
+// Lowered from 15 to 8 per FIN-06 (2026-04-06 audit). The original cap
+// predates any cost observability. Until per-turn token cost is persisted
+// in tool_call_log (FIN-04), a conservative 8 is the right safety limit:
+// it still covers the typical 3 to 6 real agent turns while bounding
+// worst-case burn per user message.
+const DEFAULT_MAX_ITERATIONS = 8;
 const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
 const DEFAULT_MAX_TOKENS = 4096;
 const DEFAULT_MAX_DURATION_MS = 120_000;
