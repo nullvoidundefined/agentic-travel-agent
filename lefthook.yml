@@ -33,7 +33,7 @@ commit-msg:
         SUBJECT=$(head -1 "$MSG_FILE")
         case "$SUBJECT" in
           fix:*|fix\(*|bug:*|bugfix:*|hotfix:*)
-            if ! git diff --cached --name-only | grep -qE '(\.test\.|\.spec\.|(^|/)e2e/|(^|/)__tests__/|(^|/)test/)'; then
+            if ! git diff --cached --name-only | grep -qE '(\.test\.|\.spec\.|(^|/)e2e/|(^|/)__tests__/|(^|/)__integration__/|(^|/)test/)'; then
               echo ""
               echo "BLOCKED: fix-commit discipline check"
               echo "   Commit subject: $SUBJECT"

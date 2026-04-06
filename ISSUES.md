@@ -40,6 +40,31 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 - **Severity:** P2 · **Effort:** S · **Category:** testing
 - **Notes:** `scripts/smoke-test.sh` is referenced from `package.json` but may not exist. Verify and wire into CI.
 
+### [ENG-18] Restore server vitest coverage threshold to 80% by writing the missing tests
+
+- **Source:** PR-G follow-up (2026-04-06). PR-G lowered the server vitest coverage threshold from 80% to 75% so the lint-and-test workflow could go green after PR-C correctly removed `**/rateLimiter.ts` from the coverage exclusion. The 75% number reflects current reality, not the goal.
+- **Severity:** P2 · **Effort:** L · **Category:** testing / quality
+- **Notes:** Files currently below 70% branch coverage (per the run that exposed the gap):
+  - `src/app.ts` 0% (the Express app composition; no tests at all)
+  - `src/index.ts` 0% (server entrypoint)
+  - `src/routes/places.ts` 0%
+  - `src/routes/trips.ts` 0%
+  - `src/routes/index.ts` 0%
+  - `src/utils/logs/logger.ts` 0%
+  - `src/services/agent.service.ts` 45.83%
+  - `src/prompts/trip-context.ts` 10%
+  - `src/middleware/requestLogger.ts` 50%
+  - `src/tools/flights.tool.ts` 60%
+  - `src/tools/hotels.tool.ts` 59.25%
+  - `src/tools/executor.ts` 68.96%
+  - `src/handlers/chat/chat.helpers.ts` 65.67%
+  - `src/handlers/trips/trips.ts` 67.64%
+  - `src/prompts/category-prompts` (or similar; appears as ~67% on the cluster)
+
+  Path: write missing-tests in priority order (route handlers and trip-context first since they have the highest blast radius), bump the threshold back to 80, then keep going to 85 once the immediate gap closes. Each increment is its own PR. Estimated effort: 4-6 hours of focused test writing across 6-10 source files. The ENG-15 retrospective output at `docs/audits/2026-04-06-test-suite-evaluation.md` already lists the highest-leverage targets, so use it as the work plan.
+
+  Related: ENG-15 (test suite evaluation, completed) recommends fixture-replay tests for the LLM consumer surface. Those tests would also push branch coverage on agent.service.ts and AgentOrchestrator.ts.
+
 ### [ENG-17] MockAnthropicClient needs multi-turn state for the remaining 6 test.fixme markers
 
 - **Source:** PR-B follow-up (2026-04-06). The first MockAnthropicClient pass landed a scripted three-iteration happy-path conversation (search_flights + search_hotels → format_response → end_turn). That was enough to unblock US-22 (tile cards visible), US-24 (quick reply chips), US-30 (wizard navigate), and US-32 (incomplete badge). 6 fixmes remain blocked because they each require the mock to react to subsequent user actions, not just emit a one-shot scripted turn.

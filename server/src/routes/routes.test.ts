@@ -16,7 +16,24 @@ vi.mock('app/handlers/auth/auth.js', () => ({
   me: (_: express.Request, res: express.Response) =>
     res.status(200).json({ ok: true }),
 }));
-vi.mock('app/utils/rateLimiter.js', () => ({
+// The rate limiter module lives at app/middleware/rateLimiter/rateLimiter.js,
+// not app/utils/rateLimiter.js. The previous mock path was wrong, so the
+// real authRateLimiter ran for every request in this file and accumulated
+// state across the four test cases, eventually 429ing whichever test ran
+// after the 10th call. The bug was hidden until PR-C removed
+// **/rateLimiter.ts from the vitest coverage exclusion, which started
+// exercising the path under the lint-and-test workflow.
+vi.mock('app/middleware/rateLimiter/rateLimiter.js', () => ({
+  rateLimiter: (
+    _: express.Request,
+    __: express.Response,
+    next: express.NextFunction,
+  ) => next(),
+  chatRateLimiter: (
+    _: express.Request,
+    __: express.Response,
+    next: express.NextFunction,
+  ) => next(),
   authRateLimiter: (
     _: express.Request,
     __: express.Response,
