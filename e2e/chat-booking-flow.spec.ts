@@ -29,12 +29,35 @@ test.describe('Chat and booking flow', () => {
     await page.waitForLoadState('networkidle');
   });
 
-  test.fixme('US-19: fill trip details form', async ({ page }) => {
+  test('US-19: fill trip details form', async ({ page }) => {
+    test.setTimeout(60_000);
     const user = await seedUser(newUser());
     await login(page, user);
     await createTrip(page);
-    // Selectors for origin/dates/budget/travelers TBD pending
-    // shared form-field naming convention.
+    // The chat handler post-loop appends a travel_plan_form
+    // node when the trip is in COLLECT_DETAILS phase. So
+    // sending any message on a fresh trip should produce the
+    // form. The form has stable input ids: destination, origin,
+    // departure_date, return_date, budget, travelers.
+    await sendMessage(page, 'Help me plan a trip');
+    await expect(page.locator('input#destination')).toBeVisible({
+      timeout: 30_000,
+    });
+    await page.fill('input#destination', 'San Francisco');
+    await page.fill('input#origin', 'Denver');
+    // Fill the date inputs with a future date (Playwright accepts
+    // YYYY-MM-DD into a type=date input).
+    await page.fill('input#departure_date', '2026-06-01');
+    await page.fill('input#return_date', '2026-06-04');
+    await page.fill('input#budget', '2500');
+    await page.fill('input#travelers', '2');
+    await page.click('button:has-text("Start Planning")');
+    // The form submit triggers a PUT /trips/:id and then sends
+    // a chat message. We assert the form disappears (the trip
+    // is no longer in COLLECT_DETAILS).
+    await expect(page.locator('input#destination')).not.toBeVisible({
+      timeout: 30_000,
+    });
   });
 
   test('US-20: send a chat message (optimistic)', async ({ page }) => {

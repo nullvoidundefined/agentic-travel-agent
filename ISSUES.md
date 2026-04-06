@@ -59,25 +59,21 @@ Each entry includes severity, effort, category, and source (which audit surfaced
   - `src/tools/executor.ts` 68.96%
   - `src/handlers/chat/chat.helpers.ts` 65.67%
   - `src/handlers/trips/trips.ts` 67.64%
-  - `src/prompts/category-prompts` (or similar; appears as ~67% on the cluster)
 
   Path: write missing-tests in priority order (route handlers and trip-context first since they have the highest blast radius), bump the threshold back to 80, then keep going to 85 once the immediate gap closes. Each increment is its own PR. Estimated effort: 4-6 hours of focused test writing across 6-10 source files. The ENG-15 retrospective output at `docs/audits/2026-04-06-test-suite-evaluation.md` already lists the highest-leverage targets, so use it as the work plan.
 
   Related: ENG-15 (test suite evaluation, completed) recommends fixture-replay tests for the LLM consumer surface. Those tests would also push branch coverage on agent.service.ts and AgentOrchestrator.ts.
 
-### [ENG-17] MockAnthropicClient needs multi-turn state for the remaining 6 test.fixme markers
+### [ENG-17] Trip-with-selections fixture for the last 3 test.fixme markers
 
-- **Source:** PR-B follow-up (2026-04-06). The first MockAnthropicClient pass landed a scripted three-iteration happy-path conversation (search_flights + search_hotels → format_response → end_turn). That was enough to unblock US-22 (tile cards visible), US-24 (quick reply chips), US-30 (wizard navigate), and US-32 (incomplete badge). 6 fixmes remain blocked because they each require the mock to react to subsequent user actions, not just emit a one-shot scripted turn.
+- **Source:** PR-E follow-up (2026-04-06). Renamed from "multi-turn MockAnthropic state machine" after PR-E discovered the original analysis was wrong. US-19, US-25, and US-28 unblocked WITHOUT a mock state machine because (a) the chat handler post-loop server-injects `travel_plan_form` nodes when the trip is in COLLECT_DETAILS phase, (b) `ChatBox.handleSend` intercepts the literal "Confirm booking" message and opens the booking modal directly (no agent round-trip), and (c) US-28 only needs trip status `saved` which is settable via PUT /trips/:id. Three fixmes remain.
 - **Severity:** P2 · **Effort:** M · **Category:** testing / e2e
-- **Notes:** Remaining fixmes and what each needs:
-  1. **US-19 fill trip details form**: requires the mock to emit a `travel_plan_form` node (which the agent's `format_response` tool would normally produce after detecting missing fields). The mock needs to inspect the user message, decide whether the form is needed, and emit the form node accordingly.
-  2. **US-23 select and confirm a tile card**: user clicks a tile, that fires a `quick_reply` (e.g., "I have selected the Delta flight"), the mock needs to react to the selection by emitting a confirmation message. Multi-turn.
-  3. **US-25 open booking confirmation modal**: user clicks the "Confirm booking" quick reply, frontend opens the modal. Pure frontend transition; this one might unblock without a mock change. Worth testing first.
-  4. **US-26 review itemized breakdown**: modal must render with selected flight + hotel + experience line items. Requires the user to have actually selected items first, which means US-23 must work.
-  5. **US-27 confirm and book the trip**: clicks "Confirm" in the modal, trip transitions to "saved" state. Requires US-26 working.
-  6. **US-28 booked trip locked state**: chat input disabled, "Booked" badge visible. Requires US-27 working.
+- **Notes:** Remaining fixmes and what each actually needs:
+  1. **US-23 select and confirm a tile card** (e2e/chat-booking-flow.spec.ts): the test needs to click a flight tile, click the SelectableCardGroup "Confirm Selection" button, and verify the trip record now has a selected_flight value. Doable with the current mock as long as the backend `select_flight` tool path works end-to-end. The blocker is that the test must read the trip record after the click to verify persistence, which means it needs to make a GET /trips/:id call from the test runner. Achievable, just slightly more involved than the other unblocks.
+  2. **US-26 review itemized breakdown** (e2e/checkout.spec.ts): the BookingConfirmation modal renders flights, hotels, car_rentals, experiences arrays from the trip record. To assert line items appear, the trip must have these populated BEFORE the modal opens. Either via the API (PUT /trips/:id with the selection fields, but the data shape is non-trivial: each entry is a full Flight / Hotel / etc. object with airline, price, currency, etc.) or via the chat tile selection flow (depends on US-23 working).
+  3. **US-27 confirm and book the trip** (e2e/checkout.spec.ts): depends on US-26 setup. Once the modal renders with line items, clicking "Save itinerary" calls handleConfirmBooking which PUTs status=saved. The assertion is "trip status becomes saved" which is testable, but the modal needs items to be visible first.
 
-  Suggested approach: extend `MockAnthropicClient` from a fixed three-iteration script to a state machine keyed on the last user message content. Add a `MOCK_SCRIPTS` table in the mock module that maps a regex over the user's last message to a sequence of responses. When the user message matches "I have selected", emit a confirmation. When the user message matches "Confirm booking", emit a booking confirmation. The three current scripted iterations remain the default fallback. Estimated effort: 1 to 2 hours including tests. Once that lands, the remaining 6 fixmes should be unblockable in a follow-up PR (call it PR-C).
+  Suggested approach: build a `seedTripWithSelections(user, options)` helper in `e2e/fixtures/test-trips.ts` that creates a trip and PUTs a hand-crafted selection payload. The payload structure can be derived from the existing mock SerpApi shapes (the flights/hotels arrays the agent loop currently produces). Estimated effort: 1 to 2 hours including the helper, the three unblocks, and tests. Once that lands, all 10 of the original fixme markers will be active tests.
 
 ### [ENG-16] Local e2e-fast fast lane needs CI parity before it can be promoted to blocking
 
