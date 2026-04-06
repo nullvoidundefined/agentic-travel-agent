@@ -4,13 +4,22 @@
 import { type Page, expect } from '@playwright/test';
 
 export async function sendMessage(page: Page, text: string): Promise<void> {
-  const input = page.locator(
-    'textarea[placeholder*="message" i], input[placeholder*="message" i], textarea[aria-label*="message" i]',
-  );
-  await input.first().fill(text);
-  await page.click(
-    'button[type="submit"]:has-text("Send"), button[aria-label*="Send" i]',
-  );
+  // The actual ChatBox input has placeholder "Ask the agent to plan
+  // your trip..." and matching aria-label. The earlier "message"
+  // grep never matched anything in the rendered DOM, so the
+  // helper timed out at 30s on every chat-flow spec.
+  const input = page
+    .locator(
+      'input[placeholder*="Ask the agent" i], input[aria-label*="Ask the agent" i], textarea[placeholder*="Ask the agent" i]',
+    )
+    .first();
+  await input.fill(text);
+  await page
+    .locator('form')
+    .filter({ has: input })
+    .locator('button[type="submit"]')
+    .first()
+    .click();
 }
 
 export async function waitForAgentResponse(
