@@ -2,9 +2,19 @@ import pool from 'app/db/pool/pool.js';
 import 'dotenv/config';
 import { afterAll, beforeAll } from 'vitest';
 
+// Bypass the rate limiter for the integration test process. The
+// integration tests fire dozens of /auth/register and /auth/login
+// requests in the same vitest process from the same IP, which
+// would otherwise trip the auth rate limiter (10 per 15 min) and
+// 429 every test after the limit. Unit tests bypass via vi.mock;
+// integration tests bypass via the env flag the rate limiter
+// already understands. The flag is also set in playwright.config.ts
+// for the same reason.
+process.env.E2E_BYPASS_RATE_LIMITS = '1';
+
 beforeAll(async () => {
   if (!process.env.DATABASE_URL) {
-    console.warn('DATABASE_URL not set — skipping integration tests');
+    console.warn('DATABASE_URL not set; skipping integration tests');
     return;
   }
 
