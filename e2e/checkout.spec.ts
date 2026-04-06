@@ -31,8 +31,11 @@ test.describe('Checkout', () => {
     // ChatBox.handleSend intercepts the literal "Confirm booking"
     // message and calls onBookTrip directly without sending it
     // through the chat. The trip page opens BookingConfirmation.
+    // The modal renders TWO h2 elements with "Save Your Itinerary
+    // for" text (one in the image overlay, one as the body title).
+    // Use .first() to dodge strict-mode multi-match.
     await expect(
-      page.getByRole('heading', { name: /Save Your Itinerary for/i }),
+      page.getByRole('heading', { name: /Save Your Itinerary for/i }).first(),
     ).toBeVisible({ timeout: 5_000 });
   });
 

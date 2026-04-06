@@ -35,27 +35,28 @@ test.describe('Chat and booking flow', () => {
     await login(page, user);
     await createTrip(page);
     // The chat handler post-loop appends a travel_plan_form
-    // node when the trip is in COLLECT_DETAILS phase. So
-    // sending any message on a fresh trip should produce the
-    // form. The form has stable input ids: destination, origin,
-    // departure_date, return_date, budget, travelers.
+    // node when the trip is in COLLECT_DETAILS phase.
+    // buildMissingFieldsForm only includes fields that are
+    // null on the trip record; createTrip seeds with a default
+    // destination, so the form shows origin / departure_date /
+    // return_date / budget but NOT destination. Sending any
+    // message on a fresh trip produces this form.
     await sendMessage(page, 'Help me plan a trip');
-    await expect(page.locator('input#destination')).toBeVisible({
+    await expect(page.locator('input#origin')).toBeVisible({
       timeout: 30_000,
     });
-    await page.fill('input#destination', 'San Francisco');
     await page.fill('input#origin', 'Denver');
-    // Fill the date inputs with a future date (Playwright accepts
-    // YYYY-MM-DD into a type=date input).
     await page.fill('input#departure_date', '2026-06-01');
     await page.fill('input#return_date', '2026-06-04');
     await page.fill('input#budget', '2500');
-    await page.fill('input#travelers', '2');
+    // The Start Planning button enables once required fields
+    // (origin, departure_date, return_date if not one-way)
+    // are filled. Budget is optional.
     await page.click('button:has-text("Start Planning")');
     // The form submit triggers a PUT /trips/:id and then sends
-    // a chat message. We assert the form disappears (the trip
-    // is no longer in COLLECT_DETAILS).
-    await expect(page.locator('input#destination')).not.toBeVisible({
+    // a chat message. The trip exits COLLECT_DETAILS so the
+    // form should disappear from subsequent renders.
+    await expect(page.locator('input#origin')).not.toBeVisible({
       timeout: 30_000,
     });
   });
