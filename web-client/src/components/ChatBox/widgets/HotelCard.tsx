@@ -42,6 +42,7 @@ export function HotelCard({
       type='button'
       className={`${styles.card} ${selected ? styles.selected : ''}`}
       aria-pressed={selected}
+      data-tile-card='hotel'
       onClick={onClick}
     >
       <div className={styles.imageArea}>
