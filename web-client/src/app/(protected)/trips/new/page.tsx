@@ -23,7 +23,7 @@ export default function NewTripPage() {
     }
     creating.current = true;
 
-    post<{ trip: Trip }>('/trips', { destination: 'Planning...' })
+    post<{ trip: Trip }>('/trips', { destination: 'New trip' })
       .then(({ trip }) => {
         router.replace(`/trips/${trip.id}`);
       })
