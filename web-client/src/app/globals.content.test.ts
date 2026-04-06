@@ -29,3 +29,20 @@ describe('globals.scss accessibility', () => {
     expect(globalsSource).toMatch(/\*,\s*\n?\s*\*::before/);
   });
 });
+
+describe('globals.scss type scale tokens (DES-01)', () => {
+  it('defines --text-base token', () => {
+    expect(globalsSource).toMatch(/--text-base:/);
+  });
+
+  it('defines --text-lg / --text-xl / --text-2xl tokens', () => {
+    expect(globalsSource).toMatch(/--text-lg:/);
+    expect(globalsSource).toMatch(/--text-xl:/);
+    expect(globalsSource).toMatch(/--text-2xl:/);
+  });
+
+  it('defines --text-3xl and --text-4xl display sizes', () => {
+    expect(globalsSource).toMatch(/--text-3xl:/);
+    expect(globalsSource).toMatch(/--text-4xl:/);
+  });
+});

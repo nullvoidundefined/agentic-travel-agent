@@ -1,6 +1,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
+  /*
+   * DES-01 (2026-04-06 audit): type scale tokens.
+   * The design audit found 140+ raw `font-size: Npx` literals and
+   * H2 section titles shipping at 24, 28, 36, 40, and 42 px across
+   * five different files. This is the canonical scale. New
+   * components must use these tokens; legacy raw literals are
+   * being migrated. Roughly a 1.25 minor third with tuning for
+   * display headings.
+   */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
+  --text-4xl: 48px;
+  --text-5xl: 64px;
+
   /* — Typography — */
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'Outfit', system-ui, sans-serif;
