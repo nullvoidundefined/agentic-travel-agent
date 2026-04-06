@@ -54,11 +54,16 @@ test.describe('Chat and booking flow', () => {
     // are filled. Budget is optional.
     await page.click('button:has-text("Start Planning")');
     // The form submit triggers a PUT /trips/:id and then sends
-    // a chat message. The trip exits COLLECT_DETAILS so the
-    // form should disappear from subsequent renders.
-    await expect(page.locator('input#origin')).not.toBeVisible({
-      timeout: 30_000,
-    });
+    // a chat message via handleFormSubmit. The form node from
+    // the previous assistant message persists in the DOM (it
+    // is part of the historical message) but a new optimistic
+    // user message appears with the displayMessage assembled
+    // from the form values. Wait for the new "I'm traveling
+    // from Denver" text to appear in the chat as evidence the
+    // submit completed end-to-end.
+    await expect(
+      page.getByText(/I'm traveling from Denver/i).first(),
+    ).toBeVisible({ timeout: 30_000 });
   });
 
   test('US-20: send a chat message (optimistic)', async ({ page }) => {
