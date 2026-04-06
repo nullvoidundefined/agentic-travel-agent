@@ -26,18 +26,18 @@ Bring Voyager up to the quality bar established in Doppelscript by:
 
 ## Scope decisions (brainstorming Q&A outcomes)
 
-| # | Question | Chosen answer |
-|---|----------|---------------|
-| Q1 | Sequenced, parallel, or E2E-first? | **Sequenced.** Audits → triage → E2E → fixes. |
-| Q2 | Audit commands: copy, adapt, or rewrite? | **Heavy rewrite** tailored to Voyager's stack and agent loop. |
-| Q3 | Who runs the audits? | **I run all 6 in parallel subagents** using isolated worktrees. |
-| Q4 | E2E: per-story, per-file, flow-based, or hybrid? | **Hybrid.** 1 test per user story (named `US-N: ...`) plus 3 journey tests. |
-| Q5 | E2E external APIs: real or mocked? | **Mocked in E2E**, separate nightly real-API smoke suite. |
-| Q6 | Local gate: pre-push, CI, or both? | **Both.** Pre-push fast lane (< 30s) + CI full suite on every push. |
-| Q7 | Scope of bug fixes from audits? | **Fix P0/P1 test-first; log P2/P3 to ISSUES.md.** |
-| — | Fix branch topology? | **Single branch** `fix/audit-2026-04-06-p0p1`, one commit per fix, merged via PR with merge commit. |
-| — | Separate E2E Anthropic key? | **No.** Reuse the existing production key; revisit if billing becomes noticeable. |
-| — | Doppelscript audit migration? | **Out of scope for this effort.** Tracked as its own separate spec. |
+| #   | Question                                         | Chosen answer                                                                                       |
+| --- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Q1  | Sequenced, parallel, or E2E-first?               | **Sequenced.** Audits → triage → E2E → fixes.                                                       |
+| Q2  | Audit commands: copy, adapt, or rewrite?         | **Heavy rewrite** tailored to Voyager's stack and agent loop.                                       |
+| Q3  | Who runs the audits?                             | **I run all 6 in parallel subagents** using isolated worktrees.                                     |
+| Q4  | E2E: per-story, per-file, flow-based, or hybrid? | **Hybrid.** 1 test per user story (named `US-N: ...`) plus 3 journey tests.                         |
+| Q5  | E2E external APIs: real or mocked?               | **Mocked in E2E**, separate nightly real-API smoke suite.                                           |
+| Q6  | Local gate: pre-push, CI, or both?               | **Both.** Pre-push fast lane (< 30s) + CI full suite on every push.                                 |
+| Q7  | Scope of bug fixes from audits?                  | **Fix P0/P1 test-first; log P2/P3 to ISSUES.md.**                                                   |
+| —   | Fix branch topology?                             | **Single branch** `fix/audit-2026-04-06-p0p1`, one commit per fix, merged via PR with merge commit. |
+| —   | Separate E2E Anthropic key?                      | **No.** Reuse the existing production key; revisit if billing becomes noticeable.                   |
+| —   | Doppelscript audit migration?                    | **Out of scope for this effort.** Tracked as its own separate spec.                                 |
 
 ## Global rules captured
 
@@ -98,7 +98,7 @@ voyager/.claude/commands/
 
 **Voyager-specific adaptations:**
 
-- **audit-engineering.md** — Adds sections for *Agent Loop Correctness* (tool-call budget enforcement, max-15 safety limit, malformed tool response handling, reasoning-between-calls integrity), *External API Integration* (SerpApi caching and rate-limit handling, Google Places quota management), *Monorepo hygiene* (pnpm workspaces, shared types between server/web-client), *Docker & Railway build* (Dockerfile.server, railway.toml correctness). Removes generic microservices language.
+- **audit-engineering.md** — Adds sections for _Agent Loop Correctness_ (tool-call budget enforcement, max-15 safety limit, malformed tool response handling, reasoning-between-calls integrity), _External API Integration_ (SerpApi caching and rate-limit handling, Google Places quota management), _Monorepo hygiene_ (pnpm workspaces, shared types between server/web-client), _Docker & Railway build_ (Dockerfile.server, railway.toml correctness). Removes generic microservices language.
 - **audit-security.md** — Focus on: Anthropic API key handling in agent loop (no leakage through tool results), SerpApi/Places key rotation, CORS config for Vercel preview URLs, Supabase RLS on trip data, CSRF pattern (verify which variant — header-based or cookie-based), prompt injection surface area (user messages flowing through the agent loop into third-party API queries).
 - **audit-ux.md** — Conversational-agent-specific: turn latency perception, loading states during tool calls, tool call transparency (can users see what the agent is doing?), error recovery mid-conversation, how users iterate on itineraries, empty-state and cold-start UX, reduced-motion compliance.
 - **audit-design.md** — Visual system review of home / explore / destination / trip pages. Hero carousels, destination cards, itinerary layout, chat UI, typography scale, color system, responsive breakpoints, alt text on images.
@@ -169,6 +169,7 @@ Agent 6 → criticism audit   → docs/audits/2026-04-06-criticism.md
 
 ```markdown
 ### [ENG-01] Agent loop doesn't enforce 15-call budget
+
 - Source: docs/audits/2026-04-06-engineering.md §Agent Loop Correctness
 - Severity: P0 · Effort: S · Category: bug
 - Repro: ...
@@ -267,7 +268,7 @@ test.describe('Public pages', () => {
    - The smoke test.
    - All of `auth.spec.ts` (US-5, US-6, US-7).
    - `e2e/journeys/happy-path-booking.spec.ts`.
-   Target combined runtime: < 30 seconds.
+     Target combined runtime: < 30 seconds.
 3. Update `lefthook.yml`:
    ```yaml
    pre-push:
@@ -333,15 +334,15 @@ No skipping step 1. No deploying to production to check whether a fix works. No 
 
 ## Risks and mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| Audit subagents produce generic, template-feeling reports | Each command's closing line explicitly demands specific files, functions, line numbers. If a report is generic, it is rejected and rerun with stricter wording. |
-| Amadeus references in docs/schema surface as hidden dependencies | Phase 4 drops Amadeus mocks entirely (they're unused). Removing Amadeus references from docs / schema / tests is a separate triage item processed in Phase 5 if it lands in P0/P1. |
-| Anthropic API costs during E2E exceed expectations | Playwright's `--project=chromium` limits runs to a single browser; `@fast`-tagged subset reduces pre-push cost to a handful of turns; monitor billing; separate E2E key remains an option if costs spike. |
-| `USER_STORIES.md` is out of date against current implementation | Phase 4 pre-work verifies the file. Drift is flagged for triage, not silently corrected. The grouping boundaries in this spec match the current `## Section` headings in the file (verified 2026-04-06). |
-| Tool executor does not currently support adapter injection | Phase 1 engineering audit flags this; it becomes a P1 prerequisite fix in Phase 5 before E2E gates can go live. |
-| Pre-push fast lane pushes 30s over budget | If runtime exceeds 45s consistently, drop the journey test from the fast lane and rely on CI to catch journey failures. The fast lane exists to catch gross breakage, not every regression. |
-| Single fix branch grows too large to review | If the P0/P1 fix count exceeds ~20 commits, consider splitting into two PRs (P0s merged first, P1s merged second). Decision point lives at the end of Phase 3 when the triage count is known. |
+| Risk                                                             | Mitigation                                                                                                                                                                                                |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Audit subagents produce generic, template-feeling reports        | Each command's closing line explicitly demands specific files, functions, line numbers. If a report is generic, it is rejected and rerun with stricter wording.                                           |
+| Amadeus references in docs/schema surface as hidden dependencies | Phase 4 drops Amadeus mocks entirely (they're unused). Removing Amadeus references from docs / schema / tests is a separate triage item processed in Phase 5 if it lands in P0/P1.                        |
+| Anthropic API costs during E2E exceed expectations               | Playwright's `--project=chromium` limits runs to a single browser; `@fast`-tagged subset reduces pre-push cost to a handful of turns; monitor billing; separate E2E key remains an option if costs spike. |
+| `USER_STORIES.md` is out of date against current implementation  | Phase 4 pre-work verifies the file. Drift is flagged for triage, not silently corrected. The grouping boundaries in this spec match the current `## Section` headings in the file (verified 2026-04-06).  |
+| Tool executor does not currently support adapter injection       | Phase 1 engineering audit flags this; it becomes a P1 prerequisite fix in Phase 5 before E2E gates can go live.                                                                                           |
+| Pre-push fast lane pushes 30s over budget                        | If runtime exceeds 45s consistently, drop the journey test from the fast lane and rely on CI to catch journey failures. The fast lane exists to catch gross breakage, not every regression.               |
+| Single fix branch grows too large to review                      | If the P0/P1 fix count exceeds ~20 commits, consider splitting into two PRs (P0s merged first, P1s merged second). Decision point lives at the end of Phase 3 when the triage count is known.             |
 
 ## Non-goals
 
