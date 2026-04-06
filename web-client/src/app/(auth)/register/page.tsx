@@ -152,12 +152,6 @@ export default function RegisterPage() {
               </button>
             </form>
 
-            <p className={styles.terms}>
-              By signing up, you agree to our{' '}
-              <Link href='/faq'>Terms of Service</Link> and{' '}
-              <Link href='/faq'>Privacy Policy</Link>.
-            </p>
-
             <p className={styles.switchLink}>
               Already have an account? <Link href='/login'>Sign in</Link>
             </p>
