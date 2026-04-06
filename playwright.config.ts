@@ -15,9 +15,26 @@ export default defineConfig({
   // workflow points at it explicitly with --grep or by passing the
   // path as an argument.
   testIgnore: ['**/real-apis/**'],
+  // ENG-14 (2026-04-06): run scripts/e2e-smoke.sh once after the
+  // webServers report ready and before any spec executes. The
+  // smoke validates that the server is healthy AND that CORS is
+  // wired correctly for the test runner's origin. If it fails,
+  // Playwright aborts in seconds with a clear error instead of
+  // letting every spec time out three times.
+  globalSetup: path.resolve(ROOT_DIR, 'playwright.global-setup.ts'),
   timeout: 30_000,
   retries: process.env.CI ? 2 : 1,
-  workers: process.env.CI ? 1 : undefined,
+  // ENG-13 (2026-04-06): bump CI workers from 1 to 2. The
+  // E2E suite was sequential because the seedUser fixture races
+  // on /auth/register if multiple workers hit the same DB row
+  // by coincidence. Two workers is the largest safe value:
+  // each test seeds a unique email (uniq() in test-users.ts)
+  // so collisions are impossible, and Playwright distributes
+  // specs round-robin so the two workers stay balanced. Higher
+  // worker counts on a single Postgres instance start hitting
+  // pool exhaustion (server pool max=10) when chat-flow tests
+  // also start firing.
+  workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? 'html' : 'list',
   use: {
     baseURL: 'http://localhost:3000',

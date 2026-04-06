@@ -40,6 +40,12 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 - **Severity:** P2 · **Effort:** S · **Category:** testing
 - **Notes:** `scripts/smoke-test.sh` is referenced from `package.json` but may not exist. Verify and wire into CI.
 
+### [ENG-16] Local e2e-fast fast lane needs CI parity before it can be promoted to blocking
+
+- **Source:** PR-A queue cleanup (2026-04-06). I promoted the lefthook `e2e-fast` hook from warning to blocking based on CI run 8 going green at 2m40s. The very next push attempt failed because 3 of 4 `@fast` specs failed locally.
+- **Severity:** P2 · **Effort:** M · **Category:** testing / DX
+- **Notes:** Local diagnosis: my dev environment uses the prod Neon DB (the connection string in `server/.env`). The `/auth/register` call against remote Neon takes long enough that the 10-second wait in `e2e/helpers/auth.ts register()` for either the wizard or a URL change times out. CI uses a local Postgres service container which is single-digit-ms latency. The same suite is green in CI and red locally because of pure environment latency. The promotion to blocking was therefore wrong: warning-mode was correctly protecting against the local-vs-CI divergence. Three concrete fixes (any one is enough): (1) point local fast lane at a local Postgres test DB rather than the prod Neon string, e.g. via `DATABASE_URL_E2E_LOCAL` env override loaded by `playwright.config.ts`; (2) increase the register helper timeout from 10s to 30s so it tolerates Neon latency and dev-server cold start; (3) skip the register-touching `@fast` specs when running locally and rely on a shorter local smoke (only US-1 home, which is read-only). Recommendation: option 1 plus a one-time Postgres setup script as part of `e2e-precheck.sh` so the local DB is always migrated and reachable before the suite runs. Until one of these lands, the e2e-fast hook stays in warning mode. The blocking promotion has been reverted in the same PR.
+
 ### [ENG-15] Evaluate test suite for bloat, thinness, AND confidence theater
 
 - **Source:** Plan B / option B follow-up (2026-04-06), reinforced by the Doppelscript Haiku code-fence incident the same day
