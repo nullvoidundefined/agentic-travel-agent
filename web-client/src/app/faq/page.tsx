@@ -38,7 +38,7 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
       {
         question: 'Where does the travel data come from?',
         answer:
-          'Flight and hotel data comes from the Amadeus API, the same data source used by major travel agencies worldwide. Experience and restaurant recommendations come from the Google Places API. All prices and availability are pulled in real time when you make a request.',
+          'Flight and hotel data comes from live Google Flights and Google Hotels results, fetched via SerpApi at the moment you search. Experience and restaurant recommendations come from the Google Places API. Every price you see is a real, searchable result, not a language-model guess.',
       },
       {
         question: 'How accurate are the prices?',
@@ -83,7 +83,7 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
       {
         question: 'Is my data shared with third parties?',
         answer:
-          "Your data is never sold. We send search queries to Amadeus and Google Places to fulfill your requests — those queries contain trip parameters (dates, destinations) but not your personal identity. Conversations are processed by Anthropic's Claude API under their data usage policies.",
+          "Your data is never sold. We send search queries to SerpApi (which aggregates Google Flights and Google Hotels) and to the Google Places API to fulfill your requests. Those queries contain trip parameters (dates, destinations) but not your personal identity. Conversations are processed by Anthropic's Claude API under their data usage policies.",
       },
       {
         question: 'Can I delete my account and data?',
