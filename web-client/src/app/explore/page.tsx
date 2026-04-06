@@ -116,6 +116,7 @@ export default function ExplorePage() {
                 href={`/explore/${dest.slug}`}
                 className={styles.card}
                 aria-label={`${dest.name}, ${dest.country}`}
+                data-destination-card={dest.slug}
               >
                 <div className={styles.cardImage}>
                   {imageUrl ? (
