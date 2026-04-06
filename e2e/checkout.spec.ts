@@ -71,22 +71,25 @@ test.describe('Checkout', () => {
       .locator('[role="group"][aria-label="Quick replies"]')
       .getByRole('button', { name: 'Confirm booking' })
       .click();
-    // The modal renders headings for each populated section:
-    // Flights, Hotels, Car Rentals, Experiences.
-    await expect(page.getByRole('heading', { name: 'Flights' })).toBeVisible({
-      timeout: 5_000,
-    });
-    await expect(page.getByRole('heading', { name: 'Hotels' })).toBeVisible();
+    // Scope every assertion to the booking confirmation dialog
+    // so "Flights" / "Hotels" headings do not collide with any
+    // tile-group headings the chat area may also render.
+    const dialog = page.getByRole('dialog', { name: 'Booking confirmation' });
+    await expect(dialog).toBeVisible({ timeout: 5_000 });
     await expect(
-      page.getByRole('heading', { name: 'Car Rentals' }),
+      dialog.getByRole('heading', { name: 'Flights' }),
+    ).toBeVisible();
+    await expect(dialog.getByRole('heading', { name: 'Hotels' })).toBeVisible();
+    await expect(
+      dialog.getByRole('heading', { name: 'Car Rentals' }),
     ).toBeVisible();
     await expect(
-      page.getByRole('heading', { name: 'Experiences' }),
+      dialog.getByRole('heading', { name: 'Experiences' }),
     ).toBeVisible();
     // The flight line item from defaultSelections() has airline
     // "Delta" and flight number "DL100". Verify the line item
-    // text appears.
-    await expect(page.getByText(/Delta DL100/i).first()).toBeVisible();
+    // text appears inside the dialog.
+    await expect(dialog.getByText(/Delta DL100/i).first()).toBeVisible();
   });
 
   test('US-27: confirm and book the trip', async ({ page }) => {

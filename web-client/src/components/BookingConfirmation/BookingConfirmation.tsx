@@ -67,7 +67,12 @@ export function BookingConfirmation({
   const grandTotal = flightTotal + hotelTotal + carRentalTotal + expTotal;
 
   return (
-    <div className={styles.overlay}>
+    <div
+      className={styles.overlay}
+      role='dialog'
+      aria-modal='true'
+      aria-label='Booking confirmation'
+    >
       <div className={styles.modal}>
         <div className={styles.imageHeader}>
           {(() => {
