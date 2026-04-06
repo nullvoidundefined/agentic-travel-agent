@@ -6,6 +6,7 @@ import {
 } from 'app/prompts/booking-steps.js';
 import { buildSystemPrompt } from 'app/prompts/system-prompt.js';
 import type { TripContext } from 'app/prompts/trip-context.js';
+import { insertAgentTurnCost } from 'app/repositories/agent-turn-cost/agent-turn-cost.js';
 import { insertToolCallLog } from 'app/repositories/tool-call-log/tool-call-log.js';
 import {
   AgentOrchestrator,
@@ -82,6 +83,24 @@ export async function runAgentLoop(
     onEvent,
     meta,
   );
+
+  // FIN-04 (2026-04-06 audit): persist per-turn token cost. The
+  // orchestrator returns aggregate input/output tokens for the whole
+  // turn. Record one row per completed agent run in agent_turn_cost
+  // so we can later compute estimate-vs-actual cost per user, per
+  // conversation, or per day. Insert is fire-and-forget: a DB
+  // failure should not block the user's chat response.
+  if (conversationId && result.tokensUsed) {
+    insertAgentTurnCost({
+      conversation_id: conversationId,
+      input_tokens: result.tokensUsed.input,
+      output_tokens: result.tokensUsed.output,
+      iterations: result.iterations ?? 0,
+      tool_call_count: result.toolCallsUsed?.length ?? 0,
+    }).catch((err) => {
+      logger.warn({ err }, 'Failed to persist agent turn cost');
+    });
+  }
 
   // Assemble final node array per spec order
   const finalNodes: ChatNode[] = [];
