@@ -22,8 +22,33 @@ test.describe('Preferences', () => {
     ).toBeVisible({ timeout: 5_000 });
   });
 
-  test.fixme('US-30: navigate through wizard steps', async () => {
-    // Asserts Next/Back/Skip work and progress bar advances.
+  test('US-30: navigate through wizard steps', async ({ page }) => {
+    const user = newUser();
+    await register(page, user);
+
+    // Step 1 of 6 should be visible after registration.
+    const wizard = page.locator('[role="dialog"][aria-label*="preferences" i]');
+    await expect(wizard).toBeVisible({ timeout: 5_000 });
+    await expect(wizard.locator('text=/Step 1 of 6/i')).toBeVisible();
+
+    // Click Next to advance to step 2.
+    await wizard.locator('button:has-text("Next")').click();
+    await expect(wizard.locator('text=/Step 2 of 6/i')).toBeVisible({
+      timeout: 5_000,
+    });
+
+    // Click Back to return to step 1.
+    await wizard.locator('button:has-text("Back")').click();
+    await expect(wizard.locator('text=/Step 1 of 6/i')).toBeVisible({
+      timeout: 5_000,
+    });
+
+    // Skip should also advance to step 2 without requiring an
+    // answer for step 1.
+    await wizard.locator('button:has-text("Skip")').click();
+    await expect(wizard.locator('text=/Step 2 of 6/i')).toBeVisible({
+      timeout: 5_000,
+    });
   });
 
   test('US-31: edit preferences from account page', async ({ page }) => {
@@ -41,9 +66,16 @@ test.describe('Preferences', () => {
     await editBtn.click();
   });
 
-  test.fixme('US-32: incomplete preferences badge', async () => {
-    // Asserts a coral dot next to the Account nav link when
-    // wizard is incomplete.
+  test('US-32: incomplete preferences badge', async ({ page }) => {
+    // A freshly seeded user has no completed preference steps,
+    // so the header's Account link should render the
+    // incomplete-badge marker. The marker has a stable
+    // aria-label so the test does not depend on CSS or color.
+    const user = await seedUser(newUser());
+    await login(page, user);
+    await expect(
+      page.locator('header').locator('[aria-label="Preferences incomplete"]'),
+    ).toBeVisible({ timeout: 5_000 });
   });
 
   test('US-33: view preferences on account page', async ({ page }) => {

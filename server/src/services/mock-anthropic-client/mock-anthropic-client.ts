@@ -2,34 +2,162 @@ import type Anthropic from '@anthropic-ai/sdk';
 
 /**
  * Deterministic mock of the @anthropic-ai/sdk client used by the
- * AgentOrchestrator. Returns a single end_turn response with a
- * fixed text message and zero tool calls so the orchestrator
- * loop terminates after one iteration.
+ * AgentOrchestrator. Drives a scripted three-iteration happy-path
+ * conversation so the E2E suite can exercise the chat surface
+ * end-to-end without burning Anthropic tokens or requiring an API
+ * key in CI.
  *
- * Goal: let the E2E suite boot the server and exercise the chat
- * surface without burning Anthropic tokens or requiring an API
- * key in CI. The mock satisfies the subset of the SDK interface
- * actually consumed by AgentOrchestrator.run():
+ * Iteration sequence (driven by the assistant message count in
+ * the messages array passed to stream()):
  *
- *   client.messages.stream(params)
- *     .on('text', cb)
- *     .finalMessage() -> { content, stop_reason, usage }
+ * - Iteration 1 (0 assistant messages so far): emit tool_use blocks
+ *   for `search_flights` and `search_hotels` against the canonical
+ *   DEN -> SFO sample. The orchestrator will run those via the
+ *   existing tool executor (which routes to mock adapters when
+ *   E2E_MOCK_TOOLS=1) and append tool_result blocks to the
+ *   conversation.
+ * - Iteration 2 (1 assistant message): emit a single tool_use for
+ *   `format_response` with text plus quick_replies. The executor
+ *   echoes the input back; AgentOrchestrator captures it as
+ *   formatResponseData.
+ * - Iteration 3 (2+ assistant messages): emit a plain end_turn so
+ *   the loop terminates.
  *
- * Anything else (non-streaming messages.create, tool_use blocks,
- * multi-turn iteration) is intentionally not supported. If a new
- * code path needs more, extend this mock instead of branching
- * inside the orchestrator.
+ * The script intentionally produces the smallest realistic node
+ * graph that exercises:
+ * - flight tile rendering (search_flights -> buildNodeFromToolResult)
+ * - hotel tile rendering (search_hotels -> buildNodeFromToolResult)
+ * - quick reply chips (format_response.quick_replies)
+ *
+ * Anything beyond this happy path (multi-turn user replies, tile
+ * selection round-trips, booking confirmation) is intentionally
+ * not supported. ENG-17 in ISSUES.md tracks the larger expansion.
  */
 
-const MOCK_RESPONSE_TEXT =
-  'This is a mock response from the E2E_MOCK_ANTHROPIC test stub. The real agent loop is bypassed in this run.';
+const MOCK_END_TEXT =
+  'Here are some options I found. Let me know which you prefer.';
+
+const MOCK_QUICK_REPLIES = [
+  "I'll take the cheapest flight",
+  'Show me more hotels',
+  'Confirm booking',
+];
+
+interface MessageParam {
+  role: 'user' | 'assistant';
+  content: unknown;
+}
+
+interface StreamParams {
+  messages: MessageParam[];
+  [key: string]: unknown;
+}
 
 interface MockStreamListeners {
   text: Array<(chunk: string) => void>;
 }
 
+type MockContentBlock =
+  | { type: 'text'; text: string }
+  | {
+      type: 'tool_use';
+      id: string;
+      name: string;
+      input: Record<string, unknown>;
+    };
+
+interface MockFinalMessage {
+  content: MockContentBlock[];
+  stop_reason: 'end_turn' | 'tool_use';
+  usage: { input_tokens: number; output_tokens: number };
+}
+
+function countAssistantMessages(messages: MessageParam[]): number {
+  return messages.filter((m) => m.role === 'assistant').length;
+}
+
+function buildIterationOneToolUse(): MockFinalMessage {
+  return {
+    content: [
+      {
+        type: 'tool_use',
+        id: 'mock-toolu-flights-1',
+        name: 'search_flights',
+        // Field names must match searchFlightsSchema exactly:
+        // origin, destination, departure_date, return_date,
+        // passengers (not "adults"). Mismatched field names get
+        // rejected by Zod, the executor turns the error into a
+        // string result, and buildNodeFromToolResult returns
+        // null instead of a flight_tiles node. The result is a
+        // silently empty chat with no tiles.
+        input: {
+          origin: 'DEN',
+          destination: 'SFO',
+          departure_date: '2026-06-01',
+          return_date: '2026-06-04',
+          passengers: 2,
+        },
+      },
+      {
+        type: 'tool_use',
+        id: 'mock-toolu-hotels-1',
+        name: 'search_hotels',
+        // Field names must match searchHotelsSchema exactly:
+        // city (not "location"), check_in (not "check_in_date"),
+        // check_out (not "check_out_date"), guests (not "adults").
+        input: {
+          city: 'San Francisco',
+          check_in: '2026-06-01',
+          check_out: '2026-06-04',
+          guests: 2,
+        },
+      },
+    ],
+    stop_reason: 'tool_use',
+    usage: { input_tokens: 0, output_tokens: 0 },
+  };
+}
+
+function buildIterationTwoFormatResponse(): MockFinalMessage {
+  return {
+    content: [
+      {
+        type: 'tool_use',
+        id: 'mock-toolu-format-1',
+        name: 'format_response',
+        input: {
+          text: MOCK_END_TEXT,
+          quick_replies: MOCK_QUICK_REPLIES,
+        },
+      },
+    ],
+    stop_reason: 'tool_use',
+    usage: { input_tokens: 0, output_tokens: 0 },
+  };
+}
+
+function buildEndTurn(): MockFinalMessage {
+  return {
+    content: [{ type: 'text', text: MOCK_END_TEXT }],
+    stop_reason: 'end_turn',
+    usage: { input_tokens: 0, output_tokens: MOCK_END_TEXT.length },
+  };
+}
+
 class MockMessageStream {
   private readonly listeners: MockStreamListeners = { text: [] };
+  private readonly response: MockFinalMessage;
+
+  constructor(messages: MessageParam[]) {
+    const assistantCount = countAssistantMessages(messages);
+    if (assistantCount === 0) {
+      this.response = buildIterationOneToolUse();
+    } else if (assistantCount === 1) {
+      this.response = buildIterationTwoFormatResponse();
+    } else {
+      this.response = buildEndTurn();
+    }
+  }
 
   on(event: 'text', cb: (chunk: string) => void): this {
     if (event === 'text') {
@@ -38,30 +166,27 @@ class MockMessageStream {
     return this;
   }
 
-  async finalMessage(): Promise<{
-    content: Array<{ type: 'text'; text: string }>;
-    stop_reason: 'end_turn';
-    usage: { input_tokens: number; output_tokens: number };
-  }> {
-    // Emit the text in word-sized chunks so any consumer that
-    // listens for text deltas observes a realistic streaming pattern.
-    for (const word of MOCK_RESPONSE_TEXT.split(' ')) {
-      for (const cb of this.listeners.text) {
-        cb(`${word} `);
+  async finalMessage(): Promise<MockFinalMessage> {
+    // Emit text deltas only when the response is end_turn (the
+    // tool_use iterations have no text to stream).
+    const textBlock = this.response.content.find(
+      (b): b is { type: 'text'; text: string } => b.type === 'text',
+    );
+    if (textBlock) {
+      for (const word of textBlock.text.split(' ')) {
+        for (const cb of this.listeners.text) {
+          cb(`${word} `);
+        }
       }
     }
-
-    return {
-      content: [{ type: 'text', text: MOCK_RESPONSE_TEXT }],
-      stop_reason: 'end_turn',
-      usage: { input_tokens: 0, output_tokens: MOCK_RESPONSE_TEXT.length },
-    };
+    return this.response;
   }
 }
 
 export class MockAnthropicClient {
   messages = {
-    stream: (_params: unknown): MockMessageStream => new MockMessageStream(),
+    stream: (params: StreamParams): MockMessageStream =>
+      new MockMessageStream(params.messages ?? []),
   };
 }
 

@@ -34,6 +34,7 @@ export function FlightCard({
       type='button'
       className={`${styles.card} ${selected ? styles.selected : ''}`}
       aria-pressed={selected}
+      data-tile-card='flight'
       onClick={onClick}
     >
       <div className={styles.logo}>

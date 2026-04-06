@@ -40,6 +40,20 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 - **Severity:** P2 · **Effort:** S · **Category:** testing
 - **Notes:** `scripts/smoke-test.sh` is referenced from `package.json` but may not exist. Verify and wire into CI.
 
+### [ENG-17] MockAnthropicClient needs multi-turn state for the remaining 6 test.fixme markers
+
+- **Source:** PR-B follow-up (2026-04-06). The first MockAnthropicClient pass landed a scripted three-iteration happy-path conversation (search_flights + search_hotels → format_response → end_turn). That was enough to unblock US-22 (tile cards visible), US-24 (quick reply chips), US-30 (wizard navigate), and US-32 (incomplete badge). 6 fixmes remain blocked because they each require the mock to react to subsequent user actions, not just emit a one-shot scripted turn.
+- **Severity:** P2 · **Effort:** M · **Category:** testing / e2e
+- **Notes:** Remaining fixmes and what each needs:
+  1. **US-19 fill trip details form**: requires the mock to emit a `travel_plan_form` node (which the agent's `format_response` tool would normally produce after detecting missing fields). The mock needs to inspect the user message, decide whether the form is needed, and emit the form node accordingly.
+  2. **US-23 select and confirm a tile card**: user clicks a tile, that fires a `quick_reply` (e.g., "I have selected the Delta flight"), the mock needs to react to the selection by emitting a confirmation message. Multi-turn.
+  3. **US-25 open booking confirmation modal**: user clicks the "Confirm booking" quick reply, frontend opens the modal. Pure frontend transition; this one might unblock without a mock change. Worth testing first.
+  4. **US-26 review itemized breakdown**: modal must render with selected flight + hotel + experience line items. Requires the user to have actually selected items first, which means US-23 must work.
+  5. **US-27 confirm and book the trip**: clicks "Confirm" in the modal, trip transitions to "saved" state. Requires US-26 working.
+  6. **US-28 booked trip locked state**: chat input disabled, "Booked" badge visible. Requires US-27 working.
+
+  Suggested approach: extend `MockAnthropicClient` from a fixed three-iteration script to a state machine keyed on the last user message content. Add a `MOCK_SCRIPTS` table in the mock module that maps a regex over the user's last message to a sequence of responses. When the user message matches "I have selected", emit a confirmation. When the user message matches "Confirm booking", emit a booking confirmation. The three current scripted iterations remain the default fallback. Estimated effort: 1 to 2 hours including tests. Once that lands, the remaining 6 fixmes should be unblockable in a follow-up PR (call it PR-C).
+
 ### [ENG-16] Local e2e-fast fast lane needs CI parity before it can be promoted to blocking
 
 - **Source:** PR-A queue cleanup (2026-04-06). I promoted the lefthook `e2e-fast` hook from warning to blocking based on CI run 8 going green at 2m40s. The very next push attempt failed because 3 of 4 `@fast` specs failed locally.
