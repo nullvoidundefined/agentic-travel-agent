@@ -17,6 +17,8 @@ interface UseSSEChatReturn {
   streamingNodes: ChatNode[];
   toolProgress: ChatNode[];
   streamingText: string;
+  error: string | null;
+  clearError: () => void;
 }
 
 export function useSSEChat({
@@ -27,8 +29,11 @@ export function useSSEChat({
   const [streamingNodes, setStreamingNodes] = useState<ChatNode[]>([]);
   const [toolProgress, setToolProgress] = useState<ChatNode[]>([]);
   const [streamingText, setStreamingText] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const clearError = useCallback(() => setError(null), []);
 
   useEffect(() => {
     return () => {
@@ -71,7 +76,10 @@ export function useSSEChat({
         break;
 
       case 'error':
-        setStreamingText(event.error);
+        setError(
+          event.error ||
+            'The agent ran into a problem mid-response. Try sending the message again.',
+        );
         break;
     }
   }
@@ -135,7 +143,9 @@ export function useSSEChat({
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
           console.error('SSE chat error:', err);
-          setStreamingText('Something went wrong. Please try again.');
+          setError(
+            'Could not reach the agent. Check your connection and try again.',
+          );
         }
       } finally {
         try {
@@ -171,5 +181,7 @@ export function useSSEChat({
     streamingNodes,
     toolProgress,
     streamingText,
+    error,
+    clearError,
   };
 }
