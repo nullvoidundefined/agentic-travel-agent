@@ -45,12 +45,18 @@ export async function register(page: Page, c: Credentials): Promise<void> {
   // does not change to /trips until handleWizardClose() runs.
   // The wizard is uniquely identified by the H2 it renders. Wait
   // for that or for any URL change away from /register.
+  //
+  // Timeout 30s (was 10s). 10s was enough for CI's local
+  // Postgres service container but blew when running locally
+  // against a remote prod Neon DB (the round-trip latency on
+  // /auth/register pushed the wait past 10s). 30s tolerates
+  // both. Source: ENG-16 in ISSUES.md.
   await Promise.race([
     page.locator('h2:has-text("Your Travel Preferences")').waitFor({
-      timeout: 10_000,
+      timeout: 30_000,
     }),
     page.waitForURL((url) => !url.pathname.endsWith('/register'), {
-      timeout: 10_000,
+      timeout: 30_000,
     }),
   ]);
 }
