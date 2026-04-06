@@ -34,6 +34,30 @@ export interface ToolContext {
   requestId?: string;
 }
 
+/**
+ * ENG-04 (2026-04-06 audit): adapter seam for the five external-API
+ * tool implementations. Passing a ToolAdapters object into executeTool
+ * swaps the real SerpApi / Google Places / destination-info clients
+ * for test doubles at per-tool granularity. Plan B's E2E harness uses
+ * this to mock flights and hotels deterministically without env-global
+ * flags.
+ */
+export interface ToolAdapters {
+  searchFlights: typeof searchFlights;
+  searchHotels: typeof searchHotels;
+  searchExperiences: typeof searchExperiences;
+  searchCarRentals: typeof searchCarRentals;
+  getDestinationInfo: typeof getDestinationInfo;
+}
+
+export const DEFAULT_TOOL_ADAPTERS: ToolAdapters = {
+  searchFlights,
+  searchHotels,
+  searchExperiences,
+  searchCarRentals,
+  getDestinationInfo,
+};
+
 function formatZodError(error: ZodError): string {
   return error.issues
     .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
@@ -63,6 +87,7 @@ export async function executeTool(
   toolName: string,
   input: Record<string, unknown>,
   context?: ToolContext,
+  adapters: ToolAdapters = DEFAULT_TOOL_ADAPTERS,
 ): Promise<unknown> {
   logger.debug({ toolName, input }, 'Executing tool');
 
@@ -70,19 +95,19 @@ export async function executeTool(
     case 'search_flights': {
       const parsed = parseInput(toolName, searchFlightsSchema, input);
       if ('error' in parsed) return parsed;
-      return searchFlights(parsed.data);
+      return adapters.searchFlights(parsed.data);
     }
 
     case 'search_hotels': {
       const parsed = parseInput(toolName, searchHotelsSchema, input);
       if ('error' in parsed) return parsed;
-      return searchHotels(parsed.data);
+      return adapters.searchHotels(parsed.data);
     }
 
     case 'search_experiences': {
       const parsed = parseInput(toolName, searchExperiencesSchema, input);
       if ('error' in parsed) return parsed;
-      return searchExperiences(parsed.data);
+      return adapters.searchExperiences(parsed.data);
     }
 
     case 'calculate_remaining_budget': {
@@ -94,7 +119,7 @@ export async function executeTool(
     case 'get_destination_info': {
       const parsed = parseInput(toolName, getDestinationInfoSchema, input);
       if ('error' in parsed) return parsed;
-      return getDestinationInfo(parsed.data);
+      return adapters.getDestinationInfo(parsed.data);
     }
 
     case 'update_trip': {
@@ -114,7 +139,7 @@ export async function executeTool(
     case 'search_car_rentals': {
       const parsed = parseInput(toolName, searchCarRentalsSchema, input);
       if ('error' in parsed) return parsed;
-      return searchCarRentals(parsed.data);
+      return adapters.searchCarRentals(parsed.data);
     }
 
     case 'select_flight': {
