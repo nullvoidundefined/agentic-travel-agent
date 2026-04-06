@@ -47,6 +47,14 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # SEC-02 / ENG-06 (2026-04-06 audit): fail the build on any
+      # production dependency with a high-severity CVE. Moderates
+      # still warn in the audit output but do not fail the job;
+      # promote to also failing on moderates once the baseline is
+      # clean for two weeks.
+      - name: pnpm audit (production dependencies, high and above)
+        run: pnpm audit --prod --audit-level high
+
       - name: Lint
         run: pnpm lint
 
