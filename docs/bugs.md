@@ -102,13 +102,15 @@ Fixed: consolidated `CITY_COORDS` and `CITY_DATABASE` into shared `server/src/da
 
 Fixed: API proxied through Vercel rewrites (`/api/:path*` → Railway) for same-origin cookies. Changed `sameSite` to `'lax'`. Safari ITP no longer blocks the session cookie. Resolved 2026-04-03.
 
-## Bug batch 2026-04-07
+## Bug batch 2026-04-07 (B24 through B29)
 
-Batch IDs below (B1 through B6) are scoped to the 2026-04-07 fix batch on
-branch `fix/bug-batch-2026-04-07`. They do not overlap with the historical
-B1 through B23 entries above.
+Renumbered from the original B1-B6 used inside the fix/bug-batch-2026-04-07
+branch. The historical entries above already use B1-B23, so the in-batch
+labels collided. The shipped commit subjects on main still say `fix(B1)`
+through `fix(B6)`; the renumbering applies only to this docs/bugs.md log
+so cross-referencing future audits is unambiguous.
 
-### B1: Trip detail Budget tile and Cost Breakdown render `$NaN`
+### B24: Trip detail Budget tile and Cost Breakdown render `$NaN` (originally B1)
 
 severity: P1 effort: S - fixed 2026-04-07
 Root cause: pg returned NUMERIC columns as strings, and the trip detail
@@ -119,16 +121,18 @@ Number.isFinite guard on the frontend. Test in
 `server/src/db/pool/pool.test.ts` and
 `web-client/src/app/(protected)/trips/[id]/page.test.tsx`. Commit 3b50361.
 
-### B2: Car rental tool throws and the agent narrates "having trouble accessing"
+### B25: Car rental tool throws and the agent narrates "having trouble accessing" (originally B2)
 
 severity: P1 effort: M - fixed 2026-04-07
 Root cause: `searchCarRentals` did not catch SerpApi errors, so any
 upstream failure threw to the executor and the agent improvised a
 fallback narration. Fix: wrap the SerpApi call in try/catch and
 return `{ rentals: [], error }` instead. Updated tool description to
-make the no-results path explicit. Commit d8c363a.
+make the no-results path explicit. Commit d8c363a. Sibling tools
+flights and hotels had the same latent failure mode and were patched
+in B30 and B31 below.
 
-### B3: ToolProgressIndicator chips have no gap and look broken
+### B26: ToolProgressIndicator chips have no gap and look broken (originally B3)
 
 severity: P2 effort: M - fixed 2026-04-07
 Root cause: per-tool chip rendering with no margin between chips and a
@@ -136,7 +140,7 @@ duplicate "Done" label. Fix: replaced the chip stack with a single
 ChatProgressBar widget that collapses adjacent tool_progress nodes
 into one determinate progress bar. Locked with invariant 6. Commit 990b30c.
 
-### B4: Chat appears dead between submit and first stream chunk
+### B27: Chat appears dead between submit and first stream chunk (originally B4)
 
 severity: P2 effort: S - fixed 2026-04-07
 Root cause: no UI feedback during the gap between the user sending a
@@ -144,7 +148,7 @@ message and the first SSE event arriving. Fix: render an indeterminate
 ChatProgressBar with the label "Thinking" while isSending is true and
 no streaming nodes have arrived yet. Locked with invariant 7. Commit 6bfa8b4.
 
-### B5: No gap between chat box and Flights section
+### B28: No gap between chat box and Flights section (originally B5)
 
 severity: P3 effort: S - fixed 2026-04-07
 Root cause: missing margin-bottom on `.chatSection` in the trip detail
@@ -152,7 +156,7 @@ SCSS module. Fix: 48px bottom margin (and matching `.itinerary` top
 margin) plus a Playwright computed-style assertion that the visible
 gap is at least 32 pixels. Commits 029e2e7, d43f929, f819b46.
 
-### B6: "Book This Trip" / "Try Again" buttons are huge and intrusive
+### B29: "Book This Trip" / "Try Again" buttons are huge and intrusive (originally B6)
 
 severity: P2 effort: M - fixed 2026-04-07
 Root cause: the booking actions UI was a sticky two-button bar with
@@ -160,3 +164,29 @@ oversized buttons and no gutter from the input. Fix: replaced with an
 inline BookingPrompt tile rendered as the last assistant message in
 the chat stream. Conditional chips show only what is missing from the
 trip. Locked with invariant 8. Commit c264b75.
+
+## Bug batch 2026-04-07 follow-ups (B30 through B31)
+
+Surfaced during the B25 (car rentals fail-soft) review: sibling tools
+flights and hotels had the same latent failure mode (only catching
+SerpApiQuotaExceededError, re-throwing all other errors). The agent
+would narrate "having trouble accessing" on any non-quota SerpApi
+failure. Fixed by mirroring the B25 pattern.
+
+### B30: Flights tool throws on non-quota SerpApi errors
+
+severity: P2 effort: S - fixed 2026-04-07
+Root cause: `searchFlights` only handled `SerpApiQuotaExceededError`
+and re-threw all other errors. Fix: extend the existing catch block
+to log at warn and return `[]` for any error, mirroring the quota
+graceful-degrade pattern. Replaced the pre-existing
+`'handles API errors gracefully'` test that asserted
+`.rejects.toThrow(...)` because the new contract makes it impossible
+to satisfy. Commit 0ffbcec.
+
+### B31: Hotels tool throws on non-quota SerpApi errors
+
+severity: P2 effort: S - fixed 2026-04-07
+Root cause: `searchHotels` had the same shape as B30. Fix: same pattern
+as B30. Replaced the pre-existing `'rethrows non-quota errors'` test.
+Commit bfb8cc9.
