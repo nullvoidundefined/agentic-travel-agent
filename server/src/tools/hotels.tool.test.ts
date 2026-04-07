@@ -247,10 +247,26 @@ describe('hotels.tool', () => {
       expect(result).toEqual([]);
     });
 
-    it('rethrows non-quota errors', async () => {
+    it('returns [] when SerpApi throws a non-quota error', async () => {
       vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
       vi.mocked(serpApiService.serpApiGet).mockRejectedValueOnce(
-        new Error('network timeout'),
+        new Error('SerpApi 503: service unavailable'),
+      );
+
+      const result = await searchHotels({
+        city: 'Barcelona',
+        check_in: '2026-07-01',
+        check_out: '2026-07-06',
+        guests: 2,
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    it('does not throw when SerpApi throws a network error', async () => {
+      vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
+      vi.mocked(serpApiService.serpApiGet).mockRejectedValueOnce(
+        new Error('Network ECONNRESET'),
       );
 
       await expect(
@@ -260,7 +276,7 @@ describe('hotels.tool', () => {
           check_out: '2026-07-06',
           guests: 2,
         }),
-      ).rejects.toThrow('network timeout');
+      ).resolves.toBeDefined();
     });
   });
 
