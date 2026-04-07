@@ -204,6 +204,9 @@ export default function TripDetailPage() {
         <ChatBox
           tripId={trip.id}
           hasFlights={hasFlights}
+          hasHotels={trip.hotels.length > 0}
+          experiencesEmpty={trip.experiences.length === 0}
+          carRentalsEmpty={trip.car_rentals.length === 0}
           tripStatus={trip.status}
           onBookTrip={() => setShowConfirmation(true)}
         />

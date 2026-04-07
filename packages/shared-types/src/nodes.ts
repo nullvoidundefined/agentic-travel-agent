@@ -129,6 +129,11 @@ export type ChatNode =
       tool_name: string;
       tool_id: string;
       status: 'running' | 'done';
+    }
+  | {
+      type: 'booking_prompt';
+      experiences_empty: boolean;
+      car_rentals_empty: boolean;
     };
 
 // --- Helper type to extract a specific node ---

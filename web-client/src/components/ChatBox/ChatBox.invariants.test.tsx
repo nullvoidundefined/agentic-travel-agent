@@ -376,6 +376,35 @@ describe('ChatBox invariants', () => {
     });
   });
 
+  describe('invariant 8: BookingPrompt tile renders inline as a chat node', () => {
+    it('renders exactly one BookingPrompt when an assistant message contains a booking_prompt node', () => {
+      const promptMessage = makeAssistantMessage('msg-1', [
+        {
+          type: 'booking_prompt',
+          experiences_empty: true,
+          car_rentals_empty: true,
+        },
+      ]);
+
+      render(
+        <VirtualizedChat
+          messages={[promptMessage]}
+          streamingNodes={[]}
+          toolProgress={[]}
+          streamingText=''
+          isSending={false}
+          onQuickReply={noop}
+        />,
+      );
+
+      const matches = screen.getAllByText(/Ready to book this trip/);
+      expect(matches).toHaveLength(1);
+      expect(
+        screen.getByRole('button', { name: 'Book now' }),
+      ).toBeInTheDocument();
+    });
+  });
+
   describe('invariant 7: pending indicator renders synchronously after send', () => {
     it('shows an indeterminate progress bar with "Thinking" while isSending=true and no nodes have arrived yet', () => {
       const userMsg = makeUserMessage('m1', 'Plan a Beijing trip');

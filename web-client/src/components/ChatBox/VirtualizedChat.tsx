@@ -17,6 +17,7 @@ interface VirtualizedChatProps {
   streamingText: string;
   isSending: boolean;
   onQuickReply: (text: string) => void;
+  onBookNow?: () => void;
   onFormSubmit?: (
     structuredData: Record<string, string>,
     displayMessage: string,
@@ -37,6 +38,7 @@ const NODE_HEIGHT_ESTIMATES: Partial<Record<ChatNode['type'], number>> = {
   budget_bar: 48,
   quick_replies: 48,
   tool_progress: 32,
+  booking_prompt: 96,
 };
 
 const TOOL_LABELS: Record<string, string> = {
@@ -69,6 +71,7 @@ export function VirtualizedChat({
   streamingText,
   isSending,
   onQuickReply,
+  onBookNow,
   onFormSubmit,
 }: VirtualizedChatProps) {
   const parentRef = useRef<HTMLDivElement>(null);
@@ -219,6 +222,7 @@ export function VirtualizedChat({
                             node={node}
                             callbacks={{
                               onQuickReply,
+                              onBookNow,
                               onFormSubmit,
                               onConfirmFlight: (label) =>
                                 onQuickReply(

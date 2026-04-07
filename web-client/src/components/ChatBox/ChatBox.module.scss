@@ -152,59 +152,6 @@
   overflow-x: auto;
 }
 
-/* — Booking actions — */
-
-.bookingActions {
-  display: flex;
-  gap: 12px;
-  padding: 8px 0;
-  animation: fadeSlideIn 0.3s var(--ease-out);
-}
-
-.bookButton {
-  flex: 1;
-  padding: 14px 24px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--cta);
-  color: var(--cta-text);
-  font-size: 15px;
-  font-weight: 600;
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    box-shadow var(--transition-fast),
-    transform var(--transition-fast);
-
-  &:hover {
-    background: var(--cta-hover);
-    box-shadow: var(--shadow-glow);
-    transform: translateY(-1px);
-  }
-}
-
-.tryAgainButton {
-  flex: 1;
-  padding: 14px 24px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--foreground);
-  font-size: 15px;
-  font-weight: 600;
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast);
-
-  &:hover {
-    background: var(--surface-hover);
-    border-color: var(--accent);
-  }
-}
-
 /* — Input area — */
 
 .inputArea {

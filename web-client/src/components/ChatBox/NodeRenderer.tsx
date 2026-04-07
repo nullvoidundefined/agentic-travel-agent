@@ -4,6 +4,7 @@ import type { ChatNode } from '@voyager/shared-types';
 
 import { TripDetailsForm } from './TripDetailsForm';
 import { AdvisoryCard } from './nodes/AdvisoryCard';
+import { BookingPrompt } from './nodes/BookingPrompt';
 import { BudgetBar } from './nodes/BudgetBar';
 import { CarRentalTiles } from './nodes/CarRentalTiles';
 import { ExperienceTiles } from './nodes/ExperienceTiles';
@@ -20,6 +21,7 @@ export interface NodeRendererCallbacks {
   onConfirmCarRental?: (label: string) => void;
   onConfirmExperience?: (label: string) => void;
   onQuickReply?: (text: string) => void;
+  onBookNow?: () => void;
   onFormSubmit?: (
     structuredData: Record<string, string>,
     displayMessage: string,
@@ -136,6 +138,16 @@ export function NodeRenderer({ node, callbacks = {} }: NodeRendererProps) {
         />
       );
     }
+
+    case 'booking_prompt':
+      return (
+        <BookingPrompt
+          experiencesEmpty={node.experiences_empty}
+          carRentalsEmpty={node.car_rentals_empty}
+          onBookNow={cb.onBookNow ?? (() => {})}
+          onQuickReply={cb.onQuickReply ?? (() => {})}
+        />
+      );
 
     default: {
       // Exhaustive check — TypeScript will error if a node type is unhandled

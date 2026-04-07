@@ -1,6 +1,6 @@
 'use client';
 
-import { type FormEvent, useCallback, useRef, useState } from 'react';
+import { type FormEvent, useCallback, useMemo, useRef, useState } from 'react';
 
 import { Toast } from '@/components/Toast/Toast';
 import { get, put } from '@/lib/api';
@@ -14,6 +14,9 @@ import { useSSEChat } from './useSSEChat';
 interface ChatBoxProps {
   tripId: string;
   hasFlights?: boolean;
+  hasHotels?: boolean;
+  experiencesEmpty?: boolean;
+  carRentalsEmpty?: boolean;
   tripStatus?: string;
   onBookTrip?: () => void;
 }
@@ -21,6 +24,9 @@ interface ChatBoxProps {
 export function ChatBox({
   tripId,
   hasFlights,
+  hasHotels,
+  experiencesEmpty,
+  carRentalsEmpty,
   tripStatus,
   onBookTrip,
 }: ChatBoxProps) {
@@ -39,10 +45,13 @@ export function ChatBox({
   });
 
   // Merge server messages with optimistic pending user message
-  const allMessages: ChatMessage[] = [
-    ...(serverMessages ?? []),
-    ...(pendingUserMessage ? [pendingUserMessage] : []),
-  ];
+  const allMessages: ChatMessage[] = useMemo(
+    () => [
+      ...(serverMessages ?? []),
+      ...(pendingUserMessage ? [pendingUserMessage] : []),
+    ],
+    [serverMessages, pendingUserMessage],
+  );
 
   const {
     sendMessage,
@@ -73,6 +82,7 @@ export function ChatBox({
 
   const showBookingActions =
     hasFlights &&
+    hasHotels &&
     tripStatus === 'planning' &&
     !isSending &&
     !hasActiveTileSelection;
@@ -178,41 +188,38 @@ export function ChatBox({
     queryClient.invalidateQueries({ queryKey: ['trips', tripId] });
   }, [onBookTrip, queryClient, tripId]);
 
+  // B6: when booking criteria are met, append a client-only booking_prompt
+  // virtual node so the inline tile renders as the last assistant message.
+  const messagesWithBookingPrompt = useMemo<ChatMessage[]>(() => {
+    if (!showBookingActions) return allMessages;
+    const promptNode = {
+      type: 'booking_prompt' as const,
+      experiences_empty: experiencesEmpty ?? true,
+      car_rentals_empty: carRentalsEmpty ?? true,
+    };
+    const promptMessage: ChatMessage = {
+      id: '__booking_prompt__',
+      role: 'assistant',
+      nodes: [promptNode],
+      sequence: allMessages.length + 1,
+      created_at: new Date().toISOString(),
+    };
+    return [...allMessages, promptMessage];
+  }, [allMessages, showBookingActions, experiencesEmpty, carRentalsEmpty]);
+
   return (
     <div className={styles.chatBox}>
       {sseError && <Toast message={sseError} onClose={clearSseError} />}
       <VirtualizedChat
-        messages={allMessages}
+        messages={messagesWithBookingPrompt}
         streamingNodes={streamingNodes}
         toolProgress={toolProgress}
         streamingText={streamingText}
         isSending={isSending}
         onQuickReply={handleSend}
         onFormSubmit={handleFormSubmit}
+        onBookNow={handleBookTrip}
       />
-
-      {showBookingActions && (
-        <div className={styles.bookingActions}>
-          <button
-            type='button'
-            className={styles.bookButton}
-            onClick={handleBookTrip}
-          >
-            Book This Trip
-          </button>
-          <button
-            type='button'
-            className={styles.tryAgainButton}
-            onClick={() =>
-              handleSend(
-                "I'd like to make some changes to the itinerary. What would you suggest adjusting?",
-              )
-            }
-          >
-            Try Again
-          </button>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className={styles.inputArea}>
         <input
