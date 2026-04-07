@@ -209,10 +209,26 @@ describe('flights.tool', () => {
       expect(result[0]!.price).toBe(380);
     });
 
-    it('handles API errors gracefully', async () => {
+    it('returns [] when SerpApi throws a non-quota error', async () => {
       vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
       vi.mocked(serpApiService.serpApiGet).mockRejectedValueOnce(
-        new Error('API timeout'),
+        new Error('SerpApi 503: service unavailable'),
+      );
+
+      const result = await searchFlights({
+        origin: 'SFO',
+        destination: 'BCN',
+        departure_date: '2026-07-01',
+        passengers: 1,
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    it('does not throw when SerpApi throws a network error', async () => {
+      vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
+      vi.mocked(serpApiService.serpApiGet).mockRejectedValueOnce(
+        new Error('Network ECONNRESET'),
       );
 
       await expect(
@@ -222,7 +238,7 @@ describe('flights.tool', () => {
           departure_date: '2026-07-01',
           passengers: 1,
         }),
-      ).rejects.toThrow('API timeout');
+      ).resolves.toBeDefined();
     });
 
     it('returns an empty array when SerpApi monthly quota is exceeded', async () => {

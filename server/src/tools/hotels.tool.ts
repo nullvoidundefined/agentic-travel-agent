@@ -140,7 +140,16 @@ export async function searchHotels(
       );
       return [];
     }
-    throw err;
+    // Mirror B2's fail-soft pattern: any other SerpApi failure (5xx,
+    // region not supported, network) should not propagate to the
+    // agent loop. Log at warn and return empty so the agent narrates
+    // "no hotels found" instead of "having trouble accessing."
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    logger.warn(
+      { err, city: input.city, errorMessage },
+      'Hotel search failed; returning empty result',
+    );
+    return [];
   }
 
   let results = (response.properties ?? []).map((h, i) =>

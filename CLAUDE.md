@@ -82,7 +82,9 @@ Lefthook hooks enforce `format:check`, `lint`, and `build` on every commit and p
 - `git config --local core.hooksPath`. Must not point to a stale directory.
 - Run `npx lefthook install` to reinstall hooks if needed.
 
-Voyager is fully trunk-based: 0 PRs, 0 merge commits in the first 246 commits of project history. The lefthook pre-push hook is the **only** code-review boundary. Never bypass it without explicit per-commit user authorization. After any hook bypass, the next commit on main must re-run `pnpm format:check && pnpm lint && pnpm test && pnpm build` in its body as evidence. If the hook is found to be failing spuriously, fix the hook that day, before the next feature commit. Source: 2026-04-06 process retrospective at `docs/audits/2026-04-06-process-retrospective.md`.
+Voyager was fully trunk-based for its first 246 commits (0 PRs, 0 merge commits). As of 2026-04-07, GitHub branch protection on `main` requires the `e2e` status check before any push is accepted, so direct push from local now fails with `GH013: Required status check "e2e" is expected`. PRs are now mandatory: push the feature branch, open a PR via `gh pr create`, wait for CI to pass (`gh pr checks <num>`), then merge with `gh pr merge --merge --delete-branch`. The merge produces one merge commit per PR; commit-per-bug-ID granularity is preserved on the feature branch.
+
+The lefthook pre-push hook remains valuable as a fast local gate (it runs `format:check`, `lint`, `build`, and the e2e fast lane before the push reaches the remote), but it is no longer the only code-review boundary. The CI `e2e` check is now the authoritative gate. Never bypass either layer without explicit per-commit user authorization. After any hook bypass, the next commit on the branch must re-run the full verification chain in its body as evidence. If the local hook is found to be failing spuriously, fix it that day before the next feature commit. Sources: 2026-04-06 process retrospective at `docs/audits/2026-04-06-process-retrospective.md`; 2026-04-07 PR #24 merge that established the new flow.
 
 ## Commit conventions
 
