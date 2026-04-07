@@ -10,6 +10,28 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 
 ### Engineering (tech debt)
 
+### [ENG-20] 13 orphaned git worktrees in `.claude/worktrees/`
+
+- **Source:** 2026-04-07 lint deadlock investigation (see commits `1dd2bd0` chore(eslint) and `498a720` chore(lefthook))
+- **Severity:** P2 · **Effort:** M · **Category:** tech-debt / tooling
+- **Notes:** 13 live git worktrees are checked out under `.claude/worktrees/` from audit and plan work on 2026-04-06. Each is a full checkout of voyager at a different branch. None have been cleaned up.
+- **Why it matters:** one of these worktrees (`agent-a23ae2b5`) directly caused a commit deadlock on 2026-04-07. ESLint's flat config did not exclude `.claude/**`, so it walked into every worktree, and the worktree files are not covered by any tsconfig project in the main checkout's `parserOptions.project`, so `@typescript-eslint/parser` emitted 2945 spurious "parserOptions.project has been provided" errors on an untouched checkout. The proximate fix was `.claude/**` added to the eslint ignores list in commit `1dd2bd0`, but the worktrees themselves remain latent traps for any future tool that walks the directory tree without honoring `.gitignore`.
+- **Worktrees at time of logging** (from `git worktree list`):
+  - `.claude/worktrees/agent-a23ae2b5` on `worktree-agent-a23ae2b5` (caused the 2026-04-07 deadlock)
+  - `.claude/worktrees/agent-a3d8f473` on `worktree-agent-a3d8f473`
+  - `.claude/worktrees/agent-a4fffa10` on `worktree-agent-a4fffa10`
+  - `.claude/worktrees/agent-a85513f0` on `worktree-agent-a85513f0`
+  - `.claude/worktrees/agent-a9c2d56e` on `worktree-agent-a9c2d56e`
+  - `.claude/worktrees/agent-ab3c1e9a` on `worktree-agent-ab3c1e9a`
+  - `.claude/worktrees/agent-aca1fb11` on `worktree-agent-aca1fb11`
+  - `.claude/worktrees/agent-aebc5a93` on `audit/legal-2026-04-06`
+  - `.claude/worktrees/e2e-mock-anthropic-2026-04-06` on `feat/e2e-mock-anthropic-2026-04-06`
+  - `.claude/worktrees/plan-audit-2026-04-06` on `plan/audit-2026-04-06`
+  - `.claude/worktrees/plan-b-e2e-2026-04-06` on `plan/e2e-and-gates-2026-04-06`
+  - `.claude/worktrees/plan-c-fixes-2026-04-06` on `fix/audit-2026-04-06-p0p1`
+  - `.claude/worktrees/queue-cleanup-2026-04-06` on `test/eng-19-coverage-85-2026-04-07`
+- **Action before deletion:** for each worktree, verify via `git log` whether its branch has been merged into main (several of these branches appear to have landed via PRs already, so the worktree is just a stale checkout) or contains unmerged commits. For any branch with unmerged work: merge, rebase, cherry-pick, or explicitly abandon with a note here. Once cleared, run `git worktree remove .claude/worktrees/<name>` then `git branch -D <branch>`. Use the superpowers `finishing-a-development-branch` skill for each worktree individually; do not bulk-delete.
+
 ### [ENG-05] No Sentry / error tracking integrated
 
 - **Source:** engineering §Operational Basics

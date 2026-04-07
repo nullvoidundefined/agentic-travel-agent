@@ -113,3 +113,38 @@ Read the relevant file in `.claude/bottomlessmargaritas/` **before writing code*
 - **Database:** `.claude/bottomlessmargaritas/CLAUDE-DATABASE.md`
 - **Styling:** `.claude/bottomlessmargaritas/CLAUDE-STYLING.md`
 - **Deployment:** `.claude/bottomlessmargaritas/CLOUD-DEPLOYMENT.md`
+
+## Incident history
+
+Several rules in the global Claude Code rulebook (`~/.claude/CLAUDE.md`) were motivated by specific Voyager incidents. The rules themselves are codified globally and generalized across projects. This section records the Voyager-specific context so future auditors reviewing this repo understand which past events justified which disciplines. Treat this as authoritative historical context, not optional reading. This is distinct from the shorter retrospective callouts elsewhere in this file (severity tagging at "docs/BUGS.md severity tagging," ChatBox fix-storm at "ChatBox invariants," pre-push bypass discipline at "Pre-commit / pre-push verification"), which cite the retrospective inline with the rule they motivate.
+
+### 2026-04-06 retrospective
+
+A retrospective on 2026-04-06 surveyed commit history since the test-first discipline had been introduced and found four distinct rule violations. Each became a globally codified rule. Full retrospective at `docs/audits/2026-04-06-process-retrospective.md`.
+
+#### 68.6 percent bug-fix-without-test violation rate
+
+51 `fix:` commits were audited for whether they included a corresponding test in the same commit. 35 of them did not. 68.6 percent. This was true even after the test-first-bug-fixing rule had already been explicitly codified in commit `27e41de2`. 8 of the 35 violators were arguably justified mislabels (e.g., `ec73bf53` was a `quiz.md` reformat tagged `fix:`), but the remaining 27 were genuine rule violations. The lesson: discipline lives in the thinking, not in the commit label. Relabeling a `fix:` to `chore:` does not make a latent test unnecessary; it just hides the gap. Motivated the "relabeling does not dodge the rule" clause in the global test-first-bug-fixing section.
+
+#### Batched unrelated bug IDs in a single commit
+
+Four commits each fixed four to nine unrelated bug IDs in a single diff:
+
+- `5ab42753` covered B1, B3, B8, B9.
+- `047679bc` covered B15 through B23, mixing a P0 NaN fix with cosmetic gap spacing.
+
+Batching destroyed per-bug revertability, hid which specific change caused any new regression, and made test-per-bug traceability impossible. Motivated the global rule: one commit per triage ID, never bundle more than two IDs, and the commit subject must be explicit (`fix(B5, B12): ...`) with a body line-item per ID.
+
+#### Repeated `style: format all files` commits
+
+Three independent "style: format all files" commits landed in 13 days:
+
+- `047ad4aa`
+- `5441c42e`
+- `91018165`
+
+A deliberate-bad-format probe (`27e7c4bc`, reverted by `823e2ec1`) during the same window confirmed the pre-commit hook was silently failing or being manually probed. The correct response to formatting drift is to fix the hook; landing the drift-correction as a standalone commit without diagnosing hook state is how drift becomes recurring. Motivated the global rule that `style: format all files` commits must be paired with a "hook verification" commit in the same session.
+
+#### Railway production crash from missing dist asset (`bea33cc5`)
+
+Commit `bea33cc5` fixed a Railway production crash traced to `destinations.json` not being copied to `dist/` because `tsc` does not transitively copy JSON assets. A near-miss two days earlier (`9f08897b`) had been worked around by inlining the JSON into TypeScript rather than fixing the build contract. The team learned the same lesson twice, which is the part the retrospective treated as the real failure. Motivated the global "production-asset build contracts require a dist-content smoke test" rule: for every runtime-loaded non-code asset, a script must run after `tsc` (and in CI, and inside the Dockerfile build stage) asserting the file exists under `dist/` at the expected resolved path.

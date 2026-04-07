@@ -25,6 +25,7 @@ export default tseslint.config([
       '**/playwright.global-setup.ts',
       'e2e/**',
       'scripts/**',
+      '.claude/**',
     ],
   },
   {
@@ -93,6 +94,7 @@ export default tseslint.config([
           './server/tsconfig.json',
           './web-client/tsconfig.json',
           './eval/tsconfig.json',
+          './packages/shared-types/tsconfig.json',
         ],
         tsconfigRootDir: import.meta.dirname,
         sourceType: 'module',
