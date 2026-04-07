@@ -2,9 +2,11 @@ pre-commit:
   parallel: true
   commands:
     format:
-      run: pnpm format:check
+      glob: "*.{js,jsx,mjs,cjs,ts,tsx,json,css,scss,md}"
+      run: pnpm exec prettier --config prettier.config.bottomlessmargaritas.mjs --check {staged_files}
     lint:
-      run: pnpm lint
+      glob: "*.{js,jsx,mjs,cjs,ts,tsx}"
+      run: pnpm exec eslint --config eslint.config.bottomlessmargaritas.js {staged_files}
 
 # Fix-commit discipline gate (BLOCKING mode).
 #
