@@ -1,3 +1,4 @@
+import { get } from '@/lib/api';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
@@ -83,6 +84,57 @@ function renderPage() {
     </QueryClientProvider>,
   );
 }
+
+describe('TripDetailPage budget rendering - string prices (B12 regression)', () => {
+  it('shows correct allocated amount when prices arrive as strings (pg type parser not applied)', async () => {
+    // Simulate pg NUMERIC returning as strings before the global type parser runs.
+    // String concat: 0 + "1606" = "01606", which makes Number.isFinite fail and
+    // allocated collapses to $0 even though Cost Breakdown shows the correct line items.
+    vi.mocked(get).mockResolvedValueOnce({
+      trip: {
+        id: 'trip-1',
+        destination: 'Beijing',
+        origin: 'SFO',
+        departure_date: '2026-08-01',
+        return_date: '2026-08-08',
+        budget_total: 10000,
+        budget_currency: 'USD',
+        travelers: 1,
+        status: 'planning',
+        flights: [
+          {
+            id: 'f1',
+            origin: 'SFO',
+            destination: 'PEK',
+            airline: 'Asiana',
+            flight_number: 'OZ211',
+            price: '1606' as unknown as number,
+            currency: 'USD',
+            departure_time: null,
+          },
+        ],
+        hotels: [
+          {
+            id: 'h1',
+            name: 'Hotel A',
+            city: 'Beijing',
+            price_per_night: '150' as unknown as number,
+            total_price: '225' as unknown as number,
+            currency: 'USD',
+            check_in: null,
+            check_out: null,
+          },
+        ],
+        car_rentals: [],
+        experiences: [],
+      },
+    });
+    renderPage();
+    // $1,606 + $225 = $1,831 allocated
+    const allocatedEl = await screen.findByText(/allocated/);
+    expect(allocatedEl.textContent).toContain('1,831');
+  });
+});
 
 describe('TripDetailPage budget rendering (B1 regression)', () => {
   it('never renders $NaN in the Budget tile when a car rental row has null total_price', async () => {
