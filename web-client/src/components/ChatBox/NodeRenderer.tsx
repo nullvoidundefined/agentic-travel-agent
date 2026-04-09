@@ -16,10 +16,10 @@ import { ItineraryTimeline } from './widgets/ItineraryTimeline';
 import { QuickReplyChips } from './widgets/QuickReplyChips';
 
 export interface NodeRendererCallbacks {
-  onConfirmFlight?: (label: string) => void;
-  onConfirmHotel?: (label: string) => void;
-  onConfirmCarRental?: (label: string) => void;
-  onConfirmExperience?: (label: string) => void;
+  onConfirmFlight?: (label: string, data: Record<string, unknown>) => void;
+  onConfirmHotel?: (label: string, data: Record<string, unknown>) => void;
+  onConfirmCarRental?: (label: string, data: Record<string, unknown>) => void;
+  onConfirmExperience?: (label: string, data: Record<string, unknown>) => void;
   onQuickReply?: (text: string) => void;
   onBookNow?: () => void;
   onFormSubmit?: (

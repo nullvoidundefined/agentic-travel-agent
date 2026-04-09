@@ -3,7 +3,7 @@
 import { type FormEvent, useCallback, useMemo, useRef, useState } from 'react';
 
 import { Toast } from '@/components/Toast/Toast';
-import { get, put } from '@/lib/api';
+import { get, post, put } from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ChatMessage } from '@voyager/shared-types';
 
@@ -182,6 +182,18 @@ export function ChatBox({
     [tripId, queryClient, handleSend],
   );
 
+  const handleSelectItem = useCallback(
+    async (type: string, data: Record<string, unknown>) => {
+      try {
+        await post(`/trips/${tripId}/selections`, { type, data });
+        void queryClient.invalidateQueries({ queryKey: ['trips', tripId] });
+      } catch (err) {
+        console.error('Failed to persist selection:', err);
+      }
+    },
+    [tripId, queryClient],
+  );
+
   // Invalidate trips query after booking-related actions
   const handleBookTrip = useCallback(() => {
     onBookTrip?.();
@@ -217,6 +229,7 @@ export function ChatBox({
         streamingText={streamingText}
         isSending={isSending}
         onQuickReply={handleSend}
+        onSelectItem={handleSelectItem}
         onFormSubmit={handleFormSubmit}
         onBookNow={handleBookTrip}
       />

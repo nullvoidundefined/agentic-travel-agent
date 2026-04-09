@@ -7,7 +7,7 @@ import { SelectableCardGroup } from '../widgets/SelectableCardGroup';
 
 interface ExperienceTilesProps {
   node: ChatNodeOfType<'experience_tiles'>;
-  onConfirm?: (label: string) => void;
+  onConfirm?: (label: string, data: Record<string, unknown>) => void;
   disabled?: boolean;
   confirmedId?: string | null;
 }
@@ -21,6 +21,7 @@ export function ExperienceTiles({
   const items = node.experiences.map((experience) => ({
     id: experience.id,
     label: experience.name,
+    data: experience as unknown as Record<string, unknown>,
     node: (selected: boolean, onClick: () => void) => (
       <ExperienceCard
         name={experience.name}

@@ -7,7 +7,7 @@ import { CarRentalCard } from './CarRentalCard';
 
 interface CarRentalTilesProps {
   node: ChatNodeOfType<'car_rental_tiles'>;
-  onConfirm?: (label: string) => void;
+  onConfirm?: (label: string, data: Record<string, unknown>) => void;
   disabled?: boolean;
   confirmedId?: string | null;
 }
@@ -21,6 +21,7 @@ export function CarRentalTiles({
   const items = node.rentals.map((rental) => ({
     id: rental.id,
     label: `${rental.car_name} (${rental.provider})`,
+    data: rental as unknown as Record<string, unknown>,
     node: (selected: boolean, onClick: () => void) => (
       <CarRentalCard rental={rental} selected={selected} onClick={onClick} />
     ),

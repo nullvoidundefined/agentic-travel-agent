@@ -5,9 +5,22 @@ import {
 } from 'app/repositories/conversations/conversations.js';
 import * as tripRepo from 'app/repositories/trips/trips.js';
 import { createTripSchema } from 'app/schemas/trips.js';
+import {
+  selectCarRentalSchema,
+  selectExperienceSchema,
+  selectFlightSchema,
+  selectHotelSchema,
+} from 'app/tools/schemas.js';
 import { ApiError } from 'app/utils/ApiError.js';
 import { logger } from 'app/utils/logs/logger.js';
 import type { Request, Response } from 'express';
+import type { ZodError } from 'zod';
+
+function formatZodError(error: ZodError): string {
+  return error.issues
+    .map((i) => `${i.path.join('.')}: ${i.message}`)
+    .join('; ');
+}
 
 export async function createTrip(req: Request, res: Response): Promise<void> {
   const parsed = createTripSchema.safeParse(req.body);
@@ -142,6 +155,84 @@ export async function deleteTrip(req: Request, res: Response): Promise<void> {
 
   logger.info({ event: 'trip_deleted', tripId, userId }, 'Trip deleted');
   res.status(204).send();
+}
+
+/**
+ * B14: persist a tile-card selection (flight, hotel, car rental, or
+ * experience) directly from the frontend. This bypasses the agent loop so
+ * selection persistence is deterministic and does not depend on the LLM
+ * extracting structured data from a natural-language confirmation message.
+ *
+ * The agent sees the updated selections in the trip context on the next turn
+ * via getTripWithDetails, so it can acknowledge them naturally.
+ */
+export async function selectItem(req: Request, res: Response): Promise<void> {
+  const userId = req.user!.id;
+  const tripId = req.params.id as string;
+  const { type, data } = (req.body ?? {}) as {
+    type?: string;
+    data?: Record<string, unknown>;
+  };
+
+  if (!data || typeof data !== 'object') {
+    throw ApiError.badRequest('data is required');
+  }
+
+  const trip = await tripRepo.getTripWithDetails(tripId, userId);
+  if (!trip) throw ApiError.notFound('Trip not found');
+
+  switch (type) {
+    case 'flight': {
+      const parsed = selectFlightSchema.safeParse(data);
+      if (!parsed.success)
+        throw ApiError.badRequest(formatZodError(parsed.error));
+      await tripRepo.insertTripFlight(
+        tripId,
+        parsed.data as Record<string, unknown>,
+      );
+      break;
+    }
+    case 'hotel': {
+      const parsed = selectHotelSchema.safeParse(data);
+      if (!parsed.success)
+        throw ApiError.badRequest(formatZodError(parsed.error));
+      await tripRepo.insertTripHotel(
+        tripId,
+        parsed.data as Record<string, unknown>,
+      );
+      break;
+    }
+    case 'car_rental': {
+      const parsed = selectCarRentalSchema.safeParse(data);
+      if (!parsed.success)
+        throw ApiError.badRequest(formatZodError(parsed.error));
+      await tripRepo.insertTripCarRental(
+        tripId,
+        parsed.data as Record<string, unknown>,
+      );
+      break;
+    }
+    case 'experience': {
+      const parsed = selectExperienceSchema.safeParse(data);
+      if (!parsed.success)
+        throw ApiError.badRequest(formatZodError(parsed.error));
+      await tripRepo.insertTripExperience(
+        tripId,
+        parsed.data as Record<string, unknown>,
+      );
+      break;
+    }
+    default:
+      throw ApiError.badRequest(
+        `Invalid selection type: ${String(type)}. Must be flight, hotel, car_rental, or experience.`,
+      );
+  }
+
+  logger.info(
+    { event: 'selection_saved', tripId, userId, type },
+    'Trip selection saved',
+  );
+  res.status(201).json({ success: true });
 }
 
 /**

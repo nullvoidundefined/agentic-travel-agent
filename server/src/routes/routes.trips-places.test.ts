@@ -24,6 +24,9 @@ vi.mock('app/handlers/trips/trips.js', () => ({
     res.status(200).json({ ok: 'updateTrip' }),
   deleteTrip: (_: express.Request, res: express.Response) =>
     res.status(204).send(),
+  // B14: production selection endpoint
+  selectItem: (_: express.Request, res: express.Response) =>
+    res.status(201).json({ ok: 'selectItem' }),
   // PR-H (ENG-17) added a test-only seedSelections handler
   // that the tripRouter imports. Stub it so vi.mock does not
   // error with "No seedSelections export is defined" when this

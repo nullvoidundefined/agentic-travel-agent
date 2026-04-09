@@ -7,7 +7,7 @@ import { SelectableCardGroup } from '../widgets/SelectableCardGroup';
 
 interface HotelTilesProps {
   node: ChatNodeOfType<'hotel_tiles'>;
-  onConfirm?: (label: string) => void;
+  onConfirm?: (label: string, data: Record<string, unknown>) => void;
   disabled?: boolean;
   confirmedId?: string | null;
 }
@@ -21,6 +21,7 @@ export function HotelTiles({
   const items = node.hotels.map((hotel) => ({
     id: hotel.id,
     label: `${hotel.name}, ${hotel.city}`,
+    data: hotel as unknown as Record<string, unknown>,
     node: (selected: boolean, onClick: () => void) => (
       <HotelCard
         name={hotel.name}

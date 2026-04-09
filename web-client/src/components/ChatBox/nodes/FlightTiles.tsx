@@ -7,7 +7,7 @@ import { SelectableCardGroup } from '../widgets/SelectableCardGroup';
 
 interface FlightTilesProps {
   node: ChatNodeOfType<'flight_tiles'>;
-  onConfirm?: (label: string) => void;
+  onConfirm?: (label: string, data: Record<string, unknown>) => void;
   disabled?: boolean;
   confirmedId?: string | null;
 }
@@ -21,6 +21,7 @@ export function FlightTiles({
   const items = node.flights.map((flight) => ({
     id: flight.id,
     label: `${flight.airline} ${flight.flight_number} — ${flight.origin} to ${flight.destination}`,
+    data: flight as unknown as Record<string, unknown>,
     node: (selected: boolean, onClick: () => void) => (
       <FlightCard
         airline={flight.airline}

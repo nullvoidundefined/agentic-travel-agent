@@ -34,7 +34,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter voyager-server run migrate
+      - run: pnpm --filter voyager-server run migrate:up
         env:
           DATABASE_URL: postgres://postgres:test@localhost:5432/voyager_test
       - run: pnpm --dir web-client exec playwright install --with-deps chromium

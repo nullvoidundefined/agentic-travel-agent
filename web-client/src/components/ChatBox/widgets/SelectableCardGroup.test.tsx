@@ -10,6 +10,12 @@ const items = [
   {
     id: 'flight-1',
     label: 'Delta DL100',
+    data: {
+      airline: 'Delta',
+      flight_number: 'DL100',
+      price: 300,
+      currency: 'USD',
+    },
     node: (selected: boolean, onClick: () => void) => (
       <button
         type='button'
@@ -24,6 +30,12 @@ const items = [
   {
     id: 'flight-2',
     label: 'United UA200',
+    data: {
+      airline: 'United',
+      flight_number: 'UA200',
+      price: 350,
+      currency: 'USD',
+    },
     node: (selected: boolean, onClick: () => void) => (
       <button
         type='button'
@@ -55,12 +67,17 @@ describe('SelectableCardGroup', () => {
     expect(screen.getByText('Confirm Selection')).toBeInTheDocument();
   });
 
-  it('calls onConfirm with the selected label when confirmed', async () => {
+  it('calls onConfirm with the selected label and data when confirmed', async () => {
     const onConfirm = vi.fn();
     render(<SelectableCardGroup items={items} onConfirm={onConfirm} />);
     await userEvent.click(screen.getByTestId('card-flight-1'));
     await userEvent.click(screen.getByText('Confirm Selection'));
-    expect(onConfirm).toHaveBeenCalledWith('Delta DL100');
+    expect(onConfirm).toHaveBeenCalledWith('Delta DL100', {
+      airline: 'Delta',
+      flight_number: 'DL100',
+      price: 300,
+      currency: 'USD',
+    });
   });
 
   it('toggles selection off when clicking same item twice', async () => {

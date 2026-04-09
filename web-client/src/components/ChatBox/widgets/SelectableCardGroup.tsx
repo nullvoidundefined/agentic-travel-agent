@@ -8,9 +8,13 @@ interface SelectableCardGroupProps {
   items: Array<{
     id: string;
     label: string;
+    data?: Record<string, unknown>;
     node: (selected: boolean, onClick: () => void) => ReactNode;
   }>;
-  onConfirm: (selectedLabel: string) => void;
+  onConfirm: (
+    selectedLabel: string,
+    selectedData: Record<string, unknown>,
+  ) => void;
   disabled?: boolean;
   confirmedId?: string | null;
 }
@@ -35,7 +39,7 @@ export function SelectableCardGroup({
     if (!selectedId || isConfirmed || disabled) return;
     const item = items.find((i) => i.id === selectedId);
     if (item) {
-      onConfirm(item.label);
+      onConfirm(item.label, item.data ?? {});
     }
   };
 

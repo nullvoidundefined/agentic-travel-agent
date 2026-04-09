@@ -8,63 +8,73 @@ Track bugs here. Clear them in batches.
 
 ### B2: Claude still produces walls of text
 
-Despite prompt constraints, Claude sometimes writes multi-paragraph responses. Per-category state machines are now implemented — monitor if this improves. May need further prompt iteration per category/status.
+severity: P3 effort: M
+Despite prompt constraints, Claude sometimes writes multi-paragraph responses. Per-category state machines are now implemented; monitor if this improves. May need further prompt iteration per category/status.
 
 ### B10: Homepage hero images have side gutters
 
+severity: P3 effort: S
 Hero/feature images should be edge-to-edge with no side padding, max-width capped at 1600px.
 
 ### B11: Unsplash images not responsive to device size
 
+severity: P3 effort: S
 Desktop-sized images (1600x800) load on mobile. Should use responsive Unsplash `w` parameter or Next.js `sizes` + `srcset` to serve appropriately sized assets per breakpoint.
 
 ### B12: Stale trip metadata after updates
 
+severity: P2 effort: M
 Travel status, budget, and dates can appear invalid or stale after trip modifications. Need an end-to-end audit to ensure trip metadata stays in sync as the trip is modified via the chat agent.
 
 ### B13: Chat suggests alternatives when user names a specific option
 
-When a user says "I want the InterContinental Plaza Hotel," Claude should book that exact option and confirm — not present alternatives. This applies across all bookable categories: hotels, cars, experiences, dining. The category prompts need to instruct Claude to honor explicit selections.
+severity: P2 effort: M
+When a user says "I want the InterContinental Plaza Hotel," Claude should book that exact option and confirm, not present alternatives. This applies across all bookable categories: hotels, cars, experiences, dining. The category prompts need to instruct Claude to honor explicit selections.
 
 ### B15: Header needs coral compass logo + favicon
 
+severity: P3 effort: S
 The header logo is just text "Voyager". Needs a coral/orange compass SVG icon. Also need a matching favicon for the browser tab.
 
 ### B16: Trip tile image not clickable
 
-On the trips list page, the image header on the trip card is not clickable — only the text below is. The entire card should be clickable.
+severity: P3 effort: S
+On the trips list page, the image header on the trip card is not clickable; only the text below is. The entire card should be clickable.
 
-### B17: Trip detail hero has rounded corners — should be square
+### B17: Trip detail hero has rounded corners
 
+severity: P3 effort: S
 The destination hero image on the trip detail page has border-radius. It should be fully square (no rounded corners) for edge-to-edge feel.
 
-### B18: Itinerary items above chat — should be below
+### B18: Itinerary items above chat
 
+severity: P2 effort: S
 On the trip detail page, the itinerary items section is above the chat. The chat should be the first thing users see, with itinerary below.
 
 ### B19: Tool progress items have no gap between them
 
+severity: P3 effort: S
 The loading/tool progress indicators in the chat have no spacing between them.
 
 ### B20: Double confirm buttons on flight tile selection
 
+severity: P2 effort: S
 After selecting a flight in the tile list, a "Confirm Selection" button appears on the card group, but additional confirm buttons also appear below. The card group's confirm button should be the only one.
 
 ### B21: Hotel tiles missing prices
 
+severity: P2 effort: S
 Many hotel tiles don't display prices. All hotels should show price_per_night and total_price.
 
 ### B22: Over-budget value shows NaN
 
+severity: P2 effort: S
 When total_spent exceeds budget_total, the remaining budget displays NaN instead of a negative number.
 
 ### B23: Explore page needs search bar
 
+severity: P3 effort: M
 The explore page should have a text search bar that filters destination cards by name, in addition to the category filters.
-
-### B14: Tile selections don't persist to trip record
-
-When a user selects a flight/hotel/car/experience from the tile cards, the selection sends a chat message ("I've selected...") but nothing persists to `trip_flights`, `trip_hotels`, `trip_car_rentals`, or `trip_experiences`. The trip detail page shows "No itinerary items" and "$0 allocated" because the selection tables are empty. Need selection persistence tools or a mechanism for Claude to call `update_trip` with the selected item data after the user confirms.
 
 ---
 
@@ -190,3 +200,26 @@ severity: P2 effort: S - fixed 2026-04-07
 Root cause: `searchHotels` had the same shape as B30. Fix: same pattern
 as B30. Replaced the pre-existing `'rethrows non-quota errors'` test.
 Commit bfb8cc9.
+
+## Bug batch 2026-04-09 (B14 resolved)
+
+### B14: Tile selections don't persist to trip record
+
+severity: P1 effort: M - fixed 2026-04-09
+Root cause: tile confirm callbacks in VirtualizedChat only passed a
+human-readable label to the agent via a chat message. The agent had to
+re-extract structured selection data from conversation history to call
+the select\_\* tools, which was unreliable. The trip selection tables
+stayed empty.
+Fix (Approach B): added a direct `POST /trips/:id/selections` endpoint
+that accepts `{ type, data }` and persists via the existing
+insertTripFlight/Hotel/CarRental/Experience repo functions, bypassing the
+agent loop entirely. The agent sees the updated selections in trip context
+on the next turn via getTripWithDetails.
+Frontend: SelectableCardGroup now carries a `data` field per item and
+passes it to `onConfirm(label, data)`. Each tile component populates
+`data` from the full item object. VirtualizedChat gains `onSelectItem`;
+ChatBox implements it as a direct POST before also sending the quick reply
+chat message for conversational context.
+Backend commits: a5cdb09 (handler + route + 7 tests).
+Frontend commit: 9cf1860 (tile chain + ChatBox).

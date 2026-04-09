@@ -17,6 +17,7 @@ interface VirtualizedChatProps {
   streamingText: string;
   isSending: boolean;
   onQuickReply: (text: string) => void;
+  onSelectItem?: (type: string, data: Record<string, unknown>) => void;
   onBookNow?: () => void;
   onFormSubmit?: (
     structuredData: Record<string, string>,
@@ -71,6 +72,7 @@ export function VirtualizedChat({
   streamingText,
   isSending,
   onQuickReply,
+  onSelectItem,
   onBookNow,
   onFormSubmit,
 }: VirtualizedChatProps) {
@@ -224,18 +226,26 @@ export function VirtualizedChat({
                               onQuickReply,
                               onBookNow,
                               onFormSubmit,
-                              onConfirmFlight: (label) =>
+                              onConfirmFlight: (label, data) => {
+                                onSelectItem?.('flight', data);
                                 onQuickReply(
                                   `I've selected the ${label} flight`,
-                                ),
-                              onConfirmHotel: (label) =>
-                                onQuickReply(`I've selected ${label}`),
-                              onConfirmCarRental: (label) =>
+                                );
+                              },
+                              onConfirmHotel: (label, data) => {
+                                onSelectItem?.('hotel', data);
+                                onQuickReply(`I've selected ${label}`);
+                              },
+                              onConfirmCarRental: (label, data) => {
+                                onSelectItem?.('car_rental', data);
                                 onQuickReply(
                                   `I've selected the ${label} rental`,
-                                ),
-                              onConfirmExperience: (label) =>
-                                onQuickReply(`I've selected ${label}`),
+                                );
+                              },
+                              onConfirmExperience: (label, data) => {
+                                onSelectItem?.('experience', data);
+                                onQuickReply(`I've selected ${label}`);
+                              },
                             }}
                           />
                         ))}

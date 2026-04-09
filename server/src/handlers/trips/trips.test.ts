@@ -38,6 +38,7 @@ function createApp() {
   app.get('/trips/:id', tripHandlers.getTrip);
   app.put('/trips/:id', tripHandlers.updateTrip);
   app.delete('/trips/:id', tripHandlers.deleteTrip);
+  app.post('/trips/:id/selections', tripHandlers.selectItem);
   app.post('/trips/:id/test-selections', tripHandlers.seedSelections);
   app.use(errorHandler);
   return app;
@@ -480,6 +481,176 @@ describe('trip handlers', () => {
       expect(res.status).toBe(204);
       expect(tripRepo.insertTripFlight).not.toHaveBeenCalled();
       expect(tripRepo.insertTripHotel).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('POST /trips/:id/selections (selectItem, B14)', () => {
+    const mockTripWithDetails = {
+      ...mockTrip,
+      flights: [],
+      hotels: [],
+      car_rentals: [],
+      experiences: [],
+    } as unknown as Awaited<ReturnType<typeof tripRepo.getTripWithDetails>>;
+
+    it('returns 400 when data field is missing', async () => {
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'flight' });
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('data is required');
+    });
+
+    it('returns 404 when trip is not owned by the caller', async () => {
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(null);
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'flight', data: {} });
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('NOT_FOUND');
+    });
+
+    it('returns 400 when type is invalid', async () => {
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        mockTripWithDetails,
+      );
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'spaceship', data: {} });
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('Invalid selection type');
+    });
+
+    it('returns 400 when flight data fails Zod validation', async () => {
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        mockTripWithDetails,
+      );
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'flight', data: { airline: 'Delta' } });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 400 when hotel data fails Zod validation', async () => {
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        mockTripWithDetails,
+      );
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'hotel', data: { name: 'Arts' } });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 400 when car_rental data fails Zod validation', async () => {
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        mockTripWithDetails,
+      );
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'car_rental', data: { provider: 'Hertz' } });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 400 when experience data fails Zod validation', async () => {
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        mockTripWithDetails,
+      );
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'experience', data: { category: 'museum' } });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 201 and calls insertTripFlight for flight type', async () => {
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        mockTripWithDetails,
+      );
+      vi.mocked(tripRepo.insertTripFlight).mockResolvedValueOnce(undefined);
+      const flightData = {
+        airline: 'Delta',
+        flight_number: 'DL100',
+        origin: 'JFK',
+        destination: 'BCN',
+        price: 450,
+        currency: 'USD',
+      };
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'flight', data: flightData });
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(tripRepo.insertTripFlight).toHaveBeenCalledWith(
+        tripId,
+        expect.objectContaining({ airline: 'Delta', price: 450 }),
+      );
+    });
+
+    it('returns 201 and calls insertTripHotel for hotel type', async () => {
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        mockTripWithDetails,
+      );
+      vi.mocked(tripRepo.insertTripHotel).mockResolvedValueOnce(undefined);
+      const hotelData = {
+        name: 'Hotel Arts',
+        price_per_night: 200,
+        total_price: 1000,
+        currency: 'USD',
+      };
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'hotel', data: hotelData });
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(tripRepo.insertTripHotel).toHaveBeenCalledWith(
+        tripId,
+        expect.objectContaining({ name: 'Hotel Arts', total_price: 1000 }),
+      );
+    });
+
+    it('returns 201 and calls insertTripCarRental for car_rental type', async () => {
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        mockTripWithDetails,
+      );
+      vi.mocked(tripRepo.insertTripCarRental).mockResolvedValueOnce(undefined);
+      const rentalData = {
+        provider: 'Hertz',
+        car_name: 'Toyota Camry',
+        total_price: 300,
+        currency: 'USD',
+      };
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'car_rental', data: rentalData });
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(tripRepo.insertTripCarRental).toHaveBeenCalledWith(
+        tripId,
+        expect.objectContaining({ provider: 'Hertz', total_price: 300 }),
+      );
+    });
+
+    it('returns 201 and calls insertTripExperience for experience type', async () => {
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        mockTripWithDetails,
+      );
+      vi.mocked(tripRepo.insertTripExperience).mockResolvedValueOnce(undefined);
+      const expData = { name: 'Sagrada Familia', estimated_cost: 30 };
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'experience', data: expData });
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(tripRepo.insertTripExperience).toHaveBeenCalledWith(
+        tripId,
+        expect.objectContaining({
+          name: 'Sagrada Familia',
+          estimated_cost: 30,
+        }),
+      );
     });
   });
 });
