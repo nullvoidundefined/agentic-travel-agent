@@ -21,10 +21,10 @@ Hero/feature images should be edge-to-edge with no side padding, max-width cappe
 severity: P3 effort: S
 Desktop-sized images (1600x800) load on mobile. Should use responsive Unsplash `w` parameter or Next.js `sizes` + `srcset` to serve appropriately sized assets per breakpoint.
 
-### B12: Stale trip metadata after updates
+### B12: Budget tile shows $0 allocated after selections
 
-severity: P2 effort: M
-Travel status, budget, and dates can appear invalid or stale after trip modifications. Need an end-to-end audit to ensure trip metadata stays in sync as the trip is modified via the chat agent.
+severity: P2 effort: S - fixed 2026-04-10
+Root cause: `flightTotal` and `hotelTotal` reducers used bare `sum + (f.price ?? 0)` without `Number()` coercion. When `price` arrives as a string (pg NUMERIC without the global type parser applied), JS produces string concat: `0 + "1606" = "01606"`. `Number.isFinite("01606")` is false so `allocated = 0`. `formatCurrency` coerced the string correctly in Cost Breakdown, masking where the budget math was failing. Fix: `toNum` helper applying `Number()` and `isFinite` guard across all four reducers. Commit 02bcf5c.
 
 ### B13: Chat suggests alternatives when user names a specific option
 
