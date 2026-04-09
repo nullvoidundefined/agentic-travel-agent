@@ -123,18 +123,21 @@ export default function TripDetailPage() {
     );
   }
 
-  const flightTotal = trip.flights.reduce((sum, f) => sum + (f.price ?? 0), 0);
+  const toNum = (v: number | string | null | undefined): number => {
+    const n = Number(v ?? 0);
+    return Number.isFinite(n) ? n : 0;
+  };
+  const flightTotal = trip.flights.reduce((sum, f) => sum + toNum(f.price), 0);
   const hotelTotal = trip.hotels.reduce(
-    (sum, h) => sum + (h.total_price ?? 0),
+    (sum, h) => sum + toNum(h.total_price),
     0,
   );
   const carRentalTotal = trip.car_rentals.reduce(
-    (sum, c) =>
-      sum + (Number.isFinite(c.total_price) ? (c.total_price ?? 0) : 0),
+    (sum, c) => sum + toNum(c.total_price),
     0,
   );
   const experienceTotal = trip.experiences.reduce(
-    (sum, e) => sum + (e.estimated_cost ?? 0),
+    (sum, e) => sum + toNum(e.estimated_cost),
     0,
   );
   const rawAllocated =
